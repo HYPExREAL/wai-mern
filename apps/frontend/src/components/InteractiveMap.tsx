@@ -7,6 +7,7 @@ import {
   Popup,
   Circle,
   useMap,
+  useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -49,7 +50,18 @@ const ICONS = {
   verified: makeSvgIcon("#16A34A"),  // green
   rejected: makeSvgIcon("#DC2626"), // red
   user: makeSvgIcon("#3B82F6"),     // blue — user location
+  manual: makeSvgIcon("#A855F7"),   // purple — manual pin
 };
+
+// ── Map sub-component: click handler ───────────────────────────
+function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      onMapClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
 
 // ── Map sub-component: fly to user location ────────────────────
 function FlyToUser({ lat, lng }: { lat: number; lng: number }) {
@@ -85,19 +97,22 @@ export default function InteractiveMap() {
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [manualLocation, setManualLocation] = useState<[number, number] | null>(null);
 
   const accuracyOk = geo.accuracy !== null && geo.accuracy <= 10;
+  const hasValidLocation = manualLocation !== null || (!geo.loading && !geo.error && accuracyOk);
   const canSubmit =
-    !geo.loading &&
-    !geo.error &&
-    accuracyOk &&
+    hasValidLocation &&
     name.trim() !== "" &&
     depth !== "" &&
     description.trim() !== "";
 
+  const finalLat = manualLocation ? manualLocation[0] : geo.latitude;
+  const finalLng = manualLocation ? manualLocation[1] : geo.longitude;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit || geo.latitude === null || geo.longitude === null) return;
+    if (!canSubmit || finalLat === null || finalLng === null) return;
 
     setSubmitting(true);
     // Simulate a tiny network delay for UX
@@ -105,8 +120,8 @@ export default function InteractiveMap() {
       addReport({
         title: `Laporan banjir oleh ${name.trim()}`,
         description: description.trim(),
-        latitude: geo.latitude!,
-        longitude: geo.longitude!,
+        latitude: finalLat,
+        longitude: finalLng,
         severity: depth as FloodReport["severity"],
         reporterName: name.trim(),
         imageUrl: undefined,
@@ -117,6 +132,7 @@ export default function InteractiveMap() {
       setName("");
       setDepth("");
       setDescription("");
+      setManualLocation(null);
       setTimeout(() => setSubmitted(false), 3000);
     }, 600);
   };
@@ -181,24 +197,28 @@ export default function InteractiveMap() {
             )}
             <div>
               <span className="font-semibold block">
-                {geo.loading
-                  ? "Mencari lokasi GPS..."
-                  : geo.error
-                    ? "GPS Error"
-                    : accuracyOk
-                      ? "GPS Akurat"
-                      : "Akurasi Rendah"}
+                {manualLocation
+                  ? "Lokasi Manual Dipilih"
+                  : geo.loading
+                    ? "Mencari lokasi GPS..."
+                    : geo.error
+                      ? "GPS Error"
+                      : accuracyOk
+                        ? "GPS Akurat"
+                        : "Akurasi Rendah"}
               </span>
               <span className="text-xs opacity-80">
-                {geo.loading
-                  ? "Pastikan GPS aktif di perangkat Anda."
-                  : geo.error
-                    ? geo.error
-                    : `Akurasi: ±${geo.accuracy?.toFixed(1)}m${
-                        !accuracyOk
-                          ? " — harus ≤10m untuk mengirim laporan."
-                          : ""
-                      }`}
+                {manualLocation
+                  ? "Menggunakan titik koordinat yang Anda klik di peta."
+                  : geo.loading
+                    ? "Pastikan GPS aktif di perangkat Anda."
+                    : geo.error
+                      ? `${geo.error} Klik peta untuk lokasi manual.`
+                      : `Akurasi: ±${geo.accuracy?.toFixed(1)}m${
+                          !accuracyOk
+                            ? " — harus ≤10m atau klik peta."
+                            : ""
+                        }`}
               </span>
             </div>
           </div>
@@ -278,11 +298,12 @@ export default function InteractiveMap() {
           </div>
 
           {/* Coordinates display */}
-          {geo.latitude !== null && geo.longitude !== null && (
+          {finalLat !== null && finalLng !== null && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-flood-50 border border-flood-100 text-xs text-flood-600">
               <Info className="w-3.5 h-3.5 shrink-0" />
               <span className="font-mono">
-                {geo.latitude.toFixed(6)}, {geo.longitude.toFixed(6)}
+                {finalLat.toFixed(6)}, {finalLng.toFixed(6)}{" "}
+                <span className="font-semibold">{manualLocation ? "(Manual)" : "(GPS)"}</span>
               </span>
             </div>
           )}
@@ -330,6 +351,26 @@ export default function InteractiveMap() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+
+          <ClickHandler onMapClick={(lat, lng) => setManualLocation([lat, lng])} />
+
+          {manualLocation && (
+            <Marker position={manualLocation} icon={ICONS.manual}>
+              <Popup>
+                <div className="text-sm">
+                  <strong>Lokasi Manual</strong>
+                  <br />
+                  <button
+                    type="button"
+                    onClick={() => setManualLocation(null)}
+                    className="text-red-500 font-semibold mt-2 hover:underline cursor-pointer"
+                  >
+                    Hapus pin manual
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          )}
 
           {/* User location + accuracy circle */}
           {geo.latitude !== null && geo.longitude !== null && (
