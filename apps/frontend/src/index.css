@@ -1,3 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  /* Branding Proyek Banjir */
+  --color-flood-blue: #2563eb;
+  --color-flood-red: #dc2626;
+  --color-flood-warning: #f59e0b;
+  
+  /* Font & Spacing bisa dikustom di sini */
+}
+
+/* Base style untuk Leaflet agar tidak konflik dengan Tailwind Reset */
+.leaflet-container {
+  @apply h-full w-full z-10;
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
