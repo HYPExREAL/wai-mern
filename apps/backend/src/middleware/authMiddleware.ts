@@ -28,7 +28,7 @@ export const authMiddleware = (
       return res.status(500).json({ message: "Konfigurasi server salah." });
     }
 
-    const decoded = jwt.verify(token, jwtSecret!);
+    const decoded = jwt.verify(token, jwtSecret);
     req.user = decoded;
 
     next();

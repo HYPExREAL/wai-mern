@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 import authRoutes from "./src/routes/authRoutes";
 import reportRoutes from "./src/routes/reportRoutes";
 
@@ -23,7 +24,18 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`🚀 Backend server is running on http://localhost:${port}`);
-});
+// Connect to MongoDB, then start the server
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/wai-flood";
+
+mongoose
+  .connect(MONGO_URI)
+  .then(() => {
+    console.log("✅ Connected to MongoDB");
+    app.listen(port, () => {
+      console.log(`🚀 Backend server is running on http://localhost:${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1);
+  });

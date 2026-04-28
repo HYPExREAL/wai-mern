@@ -1,27 +1,27 @@
-import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
-  Circle,
   useMap,
   useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
-  MapPin,
-  ArrowLeft,
   Crosshair,
-  AlertTriangle,
-  CheckCircle,
   Send,
   Loader2,
-  Droplets,
   ChevronDown,
-  Info,
+  Search,
+  Upload,
+  Plus,
+  Minus,
+  Navigation,
+  LogOut,
+  X,
 } from "lucide-react";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useReports } from "../hooks/useReports";
@@ -32,22 +32,22 @@ const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
 
 // ── Custom marker icons ────────────────────────────────────────
 function makeSvgIcon(color: string, strokeColor = "#fff") {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="40" viewBox="0 0 28 40">
-    <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.268 21.732 0 14 0z" fill="${color}" stroke="${strokeColor}" stroke-width="1.5"/>
-    <circle cx="14" cy="14" r="6" fill="${strokeColor}" opacity="0.9"/>
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="44" viewBox="0 0 32 44">
+    <path d="M16 0C7.164 0 0 7.164 0 16c0 12 16 28 16 28s16-16 16-28C32 7.164 24.836 0 16 0z" fill="${color}" stroke="${strokeColor}" stroke-width="2"/>
+    <circle cx="16" cy="16" r="6" fill="white"/>
   </svg>`;
   return L.divIcon({
     html: svg,
     className: "",
-    iconSize: [28, 40],
-    iconAnchor: [14, 40],
-    popupAnchor: [0, -40],
+    iconSize: [32, 44],
+    iconAnchor: [16, 44],
+    popupAnchor: [0, -44],
   });
 }
 
 const ICONS = {
-  pending: makeSvgIcon("#EAB308"),   // yellow
-  verified: makeSvgIcon("#16A34A"),  // green
+  pending: makeSvgIcon("#0ea5e9"),   // light blue
+  approved: makeSvgIcon("#16A34A"),  // green
   rejected: makeSvgIcon("#DC2626"), // red
   user: makeSvgIcon("#3B82F6"),     // blue — user location
   manual: makeSvgIcon("#A855F7"),   // purple — manual pin
@@ -63,49 +63,63 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
   return null;
 }
 
-// ── Map sub-component: fly to user location ────────────────────
-function FlyToUser({ lat, lng }: { lat: number; lng: number }) {
+// ── Map sub-component: fly to logic ────────────────────────────
+function RecenterButton({ center, trigger }: { center: [number, number], trigger: number }) {
   const map = useMap();
-  return (
-    <button
-      type="button"
-      onClick={() => map.flyTo([lat, lng], 16, { duration: 1.2 })}
-      className="absolute bottom-6 right-6 z-1000 flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/90 backdrop-blur-sm text-flood-700 font-semibold text-sm shadow-lg border border-flood-200 hover:bg-flood-50 transition-all cursor-pointer"
-    >
-      <Crosshair className="w-4 h-4" />
-      Lokasi Saya
-    </button>
-  );
+  useEffect(() => {
+    if (trigger > 0) {
+      map.flyTo(center, 16, { duration: 1.5 });
+    }
+  }, [trigger, map, center]);
+  return null;
 }
 
-// ── Depth options ──────────────────────────────────────────────
-const DEPTH_OPTIONS: { value: FloodReport["severity"]; label: string }[] = [
-  { value: "low", label: "< 30 cm (Rendah)" },
-  { value: "moderate", label: "30–70 cm (Sedang)" },
-  { value: "high", label: "70–150 cm (Tinggi)" },
-  { value: "critical", label: "> 150 cm (Kritis)" },
-];
+// ── Map sub-component: zoom controls ───────────────────────────
+function ZoomControls() {
+  const map = useMap();
+  return (
+    <div className="flex items-center bg-white rounded-full shadow-xl border border-gray-100 overflow-hidden">
+      <button 
+        onClick={() => map.zoomOut()}
+        className="p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
+      >
+        <Minus className="w-6 h-6 stroke-3" />
+      </button>
+      <div className="w-px h-6 bg-gray-200" />
+      <button 
+        onClick={() => map.zoomIn()}
+        className="p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
+      >
+        <Plus className="w-6 h-6 stroke-3" />
+      </button>
+    </div>
+  );
+}
 
 // ── Main component ─────────────────────────────────────────────
 export default function InteractiveMap() {
   const geo = useGeolocation();
   const { reports, addReport } = useReports();
 
+  // UI State
+  const [showReportForm, setShowReportForm] = useState(false);
+  const [recenterTrigger, setRecenterTrigger] = useState(0);
+
   // Form state
   const [name, setName] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [depth, setDepth] = useState<FloodReport["severity"] | "">("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [manualLocation, setManualLocation] = useState<[number, number] | null>(null);
 
-  const accuracyOk = geo.accuracy !== null && geo.accuracy <= 10;
+  const accuracyOk = geo.accuracy !== null && geo.accuracy <= 20; // Relaxed for better UX
   const hasValidLocation = manualLocation !== null || (!geo.loading && !geo.error && accuracyOk);
   const canSubmit =
     hasValidLocation &&
     name.trim() !== "" &&
-    depth !== "" &&
-    description.trim() !== "";
+    depth !== "";
 
   const finalLat = manualLocation ? manualLocation[0] : geo.latitude;
   const finalLng = manualLocation ? manualLocation[1] : geo.longitude;
@@ -115,11 +129,10 @@ export default function InteractiveMap() {
     if (!canSubmit || finalLat === null || finalLng === null) return;
 
     setSubmitting(true);
-    // Simulate a tiny network delay for UX
     setTimeout(() => {
       addReport({
-        title: `Laporan banjir oleh ${name.trim()}`,
-        description: description.trim(),
+        title: `Banjir: ${name.trim()}`,
+        description: description.trim() || `Dilaporkan pada ${date}`,
         latitude: finalLat,
         longitude: finalLng,
         severity: depth as FloodReport["severity"],
@@ -133,303 +146,272 @@ export default function InteractiveMap() {
       setDepth("");
       setDescription("");
       setManualLocation(null);
-      setTimeout(() => setSubmitted(false), 3000);
-    }, 600);
+      setTimeout(() => {
+        setSubmitted(false);
+        setShowReportForm(false);
+      }, 2000);
+    }, 800);
   };
 
-  // Memoize map center so it doesn't reset on every re-render
-  const hasLocation = geo.latitude !== null && geo.longitude !== null;
   const mapCenter = useMemo<[number, number]>(
-    () =>
-      hasLocation
-        ? [geo.latitude!, geo.longitude!]
-        : BANDAR_LAMPUNG,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hasLocation],
+    () => (geo.latitude && geo.longitude ? [geo.latitude, geo.longitude] : BANDAR_LAMPUNG),
+    [geo.latitude, geo.longitude]
   );
 
+  const navigate = useNavigate();
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+  const handleTopRightAction = () => {
+    if (isAdmin) {
+      localStorage.removeItem("isAdmin");
+      navigate("/");
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
-    <div id="map-page" className="relative h-svh w-full flex overflow-hidden">
-      {/* ── Left sidebar ──────────────────────────────────────── */}
-      <aside className="relative z-20 flex flex-col w-full max-w-sm shrink-0 bg-white/70 backdrop-blur-2xl border-r border-flood-200/50 shadow-2xl overflow-y-auto">
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-flood-100 px-5 py-4">
-          <div className="flex items-center gap-3 mb-1">
-            <Link
-              to="/"
-              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-flood-50 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 text-flood-600" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <Droplets className="w-5 h-5 text-flood-500" />
-              <h1 className="text-lg font-bold text-flood-900 tracking-tight">
-                FloodWatch
-              </h1>
-            </div>
+    <div id="map-page" className="relative h-screen w-full overflow-hidden bg-gray-100">
+      
+      {/* ── TOP LEFT: Logo Card ────────────────────────────────── */}
+      <div className="absolute top-6 left-6 z-1000">
+        <Link to="/" className="flex items-center gap-3 bg-white p-3 pr-6 rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all group pointer-events-auto">
+          <img src="/WAI.png" alt="WAI Logo" className="h-10 w-auto object-contain" />
+          <div className="flex flex-col border-l border-gray-200 pl-3">
+            <span className="text-[#005a9e] font-bold text-sm tracking-tight leading-none mb-0.5">Water Awareness</span>
+            <span className="text-[#005a9e] text-xs font-medium opacity-80 leading-none">& Information</span>
           </div>
-          <p className="text-xs text-flood-500 pl-11">
-            Peta Interaktif &amp; Pelaporan Banjir
-          </p>
-        </div>
-
-        {/* GPS Accuracy indicator */}
-        <div className="px-5 pt-4">
-          <div
-            className={`flex items-start gap-3 p-3 rounded-xl border text-sm ${
-              geo.loading
-                ? "bg-flood-50/50 border-flood-200 text-flood-600"
-                : geo.error
-                  ? "bg-red-50 border-red-200 text-red-700"
-                  : accuracyOk
-                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                    : "bg-amber-50 border-amber-200 text-amber-700"
-            }`}
-          >
-            {geo.loading ? (
-              <Loader2 className="w-4 h-4 mt-0.5 shrink-0 animate-spin" />
-            ) : geo.error ? (
-              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-            ) : accuracyOk ? (
-              <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            ) : (
-              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-            )}
-            <div>
-              <span className="font-semibold block">
-                {manualLocation
-                  ? "Lokasi Manual Dipilih"
-                  : geo.loading
-                    ? "Mencari lokasi GPS..."
-                    : geo.error
-                      ? "GPS Error"
-                      : accuracyOk
-                        ? "GPS Akurat"
-                        : "Akurasi Rendah"}
-              </span>
-              <span className="text-xs opacity-80">
-                {manualLocation
-                  ? "Menggunakan titik koordinat yang Anda klik di peta."
-                  : geo.loading
-                    ? "Pastikan GPS aktif di perangkat Anda."
-                    : geo.error
-                      ? `${geo.error} Klik peta untuk lokasi manual.`
-                      : `Akurasi: ±${geo.accuracy?.toFixed(1)}m${
-                          !accuracyOk
-                            ? " — harus ≤10m atau klik peta."
-                            : ""
-                        }`}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-5 py-5">
-          <h2 className="text-sm font-bold text-flood-800 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-flood-500" />
-            Kirim Laporan Banjir
-          </h2>
-
-          {/* Name */}
-          <div className="space-y-1.5">
-            <label
-              htmlFor="reporter-name"
-              className="text-xs font-semibold text-flood-700"
-            >
-              Nama Pelapor
-            </label>
-            <input
-              id="reporter-name"
-              type="text"
-              placeholder="Masukkan nama Anda"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-flood-200 text-sm text-flood-900 placeholder:text-flood-300 focus:outline-none focus:ring-2 focus:ring-flood-400/40 focus:border-flood-400 transition-all"
-            />
-          </div>
-
-          {/* Flood Depth */}
-          <div className="space-y-1.5">
-            <label
-              htmlFor="flood-depth"
-              className="text-xs font-semibold text-flood-700"
-            >
-              Kedalaman Banjir
-            </label>
-            <div className="relative">
-              <select
-                id="flood-depth"
-                value={depth}
-                onChange={(e) =>
-                  setDepth(e.target.value as FloodReport["severity"] | "")
-                }
-                className="w-full appearance-none px-3.5 py-2.5 pr-10 rounded-xl bg-white border border-flood-200 text-sm text-flood-900 focus:outline-none focus:ring-2 focus:ring-flood-400/40 focus:border-flood-400 transition-all cursor-pointer"
-              >
-                <option value="" disabled>
-                  Pilih kedalaman
-                </option>
-                {DEPTH_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-flood-400" />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1.5">
-            <label
-              htmlFor="description"
-              className="text-xs font-semibold text-flood-700"
-            >
-              Deskripsi Situasi
-            </label>
-            <textarea
-              id="description"
-              rows={3}
-              placeholder="Jelaskan kondisi banjir di lokasi Anda..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-flood-200 text-sm text-flood-900 placeholder:text-flood-300 focus:outline-none focus:ring-2 focus:ring-flood-400/40 focus:border-flood-400 transition-all resize-none"
-            />
-          </div>
-
-          {/* Coordinates display */}
-          {finalLat !== null && finalLng !== null && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-flood-50 border border-flood-100 text-xs text-flood-600">
-              <Info className="w-3.5 h-3.5 shrink-0" />
-              <span className="font-mono">
-                {finalLat.toFixed(6)}, {finalLng.toFixed(6)}{" "}
-                <span className="font-semibold">{manualLocation ? "(Manual)" : "(GPS)"}</span>
-              </span>
-            </div>
-          )}
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={!canSubmit || submitting}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-linear-to-r from-flood-500 to-flood-600 hover:from-flood-400 hover:to-flood-500 shadow-lg shadow-flood-500/20 hover:shadow-flood-500/30 cursor-pointer disabled:hover:from-flood-500 disabled:hover:to-flood-600 disabled:hover:shadow-flood-500/20"
-          >
-            {submitting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-            {submitting ? "Mengirim..." : "Kirim Laporan"}
-          </button>
-
-          {/* Success toast */}
-          {submitted && (
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 animate-[fadeIn_0.3s_ease-out]">
-              <CheckCircle className="w-4 h-4 shrink-0" />
-              Laporan berhasil dikirim! Menunggu verifikasi admin.
-            </div>
-          )}
-        </form>
-
-        {/* Report count */}
-        <div className="mt-auto px-5 py-4 border-t border-flood-100 text-xs text-flood-400">
-          {reports.length} laporan di peta •{" "}
-          {reports.filter((r) => r.status === "pending").length} menunggu
-          verifikasi
-        </div>
-      </aside>
-
-      {/* ── Right map ─────────────────────────────────────────── */}
-      <div className="relative flex-1 z-10">
-        <MapContainer
-          center={mapCenter}
-          zoom={13}
-          className="h-full w-full"
-          zoomControl={false}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          <ClickHandler onMapClick={(lat, lng) => setManualLocation([lat, lng])} />
-
-          {manualLocation && (
-            <Marker position={manualLocation} icon={ICONS.manual}>
-              <Popup>
-                <div className="text-sm">
-                  <strong>Lokasi Manual</strong>
-                  <br />
-                  <button
-                    type="button"
-                    onClick={() => setManualLocation(null)}
-                    className="text-red-500 font-semibold mt-2 hover:underline cursor-pointer"
-                  >
-                    Hapus pin manual
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
-          )}
-
-          {/* User location + accuracy circle */}
-          {geo.latitude !== null && geo.longitude !== null && (
-            <>
-              <Circle
-                center={[geo.latitude, geo.longitude]}
-                radius={geo.accuracy ?? 0}
-                pathOptions={{
-                  color: accuracyOk ? "#16A34A" : "#EAB308",
-                  fillColor: accuracyOk ? "#16A34A" : "#EAB308",
-                  fillOpacity: 0.1,
-                  weight: 1.5,
-                }}
-              />
-              <Marker
-                position={[geo.latitude, geo.longitude]}
-                icon={ICONS.user}
-              >
-                <Popup>
-                  <strong>Lokasi Anda</strong>
-                  <br />
-                  Akurasi: ±{geo.accuracy?.toFixed(1)}m
-                </Popup>
-              </Marker>
-              <FlyToUser lat={geo.latitude} lng={geo.longitude} />
-            </>
-          )}
-
-          {/* Report markers */}
-          {reports.map((report) => (
-            <Marker
-              key={report.id}
-              position={[report.latitude, report.longitude]}
-              icon={ICONS[report.status]}
-            >
-              <Popup>
-                <div className="space-y-1 text-sm">
-                  <strong>{report.title}</strong>
-                  <br />
-                  <span className="text-xs opacity-70">
-                    {report.severity.toUpperCase()} •{" "}
-                    {report.status.toUpperCase()}
-                  </span>
-                  <br />
-                  {report.description}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+        </Link>
       </div>
 
-      {/* Fade-in keyframe */}
+      {/* ── TOP RIGHT: Utils ──────────────────────────────────── */}
+      <div className="absolute top-6 right-6 z-1000">
+        <button 
+          onClick={handleTopRightAction}
+          className="group flex items-center gap-2 px-4 py-3 bg-white rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all pointer-events-auto font-bold text-sm uppercase tracking-wider"
+        >
+          {isAdmin ? (
+            <>
+              <span>Logout</span>
+              <LogOut className="w-5 h-5" />
+            </>
+          ) : (
+            <>
+              <span>Exit</span>
+              <X className="w-5 h-5" />
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* ── LEFT: Report Form Card ─────────────────────────────── */}
+      {showReportForm && (
+        <div className="absolute top-32 left-6 z-1000 w-full max-w-sm animate-[slideIn_0.4s_ease-out] pointer-events-auto">
+          <div className="bg-white/95 backdrop-blur-md rounded-[32px] shadow-2xl border border-white/50 p-6 md:p-8 flex flex-col gap-5 max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-[#005a9e] text-xl font-bold">Lapor Banjir</h2>
+              <button 
+                type="button"
+                onClick={() => setShowReportForm(false)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {/* Nama Pelapor */}
+              <div className="space-y-1">
+                <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Nama Pelapor</label>
+                <input 
+                  type="text" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] focus:ring-2 focus:ring-[#005a9e]/10 outline-none text-sm transition-all"
+                  placeholder="Nama Lengkap"
+                />
+              </div>
+
+              {/* Tanggal & Kedalaman */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Tanggal Pelapor</label>
+                  <input 
+                    type="date" 
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Kedalaman</label>
+                  <div className="relative">
+                    <select 
+                      value={depth}
+                      onChange={(e) => setDepth(e.target.value as FloodReport["severity"] | "")}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs appearance-none"
+                    >
+                      <option value="">Pilih</option>
+                      <option value="low">Rendah</option>
+                      <option value="moderate">Sedang</option>
+                      <option value="high">Tinggi</option>
+                      <option value="critical">Kritis</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Lokasi Koordinat */}
+              <div className="space-y-1">
+                <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Lokasi Koordinat</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <input 
+                      type="text" 
+                      readOnly
+                      value={finalLat && finalLng ? `${finalLat.toFixed(5)}, ${finalLng.toFixed(5)}` : ""}
+                      placeholder="Klik peta atau gunakan GPS"
+                      className="w-full pl-3 pr-10 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-xs text-gray-500"
+                    />
+                    <div className="absolute right-0 top-0 h-full aspect-square bg-[#005a9e] rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-[#004a82] transition-colors">
+                      <Search className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setManualLocation(null)}
+                    className="p-2.5 rounded-xl border border-gray-200 bg-white text-[#005a9e] hover:bg-gray-50 transition-all"
+                  >
+                    <Crosshair className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Dokumentasi */}
+              <div className="space-y-1">
+                <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Dokumentasi Kejadian</label>
+                <div className="relative w-full h-24 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-2 group cursor-pointer hover:border-[#005a9e]/30 transition-all">
+                  <div className="absolute right-2 bottom-2 bg-[#005a9e] text-white px-3 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1">
+                    <span>Unggah</span>
+                    <Upload className="w-3 h-3" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Deskripsi */}
+              <div className="space-y-1">
+                <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Deskripsi Kejadian</label>
+                <textarea 
+                  rows={2}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Ketik keterangan tambahan di sini..."
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs resize-none"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button 
+                type="submit"
+                disabled={!canSubmit || submitting}
+                className="w-full bg-[#005a9e] text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#004a82] transition-all disabled:opacity-50 mt-2 shadow-lg shadow-[#005a9e]/20"
+              >
+                {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                {submitted ? "Berhasil Dikirim!" : "Kirim Laporan"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── BOTTOM LEFT: Large Lapor Button ────────────────────── */}
+      {!showReportForm && (
+        <div className="absolute bottom-10 left-10 z-1000 pointer-events-auto">
+        <button 
+          onClick={() => setShowReportForm(!showReportForm)}
+          className="flex items-center gap-6 bg-white pl-8 pr-6 py-4 rounded-[32px] shadow-2xl border border-gray-100 hover:scale-105 transition-all group"
+        >
+          <span className="text-[#005a9e] text-5xl font-black tracking-tighter uppercase italic">Lapor</span>
+          <div className="relative">
+            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#005a9e] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-[#005a9e]"></span>
+            </span>
+          </div>
+        </button>
+      </div>
+      )}
+
+
+      {/* ── MAP CONTAINER ─────────────────────────────────────── */}
+      <MapContainer
+        center={mapCenter}
+        zoom={13}
+        className="h-full w-full z-0"
+        zoomControl={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+
+        <ClickHandler onMapClick={(lat, lng) => {
+          setManualLocation([lat, lng]);
+          setShowReportForm(true);
+        }} />
+
+        <RecenterButton center={mapCenter} trigger={recenterTrigger} />
+
+        {manualLocation && (
+          <Marker position={manualLocation} icon={ICONS.manual}>
+            <Popup>Lokasi Kejadian Manual</Popup>
+          </Marker>
+        )}
+
+        {reports.map((report) => (
+          <Marker
+            key={report.id}
+            position={[report.latitude, report.longitude]}
+            icon={ICONS.pending} // Default to pending color for users
+          >
+            <Popup>
+              <div className="text-sm">
+                <strong>{report.title}</strong><br/>
+                {report.description}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {geo.latitude && geo.longitude && (
+          <Marker position={[geo.latitude, geo.longitude]} icon={ICONS.user}>
+            <Popup>Lokasi Anda</Popup>
+          </Marker>
+        )}
+
+        {/* ── BOTTOM RIGHT: Controls ────────────────────────────── */}
+        <div className="absolute bottom-10 right-10 z-1000 flex flex-col items-end gap-4 pointer-events-auto">
+          {/* Geo Control */}
+          <button 
+            onClick={() => setRecenterTrigger(prev => prev + 1)}
+            className="p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
+          >
+            <Navigation className="w-8 h-8" />
+          </button>
+          {/* Zoom Control */}
+          <ZoomControls />
+        </div>
+      </MapContainer>
+
+      {/* Animations */}
       <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to   { opacity: 1; transform: translateY(0); }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(-20px); }
+          to { opacity: 1; transform: translateX(0); }
         }
       `}</style>
     </div>
   );
 }
+

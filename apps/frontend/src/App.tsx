@@ -4,6 +4,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 import MapPage from "./pages/MapPage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import ReportHistoryPage from "./pages/ReportHistoryPage";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/history" element={<ReportHistoryPage />} />
         </Routes>
       </BrowserRouter>
     </ReportsProvider>

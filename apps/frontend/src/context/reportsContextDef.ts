@@ -7,7 +7,7 @@ export interface FloodReport {
   latitude: number;
   longitude: number;
   severity: "low" | "moderate" | "high" | "critical";
-  status: "pending" | "verified" | "rejected";
+  status: "pending" | "approved" | "rejected";
   imageUrl?: string;
   reporterName: string;
   reporterContact?: string;
@@ -18,7 +18,7 @@ export interface ReportsContextType {
   reports: FloodReport[];
   pendingReports: FloodReport[];
   addReport: (report: Omit<FloodReport, "id" | "status" | "createdAt">) => void;
-  verifyReport: (id: string) => void;
+  approveReport: (id: string) => void;
   rejectReport: (id: string) => void;
 }
 

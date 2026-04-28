@@ -11,16 +11,16 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
   ) => {
     const newReport: FloodReport = {
       ...report,
-      id: crypto.randomUUID(),
+      id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
       status: "pending",
       createdAt: new Date(),
     };
     setReports((prev) => [newReport, ...prev]);
   };
 
-  const verifyReport = (id: string) => {
+  const approveReport = (id: string) => {
     setReports((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: "verified" } : r))
+      prev.map((r) => (r.id === id ? { ...r, status: "approved" } : r))
     );
   };
 
@@ -32,7 +32,7 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
 
   return (
     <ReportsContext.Provider
-      value={{ reports, pendingReports, addReport, verifyReport, rejectReport }}
+      value={{ reports, pendingReports, addReport, approveReport, rejectReport }}
     >
       {children}
     </ReportsContext.Provider>
