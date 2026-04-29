@@ -71,9 +71,13 @@ function ZoomControls() {
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
 
 export default function AdminDashboard() {
-  const { reports } = useReports();
+  const { reports, refreshPending } = useReports();
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    refreshPending();
+  }, [refreshPending]);
 
   const handleLogout = () => {
     localStorage.removeItem("isAdmin");

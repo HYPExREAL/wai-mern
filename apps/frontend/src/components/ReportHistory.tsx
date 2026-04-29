@@ -2,10 +2,16 @@ import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
+import { useEffect } from "react";
 
 export default function ReportHistory() {
-  const { reports } = useReports();
+  const { reports, refreshReports, refreshPending } = useReports();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    refreshReports();
+    refreshPending();
+  }, [refreshReports, refreshPending]);
 
   const handleLogout = () => {
     localStorage.removeItem("isAdmin");

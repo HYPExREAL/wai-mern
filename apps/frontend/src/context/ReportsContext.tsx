@@ -79,6 +79,9 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
         },
       });
       await refreshReports();
+      if (localStorage.getItem("token")) {
+        await refreshPending();
+      }
     } catch (err: unknown) {
       let msg = "Gagal mengirim laporan";
       if (axios.isAxiosError(err) && err.response?.data?.message) {
