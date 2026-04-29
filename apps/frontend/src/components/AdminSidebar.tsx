@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { CheckSquare, History, ExternalLink } from "lucide-react";
+import { CheckSquare, History, XCircle, Trash2, Check } from "lucide-react";
 import { useReports } from "../hooks/useReports";
 
 interface AdminSidebarProps {
@@ -7,16 +7,37 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
-  const { pendingReports, approveReport } = useReports();
+  const { pendingReports, approveReport, rejectReport, deleteReport } = useReports();
   const location = useLocation();
   const isHistoryPage = location.pathname === "/admin/history";
 
   const handleVerify = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!confirm("Apakah Anda yakin ingin menyetujui laporan ini?")) return;
     try {
       await approveReport(id);
     } catch {
       alert("Gagal memverifikasi laporan.");
+    }
+  };
+
+  const handleReject = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Apakah Anda yakin ingin menolak laporan ini?")) return;
+    try {
+      await rejectReport(id);
+    } catch {
+      alert("Gagal menolak laporan.");
+    }
+  };
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Hapus laporan ini secara permanen? Tindakan ini tidak dapat dibatalkan.")) return;
+    try {
+      await deleteReport(id);
+    } catch {
+      alert("Gagal menghapus laporan.");
     }
   };
 
@@ -59,13 +80,27 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
                   {report.description || "Tidak ada deskripsi"}
                 </p>
                 
-                <div className="flex justify-end">
-                  <button
+                <div className="flex gap-2">
+                  <button 
                     onClick={(e) => handleVerify(report.id, e)}
-                    className="bg-[#005a9e] text-white px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 hover:bg-[#004a82] transition-colors shadow-lg shadow-[#005a9e]/20"
+                    className="flex-1 bg-[#16A34A] text-white py-2 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-[#15803d] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                   >
-                    <span>Verifikasi</span>
-                    <ExternalLink className="w-3 h-3" />
+                    <Check size={14} />
+                    Verifikasi
+                  </button>
+                  <button 
+                    onClick={(e) => handleReject(report.id, e)}
+                    className="flex-1 bg-amber-500 text-white py-2 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-amber-600 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                  >
+                    <XCircle size={14} />
+                    Tolak
+                  </button>
+                  <button 
+                    onClick={(e) => handleDelete(report.id, e)}
+                    className="aspect-square bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600 p-2 rounded-xl transition-all flex items-center justify-center shadow-xs"
+                    title="Hapus Laporan"
+                  >
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>

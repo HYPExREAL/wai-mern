@@ -110,6 +110,15 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteReport = async (id: string) => {
+    try {
+      await apiClient.delete(`/reports/${id}`);
+      await Promise.all([refreshReports(), refreshPending()]);
+    } catch (err: unknown) {
+      console.error("Gagal menghapus laporan:", err);
+    }
+  };
+
   // Initial fetch
   useEffect(() => {
     const initFetch = async () => {
@@ -132,6 +141,7 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
         addReport,
         approveReport,
         rejectReport,
+        deleteReport,
         refreshReports,
         refreshPending,
       }}

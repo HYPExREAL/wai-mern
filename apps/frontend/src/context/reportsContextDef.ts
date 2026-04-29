@@ -22,6 +22,7 @@ export interface ReportsContextType {
   addReport: (report: Omit<FloodReport, "id" | "status" | "createdAt">, accuracy: number) => Promise<void>;
   approveReport: (id: string) => Promise<void>;
   rejectReport: (id: string) => Promise<void>;
+  deleteReport: (id: string) => Promise<void>;
   refreshReports: () => Promise<void>;
   refreshPending: () => Promise<void>;
 }

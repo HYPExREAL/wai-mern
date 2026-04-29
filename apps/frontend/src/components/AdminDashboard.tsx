@@ -71,7 +71,7 @@ function ZoomControls() {
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
 
 export default function AdminDashboard() {
-  const { reports, refreshPending } = useReports();
+  const { reports, pendingReports, refreshPending } = useReports();
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
   const navigate = useNavigate();
 
@@ -106,7 +106,8 @@ export default function AdminDashboard() {
 
           <MapUpdater center={selectedLocation} />
 
-          {reports.map((report) => (
+          {/* Render markers for both approved and pending reports */}
+          {[...reports, ...pendingReports].map((report) => (
             <Marker
               key={report.id}
               position={[report.latitude, report.longitude]}

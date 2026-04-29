@@ -4,6 +4,7 @@ import {
   getPublishedReports,
   getPendingReports,
   updateReportStatus,
+  deleteReport,
 } from "../controllers/reportController";
 import { authMiddleware } from "../middleware/authMiddleware";
 
@@ -16,5 +17,6 @@ router.get("/published", getPublishedReports);
 // Protected routes (Admin only)
 router.get("/pending", authMiddleware, getPendingReports);
 router.patch("/:id/status", authMiddleware, updateReportStatus);
+router.delete("/:id", authMiddleware, deleteReport);
 
 export default router;

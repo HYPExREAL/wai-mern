@@ -131,3 +131,20 @@ export const updateReportStatus = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Gagal mengubah status laporan." });
   }
 };
+
+// DELETE /api/reports/:id (Protected)
+export const deleteReport = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const report = await Report.findByIdAndDelete(id);
+
+    if (!report) {
+      return res.status(404).json({ message: "Laporan tidak ditemukan." });
+    }
+
+    return res.json({ message: "Laporan berhasil dihapus." });
+  } catch (error: any) {
+    console.error("Error deleting report:", error);
+    return res.status(500).json({ message: "Gagal menghapus laporan." });
+  }
+};
