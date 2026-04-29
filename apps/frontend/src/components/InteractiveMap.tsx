@@ -115,6 +115,10 @@ export default function InteractiveMap() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [manualLocation, setManualLocation] = useState<[number, number] | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [base64Image, setBase64Image] = useState<string | null>(null);
 
   const accuracyOk = geo.accuracy !== null && geo.accuracy <= 20; // Relaxed for better UX
   const hasValidLocation = manualLocation !== null || (!geo.loading && !geo.error && accuracyOk);
@@ -125,6 +129,50 @@ export default function InteractiveMap() {
 
   const finalLat = manualLocation ? manualLocation[0] : geo.latitude;
   const finalLng = manualLocation ? manualLocation[1] : geo.longitude;
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
+      );
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        setManualLocation([lat, lon]);
+        setRecenterTrigger((prev) => prev + 1);
+      } else {
+        alert("Lokasi tidak ditemukan. Silakan cari lebih spesifik.");
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      alert("Gagal mencari lokasi.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Ukuran file terlalu besar (maksimal 2MB)");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setImagePreview(base64String);
+        setBase64Image(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,7 +188,7 @@ export default function InteractiveMap() {
           longitude: finalLng,
           severity: depth as FloodReport["severity"],
           reporterName: name.trim(),
-          imageUrl: undefined,
+          imageUrl: base64Image || undefined,
           reporterContact: undefined,
         },
         manualLocation ? 0 : (geo.accuracy || 0)
@@ -150,6 +198,9 @@ export default function InteractiveMap() {
       setDepth("");
       setDescription("");
       setManualLocation(null);
+      setImagePreview(null);
+      setBase64Image(null);
+      setSearchQuery("");
       setTimeout(() => {
         setSubmitted(false);
         setShowReportForm(false);
@@ -192,6 +243,33 @@ export default function InteractiveMap() {
           </div>
         </Link>
       </div>
+
+        {/* ── Search Bar ────────────────────────────────────────── */}
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-1000">
+          <form 
+            onSubmit={handleSearch}
+            className="flex items-center bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50 overflow-hidden pr-2"
+          >
+            <input 
+              type="text"
+              placeholder="Cari lokasi banjir..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 px-5 py-4 bg-transparent outline-none text-[#003B6D] font-bold placeholder:text-[#003B6D]/40"
+            />
+            <button 
+              type="submit"
+              disabled={isSearching}
+              className="p-3 bg-[#005a9e] text-white rounded-xl hover:bg-[#004a82] transition-all disabled:opacity-50"
+            >
+              {isSearching ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Search className="w-5 h-5" />
+              )}
+            </button>
+          </form>
+        </div>
 
       {/* ── TOP RIGHT: Utils ──────────────────────────────────── */}
       <div className="absolute top-6 right-6 z-1000">
@@ -279,13 +357,10 @@ export default function InteractiveMap() {
                     <input 
                       type="text" 
                       readOnly
-                      value={finalLat && finalLng ? `${finalLat.toFixed(5)}, ${finalLng.toFixed(5)}` : ""}
+                      value={finalLat !== null && finalLng !== null ? `${finalLat.toFixed(5)}, ${finalLng.toFixed(5)}` : ""}
                       placeholder="Klik peta atau gunakan GPS"
                       className="w-full pl-3 pr-10 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-xs text-gray-500"
                     />
-                    <div className="absolute right-0 top-0 h-full aspect-square bg-[#005a9e] rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-[#004a82] transition-colors">
-                      <Search className="w-4 h-4" />
-                    </div>
                   </div>
                   <button 
                     type="button"
@@ -298,15 +373,45 @@ export default function InteractiveMap() {
               </div>
 
               {/* Dokumentasi */}
-              <div className="space-y-1">
-                <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Dokumentasi Kejadian</label>
-                <div className="relative w-full h-24 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-2 group cursor-pointer hover:border-[#005a9e]/30 transition-all">
-                  <div className="absolute right-2 bottom-2 bg-[#005a9e] text-white px-3 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1">
-                    <span>Unggah</span>
-                    <Upload className="w-3 h-3" />
-                  </div>
-                </div>
+              <div className="space-y-4 mb-8">
+              <label className="block text-[#003B6D]/60 text-xs font-black uppercase tracking-widest mb-2">Unggah Foto</label>
+              <div className="relative group">
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden" 
+                  id="image-upload" 
+                />
+                <label 
+                  htmlFor="image-upload"
+                  className="flex flex-col items-center justify-center gap-3 w-full aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl hover:border-[#005a9e]/30 hover:bg-gray-100 transition-all cursor-pointer group-hover:scale-[0.99] active:scale-95 overflow-hidden"
+                >
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <>
+                      <div className="p-4 bg-white rounded-2xl shadow-sm text-[#005a9e]">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <span className="text-[#003B6D]/60 text-[10px] font-bold uppercase tracking-widest">Klik untuk unggah</span>
+                    </>
+                  )}
+                </label>
+                {imagePreview && (
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setImagePreview(null);
+                      setBase64Image(null);
+                    }}
+                    className="absolute top-3 right-3 p-2 bg-red-500 text-white rounded-xl shadow-lg hover:bg-red-600 transition-all scale-90 hover:scale-100"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
+            </div>
 
               {/* Deskripsi */}
               <div className="space-y-1">
@@ -389,9 +494,18 @@ export default function InteractiveMap() {
             }
           >
             <Popup>
-              <div className="text-sm">
-                <strong>{report.title}</strong><br/>
-                {report.description}
+              <div className="text-sm min-w-[200px]">
+                {report.imageUrl && (
+                  <div className="w-full h-32 rounded-lg overflow-hidden mb-2">
+                    <img src={report.imageUrl} alt="Documentation" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <strong className="block mb-1">{report.title}</strong>
+                <p className="text-gray-600 leading-tight">{report.description}</p>
+                <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  <span>{report.severity}</span>
+                  <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+                </div>
               </div>
             </Popup>
           </Marker>

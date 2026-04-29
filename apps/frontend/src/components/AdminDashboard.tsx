@@ -120,9 +120,18 @@ export default function AdminDashboard() {
               }
             >
               <Popup>
-                <div className="text-sm">
-                  <strong>{report.title}</strong><br/>
-                  {report.description}
+                <div className="text-sm min-w-[200px]">
+                  {report.imageUrl && (
+                    <div className="w-full h-32 rounded-lg overflow-hidden mb-2">
+                      <img src={report.imageUrl} alt="Documentation" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <strong className="block mb-1">{report.title}</strong>
+                  <p className="text-gray-600 leading-tight">{report.description}</p>
+                  <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    <span>{report.severity}</span>
+                    <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+                  </div>
                 </div>
               </Popup>
             </Marker>
