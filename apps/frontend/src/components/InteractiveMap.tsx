@@ -45,12 +45,14 @@ function makeSvgIcon(color: string, strokeColor = "#fff") {
   });
 }
 
-const ICONS = {
+const ICONS: Record<string, L.DivIcon> = {
   pending: makeSvgIcon("#0ea5e9"),   // light blue
   approved: makeSvgIcon("#16A34A"),  // green
   rejected: makeSvgIcon("#DC2626"), // red
   user: makeSvgIcon("#3B82F6"),     // blue — user location
   manual: makeSvgIcon("#A855F7"),   // purple — manual pin
+  blue: makeSvgIcon("#2563EB"),     // March
+  red: makeSvgIcon("#EF4444"),      // April
 };
 
 // ── Map sub-component: click handler ───────────────────────────
@@ -124,23 +126,25 @@ export default function InteractiveMap() {
   const finalLat = manualLocation ? manualLocation[0] : geo.latitude;
   const finalLng = manualLocation ? manualLocation[1] : geo.longitude;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit || finalLat === null || finalLng === null) return;
 
     setSubmitting(true);
-    setTimeout(() => {
-      addReport({
-        title: `Banjir: ${name.trim()}`,
-        description: description.trim() || `Dilaporkan pada ${date}`,
-        latitude: finalLat,
-        longitude: finalLng,
-        severity: depth as FloodReport["severity"],
-        reporterName: name.trim(),
-        imageUrl: undefined,
-        reporterContact: undefined,
-      });
-      setSubmitting(false);
+    try {
+      await addReport(
+        {
+          title: `Banjir: ${name.trim()}`,
+          description: description.trim() || `Dilaporkan pada ${date}`,
+          latitude: finalLat,
+          longitude: finalLng,
+          severity: depth as FloodReport["severity"],
+          reporterName: name.trim(),
+          imageUrl: undefined,
+          reporterContact: undefined,
+        },
+        geo.accuracy || 0
+      );
       setSubmitted(true);
       setName("");
       setDepth("");
@@ -150,7 +154,11 @@ export default function InteractiveMap() {
         setSubmitted(false);
         setShowReportForm(false);
       }, 2000);
-    }, 800);
+    } catch {
+      alert("Gagal mengirim laporan. Silakan coba lagi.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const mapCenter = useMemo<[number, number]>(
@@ -164,6 +172,7 @@ export default function InteractiveMap() {
   const handleTopRightAction = () => {
     if (isAdmin) {
       localStorage.removeItem("isAdmin");
+      localStorage.removeItem("token");
       navigate("/");
     } else {
       navigate("/");
@@ -373,7 +382,11 @@ export default function InteractiveMap() {
           <Marker
             key={report.id}
             position={[report.latitude, report.longitude]}
-            icon={ICONS.pending} // Default to pending color for users
+            icon={
+              report.markerColor && ICONS[report.markerColor]
+                ? ICONS[report.markerColor]
+                : ICONS.approved
+            }
           >
             <Popup>
               <div className="text-sm">

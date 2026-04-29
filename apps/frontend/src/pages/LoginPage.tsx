@@ -1,7 +1,9 @@
+import axios from "axios";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Loader2, ArrowRight } from "lucide-react";
 import FloodHero from "../assets/flood-hero.png";
+import apiClient from "../api/apiClient";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -10,7 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError("Mohon isi email dan password Anda.");
@@ -20,13 +22,23 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    // Simulate network request for login
-    setTimeout(() => {
-      setLoading(false);
-      // Simulate successful login and store session
+    try {
+      const res = await apiClient.post("/auth/login", { email, password });
+      
+      // Store token and admin status
+      localStorage.setItem("token", res.data.token);
       localStorage.setItem("isAdmin", "true");
+      
       navigate("/admin/dashboard");
-    }, 1500);
+    } catch (err) {
+      let message = "Gagal masuk. Periksa kembali email dan password Anda.";
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        message = err.response.data.message;
+      }
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

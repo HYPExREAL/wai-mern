@@ -11,15 +11,19 @@ export interface FloodReport {
   imageUrl?: string;
   reporterName: string;
   reporterContact?: string;
+  markerColor?: string;
   createdAt: Date;
 }
 
 export interface ReportsContextType {
   reports: FloodReport[];
   pendingReports: FloodReport[];
-  addReport: (report: Omit<FloodReport, "id" | "status" | "createdAt">) => void;
-  approveReport: (id: string) => void;
-  rejectReport: (id: string) => void;
+  loading: boolean;
+  addReport: (report: Omit<FloodReport, "id" | "status" | "createdAt">, accuracy: number) => Promise<void>;
+  approveReport: (id: string) => Promise<void>;
+  rejectReport: (id: string) => Promise<void>;
+  refreshReports: () => Promise<void>;
+  refreshPending: () => Promise<void>;
 }
 
 export const ReportsContext = createContext<ReportsContextType | undefined>(undefined);

@@ -11,9 +11,13 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
   const location = useLocation();
   const isHistoryPage = location.pathname === "/admin/history";
 
-  const handleVerify = (id: string, e: React.MouseEvent) => {
+  const handleVerify = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    approveReport(id);
+    try {
+      await approveReport(id);
+    } catch {
+      alert("Gagal memverifikasi laporan.");
+    }
   };
 
   return (

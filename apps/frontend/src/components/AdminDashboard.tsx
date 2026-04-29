@@ -27,10 +27,12 @@ function makeSvgIcon(color: string, strokeColor = "#fff") {
   });
 }
 
-const ICONS = {
+const ICONS: Record<string, L.DivIcon> = {
   pending: makeSvgIcon("#0ea5e9"),   // light blue
   approved: makeSvgIcon("#16A34A"),  // green
   rejected: makeSvgIcon("#DC2626"), // red
+  blue: makeSvgIcon("#2563EB"),     // March
+  red: makeSvgIcon("#EF4444"),      // April
 };
 
 // ── Component to fly map to selected report ────────────────────
@@ -75,6 +77,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("isAdmin");
+    localStorage.removeItem("token");
     navigate("/");
   };
 
@@ -103,7 +106,13 @@ export default function AdminDashboard() {
             <Marker
               key={report.id}
               position={[report.latitude, report.longitude]}
-              icon={report.status === "approved" ? ICONS.approved : ICONS.pending}
+              icon={
+                report.status === "approved"
+                  ? report.markerColor && ICONS[report.markerColor]
+                    ? ICONS[report.markerColor]
+                    : ICONS.approved
+                  : ICONS.pending
+              }
             >
               <Popup>
                 <div className="text-sm">
