@@ -1,10 +1,22 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ReportsProvider } from "./context/ReportsContext";
 import OnboardingPage from "./pages/OnboardingPage";
 import MapPage from "./pages/MapPage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ReportHistoryPage from "./pages/ReportHistoryPage";
+
+// Component to protect admin routes
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const token = localStorage.getItem("token");
+
+  if (!isAdmin || !token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 function App() {
   return (
@@ -14,8 +26,24 @@ function App() {
           <Route path="/" element={<OnboardingPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-          <Route path="/admin/history" element={<ReportHistoryPage />} />
+          
+          {/* Protected Admin Routes */}
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute>
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/history" 
+            element={
+              <ProtectedRoute>
+                <ReportHistoryPage />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </BrowserRouter>
     </ReportsProvider>

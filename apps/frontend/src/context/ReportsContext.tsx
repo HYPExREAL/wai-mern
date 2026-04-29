@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { ReportsContext, type FloodReport } from "./reportsContextDef";
 import apiClient from "../api/apiClient";
@@ -79,7 +80,11 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
       });
       await refreshReports();
     } catch (err: unknown) {
-      console.error("Gagal mengirim laporan:", err);
+      let msg = "Gagal mengirim laporan";
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        msg = err.response.data.message;
+      }
+      console.error(msg, err);
       throw err;
     }
   };

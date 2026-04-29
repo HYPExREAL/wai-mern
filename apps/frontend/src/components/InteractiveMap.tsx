@@ -143,7 +143,7 @@ export default function InteractiveMap() {
           imageUrl: undefined,
           reporterContact: undefined,
         },
-        geo.accuracy || 0
+        manualLocation ? 0 : (geo.accuracy || 0)
       );
       setSubmitted(true);
       setName("");
