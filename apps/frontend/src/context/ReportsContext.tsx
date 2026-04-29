@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import { ReportsContext, type FloodReport } from "./reportsContextDef";
 import apiClient from "../api/apiClient";
 
@@ -65,7 +65,7 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addReport = async (
+  const addReport = useCallback(async (
     report: Omit<FloodReport, "id" | "status" | "createdAt">,
     accuracy: number
   ) => {
@@ -90,34 +90,34 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
       console.error(msg, err);
       throw err;
     }
-  };
+  }, [refreshReports, refreshPending]);
 
-  const approveReport = async (id: string) => {
+  const approveReport = useCallback(async (id: string) => {
     try {
       await apiClient.patch(`/reports/${id}/status`, { status: "approved" });
       await Promise.all([refreshReports(), refreshPending()]);
     } catch (err: unknown) {
       console.error("Gagal verifikasi laporan:", err);
     }
-  };
+  }, [refreshReports, refreshPending]);
 
-  const rejectReport = async (id: string) => {
+  const rejectReport = useCallback(async (id: string) => {
     try {
       await apiClient.patch(`/reports/${id}/status`, { status: "rejected" });
       await refreshPending();
     } catch (err: unknown) {
       console.error("Gagal menolak laporan:", err);
     }
-  };
+  }, [refreshPending]);
 
-  const deleteReport = async (id: string) => {
+  const deleteReport = useCallback(async (id: string) => {
     try {
       await apiClient.delete(`/reports/${id}`);
       await Promise.all([refreshReports(), refreshPending()]);
     } catch (err: unknown) {
       console.error("Gagal menghapus laporan:", err);
     }
-  };
+  }, [refreshReports, refreshPending]);
 
   // Initial fetch
   useEffect(() => {
@@ -132,20 +132,30 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     initFetch();
   }, [refreshReports, refreshPending]);
 
+  const contextValue = useMemo(() => ({
+    reports,
+    pendingReports,
+    loading,
+    addReport,
+    approveReport,
+    rejectReport,
+    deleteReport,
+    refreshReports,
+    refreshPending,
+  }), [
+    reports,
+    pendingReports,
+    loading,
+    addReport,
+    approveReport,
+    rejectReport,
+    deleteReport,
+    refreshReports,
+    refreshPending
+  ]);
+
   return (
-    <ReportsContext.Provider
-      value={{
-        reports,
-        pendingReports,
-        loading,
-        addReport,
-        approveReport,
-        rejectReport,
-        deleteReport,
-        refreshReports,
-        refreshPending,
-      }}
-    >
+    <ReportsContext.Provider value={contextValue}>
       {children}
     </ReportsContext.Provider>
   );

@@ -22,9 +22,11 @@ import {
   Navigation,
   LogOut,
   X,
+  MapPin,
 } from "lucide-react";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useReports } from "../hooks/useReports";
+import { useNotifications } from "../context/notificationContextDef";
 import type { FloodReport } from "../context/reportsContextDef";
 
 // ── Bandar Lampung center ──────────────────────────────────────
@@ -66,13 +68,13 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
 }
 
 // ── Map sub-component: fly to logic ────────────────────────────
-function RecenterButton({ center, trigger }: { center: [number, number], trigger: number }) {
+function RecenterButton({ center, trigger, zoom = 16 }: { center: [number, number], trigger: number, zoom?: number }) {
   const map = useMap();
   useEffect(() => {
     if (trigger > 0) {
-      map.flyTo(center, 16, { duration: 1.5 });
+      map.flyTo(center, zoom, { duration: 1.5 });
     }
-  }, [trigger, map, center]);
+  }, [trigger, map, center, zoom]);
   return null;
 }
 
@@ -100,8 +102,10 @@ function ZoomControls() {
 
 // ── Main component ─────────────────────────────────────────────
 export default function InteractiveMap() {
+  const navigate = useNavigate();
   const geo = useGeolocation();
   const { reports, addReport } = useReports();
+  const { notify } = useNotifications();
 
   // UI State
   const [showReportForm, setShowReportForm] = useState(false);
@@ -119,6 +123,17 @@ export default function InteractiveMap() {
   const [isSearching, setIsSearching] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [base64Image, setBase64Image] = useState<string | null>(null);
+  
+  // Search Suggestions State
+  interface NominatimResult {
+    lat: string;
+    lon: string;
+    display_name: string;
+  }
+  const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [flyToCoords, setFlyToCoords] = useState<[number, number]>(BANDAR_LAMPUNG);
+  const [flyTrigger, setFlyTrigger] = useState(0);
 
   const accuracyOk = geo.accuracy !== null && geo.accuracy <= 20; // Relaxed for better UX
   const hasValidLocation = manualLocation !== null || (!geo.loading && !geo.error && accuracyOk);
@@ -130,11 +145,34 @@ export default function InteractiveMap() {
   const finalLat = manualLocation ? manualLocation[0] : geo.latitude;
   const finalLng = manualLocation ? manualLocation[1] : geo.longitude;
 
+  // Fetch suggestions as user types (Debounced)
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.length < 3) {
+        setSuggestions([]);
+        return;
+      }
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`
+        );
+        const data = await response.json();
+        setSuggestions(data);
+      } catch (err) {
+        console.error("Suggestions error:", err);
+      }
+    };
+
+    const timer = setTimeout(fetchSuggestions, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
+    setShowSuggestions(false);
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
@@ -144,33 +182,85 @@ export default function InteractiveMap() {
         const lat = parseFloat(data[0].lat);
         const lon = parseFloat(data[0].lon);
         setManualLocation([lat, lon]);
-        setRecenterTrigger((prev) => prev + 1);
+        setFlyToCoords([lat, lon]);
+        setFlyTrigger((prev) => prev + 1);
       } else {
-        alert("Lokasi tidak ditemukan. Silakan cari lebih spesifik.");
+        notify("error", "Lokasi tidak ditemukan. Silakan cari lebih spesifik.");
       }
     } catch (error) {
       console.error("Search error:", error);
-      alert("Gagal mencari lokasi.");
+      notify("error", "Gagal mencari lokasi.");
     } finally {
       setIsSearching(false);
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelectSuggestion = (s: NominatimResult) => {
+    const lat = parseFloat(s.lat);
+    const lon = parseFloat(s.lon);
+    setSearchQuery(s.display_name);
+    setManualLocation([lat, lon]);
+    setFlyToCoords([lat, lon]);
+    setFlyTrigger((prev) => prev + 1);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  // Client-side image compression
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.7)); // Compress to 70% quality JPEG
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Ukuran file terlalu besar (maksimal 2MB)");
+      if (file.size > 5 * 1024 * 1024) {
+        notify("error", "Ukuran file terlalu besar (maksimal 5MB)");
         return;
       }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setImagePreview(base64String);
-        setBase64Image(base64String);
-      };
-      reader.readAsDataURL(file);
+      
+      try {
+        // Show a temporary preview quickly if needed, or wait for compression
+        const compressedBase64 = await compressImage(file);
+        setImagePreview(compressedBase64);
+        setBase64Image(compressedBase64);
+      } catch (error) {
+        console.error("Compression error:", error);
+        notify("error", "Gagal memproses gambar.");
+      }
     }
   };
 
@@ -194,6 +284,7 @@ export default function InteractiveMap() {
         manualLocation ? 0 : (geo.accuracy || 0)
       );
       setSubmitted(true);
+      notify("success", "Laporan Anda berhasil dikirim! Sedang menunggu verifikasi admin.");
       setName("");
       setDepth("");
       setDescription("");
@@ -217,7 +308,6 @@ export default function InteractiveMap() {
     [geo.latitude, geo.longitude]
   );
 
-  const navigate = useNavigate();
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
   const handleTopRightAction = () => {
@@ -254,7 +344,11 @@ export default function InteractiveMap() {
               type="text"
               placeholder="Cari lokasi banjir..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
               className="flex-1 px-5 py-4 bg-transparent outline-none text-[#003B6D] font-bold placeholder:text-[#003B6D]/40"
             />
             <button 
@@ -269,6 +363,24 @@ export default function InteractiveMap() {
               )}
             </button>
           </form>
+
+          {/* Suggestions Dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute top-full mt-2 w-full bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              {suggestions.map((s, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSelectSuggestion(s)}
+                  className="w-full text-left px-5 py-3 hover:bg-[#005a9e]/5 transition-colors flex items-start gap-3 border-b border-gray-50 last:border-0"
+                >
+                  <MapPin className="w-4 h-4 text-[#005a9e] mt-0.5 shrink-0" />
+                  <span className="text-xs font-bold text-[#003B6D] line-clamp-2 leading-relaxed">
+                    {s.display_name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
       {/* ── TOP RIGHT: Utils ──────────────────────────────────── */}
@@ -476,6 +588,7 @@ export default function InteractiveMap() {
         }} />
 
         <RecenterButton center={mapCenter} trigger={recenterTrigger} />
+        <RecenterButton center={flyToCoords} trigger={flyTrigger} zoom={18} />
 
         {manualLocation && (
           <Marker position={manualLocation} icon={ICONS.manual}>

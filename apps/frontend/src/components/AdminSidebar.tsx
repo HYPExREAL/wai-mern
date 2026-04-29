@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { CheckSquare, History, XCircle, Trash2, Check, Clock, MapPin, User, X } from "lucide-react";
 import { useState } from "react";
 import { useReports } from "../hooks/useReports";
+import { useNotifications } from "../context/notificationContextDef";
 
 interface AdminSidebarProps {
   onReportClick?: (lat: number, lng: number) => void;
@@ -9,6 +10,7 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
   const { pendingReports, approveReport, rejectReport, deleteReport } = useReports();
+  const { notify, confirm } = useNotifications();
   const location = useLocation();
   const isHistoryPage = location.pathname === "/admin/history";
 
@@ -24,29 +26,44 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
     try {
       await approveReport(selectedReportForVerification.id);
       setSelectedReportForVerification(null);
+      notify("success", "Laporan berhasil diverifikasi dan dipublikasikan.");
     } catch {
-      alert("Gagal memverifikasi laporan.");
+      notify("error", "Gagal memverifikasi laporan.");
     }
   };
 
   const handleReject = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("Apakah Anda yakin ingin menolak laporan ini?")) return;
-    try {
-      await rejectReport(id);
-    } catch {
-      alert("Gagal menolak laporan.");
-    }
+    confirm({
+      title: "Tolak Laporan?",
+      message: "Apakah Anda yakin ingin menolak laporan ini? Laporan akan dipindahkan ke riwayat.",
+      confirmText: "Ya, Tolak",
+      onConfirm: async () => {
+        try {
+          await rejectReport(id);
+          notify("success", "Laporan berhasil ditolak.");
+        } catch {
+          notify("error", "Gagal menolak laporan.");
+        }
+      }
+    });
   };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("Hapus laporan ini secara permanen? Tindakan ini tidak dapat dibatalkan.")) return;
-    try {
-      await deleteReport(id);
-    } catch {
-      alert("Gagal menghapus laporan.");
-    }
+    confirm({
+      title: "Hapus Permanen?",
+      message: "Hapus laporan ini secara permanen? Tindakan ini tidak dapat dibatalkan.",
+      confirmText: "Hapus",
+      onConfirm: async () => {
+        try {
+          await deleteReport(id);
+          notify("success", "Laporan berhasil dihapus secara permanen.");
+        } catch {
+          notify("error", "Gagal menghapus laporan.");
+        }
+      }
+    });
   };
 
   return (

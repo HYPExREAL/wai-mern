@@ -115,7 +115,7 @@ export const updateReportStatus = async (req: Request, res: Response) => {
     const report = await Report.findByIdAndUpdate(
       id,
       { status },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!report) {
