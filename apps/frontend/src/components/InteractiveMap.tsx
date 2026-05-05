@@ -321,21 +321,21 @@ export default function InteractiveMap() {
   };
 
   return (
-    <div id="map-page" className="relative h-screen w-full overflow-hidden bg-gray-100">
+    <div id="map-page" className="relative h-svh w-full overflow-hidden bg-gray-100">
       
       {/* ── TOP LEFT: Logo Card ────────────────────────────────── */}
-      <div className="absolute top-6 left-6 z-1000">
-        <Link to="/" className="flex items-center gap-3 bg-white p-3 pr-6 rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all group pointer-events-auto">
-          <img src="/WAI.png" alt="WAI Logo" className="h-10 w-auto object-contain" />
-          <div className="flex flex-col border-l border-gray-200 pl-3">
-            <span className="text-[#005a9e] font-bold text-sm tracking-tight leading-none mb-0.5">Water Awareness</span>
-            <span className="text-[#005a9e] text-xs font-medium opacity-80 leading-none">& Information</span>
+      <div className="absolute top-3 left-3 md:top-6 md:left-6 z-1000">
+        <Link to="/" className="flex items-center gap-2 md:gap-3 bg-white p-2 pr-4 md:p-3 md:pr-6 rounded-xl md:rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all group pointer-events-auto">
+          <img src="/WAI.png" alt="WAI Logo" className="h-7 md:h-10 w-auto object-contain" />
+          <div className="hidden sm:flex flex-col border-l border-gray-200 pl-2 md:pl-3">
+            <span className="text-[#005a9e] font-bold text-xs md:text-sm tracking-tight leading-none mb-0.5">Water Awareness</span>
+            <span className="text-[#005a9e] text-[10px] md:text-xs font-medium opacity-80 leading-none">& Information</span>
           </div>
         </Link>
       </div>
 
         {/* ── Search Bar ────────────────────────────────────────── */}
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-1000">
+        <div className="absolute top-16 sm:top-8 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-1000">
           <form 
             onSubmit={handleSearch}
             className="flex items-center bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50 overflow-hidden pr-2"
@@ -349,7 +349,7 @@ export default function InteractiveMap() {
                 setShowSuggestions(true);
               }}
               onFocus={() => setShowSuggestions(true)}
-              className="flex-1 px-5 py-4 bg-transparent outline-none text-[#003B6D] font-bold placeholder:text-[#003B6D]/40"
+              className="flex-1 px-4 py-3 md:px-5 md:py-4 bg-transparent outline-none text-sm md:text-base text-[#003B6D] font-bold placeholder:text-[#003B6D]/40"
             />
             <button 
               type="submit"
@@ -384,20 +384,20 @@ export default function InteractiveMap() {
         </div>
 
       {/* ── TOP RIGHT: Utils ──────────────────────────────────── */}
-      <div className="absolute top-6 right-6 z-1000">
+      <div className="absolute top-3 right-3 md:top-6 md:right-6 z-1000">
         <button 
           onClick={handleTopRightAction}
-          className="group flex items-center gap-2 px-4 py-3 bg-white rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all pointer-events-auto font-bold text-sm uppercase tracking-wider"
+          className="group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all pointer-events-auto font-bold text-xs md:text-sm uppercase tracking-wider"
         >
           {isAdmin ? (
             <>
-              <span>Logout</span>
-              <LogOut className="w-5 h-5" />
+              <span className="hidden sm:inline">Logout</span>
+              <LogOut className="w-4 h-4 md:w-5 md:h-5" />
             </>
           ) : (
             <>
-              <span>Exit</span>
-              <X className="w-5 h-5" />
+              <span className="hidden sm:inline">Exit</span>
+              <X className="w-4 h-4 md:w-5 md:h-5" />
             </>
           )}
         </button>
@@ -405,8 +405,8 @@ export default function InteractiveMap() {
 
       {/* ── LEFT: Report Form Card ─────────────────────────────── */}
       {showReportForm && (
-        <div className="absolute top-32 left-6 z-1000 w-full max-w-sm animate-[slideIn_0.4s_ease-out] pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-[32px] shadow-2xl border border-white/50 p-6 md:p-8 flex flex-col gap-5 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:top-32 md:left-6 z-1000 w-full md:w-auto md:max-w-sm animate-[slideIn_0.4s_ease-out] pointer-events-auto">
+          <div className="bg-white/95 backdrop-blur-md rounded-t-[32px] md:rounded-[32px] shadow-2xl border border-white/50 p-5 md:p-8 flex flex-col gap-4 md:gap-5 max-h-[70svh] md:max-h-[calc(100vh-200px)] overflow-y-auto">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-[#005a9e] text-xl font-bold">Lapor Banjir</h2>
               <button 
@@ -553,16 +553,16 @@ export default function InteractiveMap() {
 
       {/* ── BOTTOM LEFT: Large Lapor Button ────────────────────── */}
       {!showReportForm && (
-        <div className="absolute bottom-10 left-10 z-1000 pointer-events-auto">
+        <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-1000 pointer-events-auto">
         <button 
           onClick={() => setShowReportForm(!showReportForm)}
-          className="flex items-center gap-6 bg-white pl-8 pr-6 py-4 rounded-[32px] shadow-2xl border border-gray-100 hover:scale-105 transition-all group"
+          className="flex items-center gap-3 md:gap-6 bg-white pl-5 pr-4 py-3 md:pl-8 md:pr-6 md:py-4 rounded-2xl md:rounded-[32px] shadow-2xl border border-gray-100 hover:scale-105 transition-all group"
         >
-          <span className="text-[#005a9e] text-5xl font-black tracking-tighter uppercase italic">Lapor</span>
+          <span className="text-[#005a9e] text-2xl md:text-5xl font-black tracking-tighter uppercase italic">Lapor</span>
           <div className="relative">
-            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="absolute -top-1 -right-1 flex h-3 w-3 md:h-4 md:w-4">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#005a9e] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-[#005a9e]"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 md:h-4 md:w-4 bg-[#005a9e]"></span>
             </span>
           </div>
         </button>
@@ -631,13 +631,13 @@ export default function InteractiveMap() {
         )}
 
         {/* ── BOTTOM RIGHT: Controls ────────────────────────────── */}
-        <div className="absolute bottom-10 right-10 z-1000 flex flex-col items-end gap-4 pointer-events-auto">
+        <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
           {/* Geo Control */}
           <button 
             onClick={() => setRecenterTrigger(prev => prev + 1)}
-            className="p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
+            className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
           >
-            <Navigation className="w-8 h-8" />
+            <Navigation className="w-6 h-6 md:w-8 md:h-8" />
           </button>
           {/* Zoom Control */}
           <ZoomControls />

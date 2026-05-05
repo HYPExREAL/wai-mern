@@ -67,7 +67,7 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
   };
 
   return (
-    <aside className="w-[380px] h-full flex flex-col p-6 z-20 pointer-events-none">
+    <aside className="w-full h-full flex flex-col p-4 md:p-6 z-20 pointer-events-none">
       
       {/* Logo Card */}
       <div className="bg-white p-4 rounded-2xl shadow-xl border border-gray-100 mb-6 pointer-events-auto">
@@ -156,7 +156,7 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
       </div>
       {/* ── Verification Modal ─────────────────────────────────── */}
       {selectedReportForVerification && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 pointer-events-auto">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6 pointer-events-auto">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md"
@@ -164,7 +164,7 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
           />
           
           {/* Modal Content */}
-          <div className="relative bg-white w-full max-w-lg rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300">
+          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-none">
             {/* Header / Image Area */}
             <div className="relative w-full aspect-video bg-gray-100">
               {selectedReportForVerification.imageUrl ? (
@@ -197,7 +197,7 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
             </div>
 
             {/* Content Area */}
-            <div className="p-8 flex flex-col gap-6">
+            <div className="p-5 md:p-8 flex flex-col gap-4 md:gap-6 overflow-y-auto">
               <div>
                 <h3 className="text-2xl font-black text-[#003B6D] mb-2 leading-tight">
                   {selectedReportForVerification.title}
@@ -207,7 +207,7 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 <div className="bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center gap-4">
                   <div className="p-2.5 bg-white rounded-xl shadow-sm text-[#005a9e]">
                     <User size={18} />

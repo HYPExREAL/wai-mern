@@ -8,6 +8,7 @@ import {
   Minus, 
   Navigation,
   LogOut,
+  Menu,
 } from "lucide-react";
 import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
@@ -28,11 +29,11 @@ function makeSvgIcon(color: string, strokeColor = "#fff") {
 }
 
 const ICONS: Record<string, L.DivIcon> = {
-  pending: makeSvgIcon("#0ea5e9"),   // light blue
-  approved: makeSvgIcon("#16A34A"),  // green
-  rejected: makeSvgIcon("#DC2626"), // red
-  blue: makeSvgIcon("#2563EB"),     // March
-  red: makeSvgIcon("#EF4444"),      // April
+  pending: makeSvgIcon("#0ea5e9"),
+  approved: makeSvgIcon("#16A34A"),
+  rejected: makeSvgIcon("#DC2626"),
+  blue: makeSvgIcon("#2563EB"),
+  red: makeSvgIcon("#EF4444"),
 };
 
 // ── Component to fly map to selected report ────────────────────
@@ -53,16 +54,16 @@ function ZoomControls() {
     <div className="flex items-center bg-white rounded-full shadow-xl border border-gray-100 overflow-hidden">
       <button 
         onClick={() => map.zoomOut()}
-        className="p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
+        className="p-2.5 md:p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
       >
-        <Minus className="w-6 h-6 stroke-3" />
+        <Minus className="w-5 h-5 md:w-6 md:h-6 stroke-3" />
       </button>
-      <div className="w-px h-6 bg-gray-200" />
+      <div className="w-px h-5 md:h-6 bg-gray-200" />
       <button 
         onClick={() => map.zoomIn()}
-        className="p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
+        className="p-2.5 md:p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
       >
-        <Plus className="w-6 h-6 stroke-3" />
+        <Plus className="w-5 h-5 md:w-6 md:h-6 stroke-3" />
       </button>
     </div>
   );
@@ -73,6 +74,7 @@ const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
 export default function AdminDashboard() {
   const { reports, pendingReports, refreshPending } = useReports();
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,10 +88,27 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-gray-100 overflow-hidden relative">
+    <div className="flex h-svh w-full bg-gray-100 overflow-hidden relative">
       
+      {/* ── Mobile Sidebar Backdrop ────────────────────────────── */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/30 z-30 md:hidden" 
+          onClick={() => setSidebarOpen(false)} 
+        />
+      )}
+
       {/* ── LEFT: Sidebar ─────────────────────────────────────── */}
-      <AdminSidebar onReportClick={(lat, lng) => setSelectedLocation([lat, lng])} />
+      <div className={`
+        fixed inset-y-0 left-0 z-40 w-[85vw] max-w-[380px] transform transition-transform duration-300 ease-in-out bg-gray-100
+        md:relative md:translate-x-0 md:w-[380px] md:max-w-none
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <AdminSidebar onReportClick={(lat, lng) => {
+          setSelectedLocation([lat, lng]);
+          setSidebarOpen(false);
+        }} />
+      </div>
 
       {/* ── RIGHT: Map ────────────────────────────────────────── */}
       <main className="flex-1 relative z-10 pointer-events-none">
@@ -106,7 +125,6 @@ export default function AdminDashboard() {
 
           <MapUpdater center={selectedLocation} />
 
-          {/* Render markers for both approved and pending reports */}
           {[...reports, ...pendingReports].map((report) => (
             <Marker
               key={report.id}
@@ -138,25 +156,31 @@ export default function AdminDashboard() {
           ))}
 
           {/* Floating Controls (Bottom Right) */}
-          <div className="absolute bottom-10 right-10 z-1000 flex flex-col items-end gap-4 pointer-events-auto">
+          <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
             <button 
               onClick={() => setSelectedLocation(BANDAR_LAMPUNG)}
-              className="p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
+              className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
             >
-              <Navigation className="w-8 h-8" />
+              <Navigation className="w-6 h-6 md:w-8 md:h-8" />
             </button>
             <ZoomControls />
           </div>
         </MapContainer>
 
-        {/* Floating Utils (Top Right) */}
-        <div className="absolute top-6 right-6 z-1000 pointer-events-auto">
+        {/* Mobile: Hamburger + Logout (Top bar) */}
+        <div className="absolute top-3 left-3 right-3 md:top-6 md:right-6 md:left-auto z-1000 pointer-events-auto flex justify-between md:justify-end items-center gap-3">
+          <button 
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden p-3 bg-white rounded-xl shadow-xl border border-gray-100 text-[#005a9e]"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
           <button 
             onClick={handleLogout}
-            className="group flex items-center gap-2 px-4 py-3 bg-white rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-sm uppercase tracking-wider"
+            className="group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider"
           >
-            <span>Logout</span>
-            <LogOut className="w-5 h-5" />
+            <span className="hidden sm:inline">Logout</span>
+            <LogOut className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
       </main>
@@ -179,4 +203,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-
