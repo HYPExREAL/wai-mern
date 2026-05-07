@@ -5,6 +5,7 @@ import {
   TileLayer,
   Marker,
   Popup,
+  GeoJSON,
   useMap,
   useMapEvents,
 } from "react-leaflet";
@@ -23,6 +24,7 @@ import {
   LogOut,
   X,
   MapPin,
+  Layers,
 } from "lucide-react";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useReports } from "../hooks/useReports";
@@ -57,10 +59,13 @@ const ICONS: Record<string, L.DivIcon> = {
   red: makeSvgIcon("#EF4444"),      // April
 };
 
-// ── Map sub-component: click handler ───────────────────────────
+// ── Map sub-component: click handler ─────────────────────────
 function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
   useMapEvents({
     click(e) {
+      // Don't fire if the click was on a UI control (buttons, inputs, labels, etc.)
+      const target = e.originalEvent?.target as HTMLElement | null;
+      if (target && target.closest('button, input, label, a, [role="button"], .leaflet-popup, .leaflet-control')) return;
       onMapClick(e.latlng.lat, e.latlng.lng);
     },
   });
@@ -100,6 +105,28 @@ function ZoomControls() {
   );
 }
 
+// ── Map sub-component: GeoJSON layer loader ────────────────────
+interface GeoJSONLayerProps {
+  url: string;
+  style: L.PathOptions;
+}
+function GeoJSONLayer({ url, style }: GeoJSONLayerProps) {
+  const [data, setData] = useState<GeoJSON.GeoJsonObject | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to load ${url}`);
+        return res.json();
+      })
+      .then((json) => { if (!cancelled) setData(json); })
+      .catch((err) => console.warn('GeoJSON load error:', err));
+    return () => { cancelled = true; };
+  }, [url]);
+  if (!data) return null;
+  return <GeoJSON key={url} data={data} style={() => style} />;
+}
+
 // ── Main component ─────────────────────────────────────────────
 export default function InteractiveMap() {
   const navigate = useNavigate();
@@ -110,6 +137,9 @@ export default function InteractiveMap() {
   // UI State
   const [showReportForm, setShowReportForm] = useState(false);
   const [recenterTrigger, setRecenterTrigger] = useState(0);
+  const [showLayers, setShowLayers] = useState(false);
+  const [layerDAS, setLayerDAS] = useState(false);
+  const [layerBorder, setLayerBorder] = useState(false);
 
   // Form state
   const [name, setName] = useState("");
@@ -583,6 +613,20 @@ export default function InteractiveMap() {
         <RecenterButton center={mapCenter} trigger={recenterTrigger} />
         <RecenterButton center={flyToCoords} trigger={flyTrigger} zoom={18} />
 
+        {/* GeoJSON Overlay Layers */}
+        {layerBorder && (
+          <GeoJSONLayer
+            url="/layers/batas_kota.json"
+            style={{ color: '#EF4444', weight: 3, opacity: 0.8, fillOpacity: 0.05, dashArray: '8 4' }}
+          />
+        )}
+        {layerDAS && (
+          <GeoJSONLayer
+            url="/layers/das.geojson"
+            style={{ color: '#EAB308', weight: 2.5, opacity: 0.8, fillOpacity: 0 }}
+          />
+        )}
+
         {manualLocation && (
           <Marker position={manualLocation} icon={ICONS.manual}>
             <Popup>Lokasi Kejadian Manual</Popup>
@@ -625,6 +669,48 @@ export default function InteractiveMap() {
 
         {/* ── BOTTOM RIGHT: Controls ────────────────────────────── */}
         <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
+          
+          {/* Layers Toggle */}
+          <div className="relative">
+            {showLayers && (
+              <div className="absolute bottom-full right-0 mb-2 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-3 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Map Layers</span>
+                <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={layerBorder} 
+                    onChange={() => setLayerBorder(!layerBorder)} 
+                    className="accent-[#EF4444] w-4 h-4 rounded"
+                  />
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-0.5 bg-red-500 rounded-full" />
+                    <span className="text-xs font-bold text-[#003B6D]">Batas Kota</span>
+                  </div>
+                </label>
+                <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={layerDAS} 
+                    onChange={() => setLayerDAS(!layerDAS)} 
+                    className="accent-[#EAB308] w-4 h-4 rounded"
+                  />
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-0.5 bg-yellow-500 rounded-full" />
+                    <span className="text-xs font-bold text-[#003B6D]">DAS (Sungai)</span>
+                  </div>
+                </label>
+              </div>
+            )}
+            <button 
+              onClick={() => setShowLayers(!showLayers)}
+              className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${
+                showLayers ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
+              }`}
+            >
+              <Layers className="w-6 h-6 md:w-8 md:h-8" />
+            </button>
+          </div>
+
           {/* Geo Control */}
           <button 
             onClick={() => setRecenterTrigger(prev => prev + 1)}

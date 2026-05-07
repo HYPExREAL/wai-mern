@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { 
@@ -9,6 +9,7 @@ import {
   Navigation,
   LogOut,
   Menu,
+  Layers,
 } from "lucide-react";
 import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
@@ -69,12 +70,37 @@ function ZoomControls() {
   );
 }
 
+// ── Map sub-component: GeoJSON layer loader ────────────────────
+interface GeoJSONLayerProps {
+  url: string;
+  style: L.PathOptions;
+}
+function GeoJSONLayer({ url, style }: GeoJSONLayerProps) {
+  const [data, setData] = useState<GeoJSON.GeoJsonObject | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to load ${url}`);
+        return res.json();
+      })
+      .then((json) => { if (!cancelled) setData(json); })
+      .catch((err) => console.warn('GeoJSON load error:', err));
+    return () => { cancelled = true; };
+  }, [url]);
+  if (!data) return null;
+  return <GeoJSON key={url} data={data} style={() => style} />;
+}
+
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
 
 export default function AdminDashboard() {
   const { reports, pendingReports, refreshPending } = useReports();
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLayers, setShowLayers] = useState(false);
+  const [layerDAS, setLayerDAS] = useState(false);
+  const [layerBorder, setLayerBorder] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -125,6 +151,20 @@ export default function AdminDashboard() {
 
           <MapUpdater center={selectedLocation} />
 
+          {/* GeoJSON Overlay Layers */}
+          {layerBorder && (
+            <GeoJSONLayer
+              url="/layers/batas_kota.json"
+              style={{ color: '#EF4444', weight: 3, opacity: 0.8, fillOpacity: 0.05, dashArray: '8 4' }}
+            />
+          )}
+          {layerDAS && (
+            <GeoJSONLayer
+              url="/layers/das.geojson"
+              style={{ color: '#EAB308', weight: 2.5, opacity: 0.8, fillOpacity: 0 }}
+            />
+          )}
+
           {[...reports, ...pendingReports].map((report) => (
             <Marker
               key={report.id}
@@ -157,6 +197,48 @@ export default function AdminDashboard() {
 
           {/* Floating Controls (Bottom Right) */}
           <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
+            
+            {/* Layers Toggle */}
+            <div className="relative">
+              {showLayers && (
+                <div className="absolute bottom-full right-0 mb-2 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-3 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Map Layers</span>
+                  <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={layerBorder} 
+                      onChange={() => setLayerBorder(!layerBorder)} 
+                      className="accent-[#EF4444] w-4 h-4 rounded"
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-0.5 bg-red-500 rounded-full" />
+                      <span className="text-xs font-bold text-[#003B6D]">Batas Kota</span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={layerDAS} 
+                      onChange={() => setLayerDAS(!layerDAS)} 
+                      className="accent-[#EAB308] w-4 h-4 rounded"
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-0.5 bg-yellow-500 rounded-full" />
+                      <span className="text-xs font-bold text-[#003B6D]">DAS (Sungai)</span>
+                    </div>
+                  </label>
+                </div>
+              )}
+              <button 
+                onClick={() => setShowLayers(!showLayers)}
+                className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${
+                  showLayers ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
+                }`}
+              >
+                <Layers className="w-6 h-6 md:w-8 md:h-8" />
+              </button>
+            </div>
+
             <button 
               onClick={() => setSelectedLocation(BANDAR_LAMPUNG)}
               className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
