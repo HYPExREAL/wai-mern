@@ -135,7 +135,7 @@ export default function InteractiveMap() {
   const [flyToCoords, setFlyToCoords] = useState<[number, number]>(BANDAR_LAMPUNG);
   const [flyTrigger, setFlyTrigger] = useState(0);
 
-  const accuracyOk = geo.accuracy !== null && geo.accuracy <= 20; // Relaxed for better UX
+  const accuracyOk = geo.accuracy !== null && geo.accuracy <= 50; // Allow up to 50m — hook already keeps only the best reading
   const hasValidLocation = manualLocation !== null || (!geo.loading && !geo.error && accuracyOk);
   const canSubmit =
     hasValidLocation &&
@@ -323,71 +323,23 @@ export default function InteractiveMap() {
   return (
     <div id="map-page" className="relative h-svh w-full overflow-hidden bg-gray-100">
       
-      {/* ── TOP LEFT: Logo Card ────────────────────────────────── */}
-      <div className="absolute top-3 left-3 md:top-6 md:left-6 z-1000">
-        <Link to="/" className="flex items-center gap-2 md:gap-3 bg-white p-2 pr-4 md:p-3 md:pr-6 rounded-xl md:rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all group pointer-events-auto">
+      {/* ── TOP BAR: Logo + Search + Exit ────────────────────── */}
+      <div className="absolute top-3 left-3 right-3 md:top-6 md:left-6 md:right-6 z-1000 flex items-center justify-between pointer-events-auto">
+        
+        {/* Logo */}
+        <Link to="/" className="shrink-0 flex items-center gap-2 md:gap-3 bg-white px-2.5 py-2 md:px-3 md:py-2.5 rounded-xl md:rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all">
           <img src="/WAI.png" alt="WAI Logo" className="h-7 md:h-10 w-auto object-contain" />
           <div className="hidden sm:flex flex-col border-l border-gray-200 pl-2 md:pl-3">
             <span className="text-[#005a9e] font-bold text-xs md:text-sm tracking-tight leading-none mb-0.5">Water Awareness</span>
             <span className="text-[#005a9e] text-[10px] md:text-xs font-medium opacity-80 leading-none">& Information</span>
           </div>
         </Link>
-      </div>
 
-        {/* ── Search Bar ────────────────────────────────────────── */}
-        <div className="absolute top-16 sm:top-8 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-1000">
-          <form 
-            onSubmit={handleSearch}
-            className="flex items-center bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50 overflow-hidden pr-2"
-          >
-            <input 
-              type="text"
-              placeholder="Cari lokasi banjir..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowSuggestions(true);
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              className="flex-1 px-4 py-3 md:px-5 md:py-4 bg-transparent outline-none text-sm md:text-base text-[#003B6D] font-bold placeholder:text-[#003B6D]/40"
-            />
-            <button 
-              type="submit"
-              disabled={isSearching}
-              className="p-3 bg-[#005a9e] text-white rounded-xl hover:bg-[#004a82] transition-all disabled:opacity-50"
-            >
-              {isSearching ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Search className="w-5 h-5" />
-              )}
-            </button>
-          </form>
 
-          {/* Suggestions Dropdown */}
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-full mt-2 w-full bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-300">
-              {suggestions.map((s, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectSuggestion(s)}
-                  className="w-full text-left px-5 py-3 hover:bg-[#005a9e]/5 transition-colors flex items-start gap-3 border-b border-gray-50 last:border-0"
-                >
-                  <MapPin className="w-4 h-4 text-[#005a9e] mt-0.5 shrink-0" />
-                  <span className="text-xs font-bold text-[#003B6D] line-clamp-2 leading-relaxed">
-                    {s.display_name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-      {/* ── TOP RIGHT: Utils ──────────────────────────────────── */}
-      <div className="absolute top-3 right-3 md:top-6 md:right-6 z-1000">
+        {/* Exit / Logout Button */}
         <button 
           onClick={handleTopRightAction}
-          className="group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all pointer-events-auto font-bold text-xs md:text-sm uppercase tracking-wider"
+          className="shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider"
         >
           {isAdmin ? (
             <>
@@ -406,9 +358,9 @@ export default function InteractiveMap() {
       {/* ── LEFT: Report Form Card ─────────────────────────────── */}
       {showReportForm && (
         <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:top-32 md:left-6 z-1000 w-full md:w-auto md:max-w-sm animate-[slideIn_0.4s_ease-out] pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-t-[32px] md:rounded-[32px] shadow-2xl border border-white/50 p-5 md:p-8 flex flex-col gap-4 md:gap-5 max-h-[70svh] md:max-h-[calc(100vh-200px)] overflow-y-auto">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[#005a9e] text-xl font-bold">Lapor Banjir</h2>
+          <div className="bg-white/95 backdrop-blur-md rounded-t-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-8 flex flex-col gap-3 md:gap-5 max-h-[55svh] md:max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[#005a9e] text-base md:text-xl font-bold">Lapor Banjir</h2>
               <button 
                 type="button"
                 onClick={() => setShowReportForm(false)}
@@ -418,7 +370,7 @@ export default function InteractiveMap() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 md:gap-4">
               {/* Nama Pelapor */}
               <div className="space-y-1">
                 <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Nama Pelapor</label>
@@ -426,7 +378,7 @@ export default function InteractiveMap() {
                   type="text" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] focus:ring-2 focus:ring-[#005a9e]/10 outline-none text-sm transition-all"
+                  className="w-full px-3 md:px-4 py-2 md:py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] focus:ring-2 focus:ring-[#005a9e]/10 outline-none text-sm transition-all"
                   placeholder="Nama Lengkap"
                 />
               </div>
@@ -439,7 +391,7 @@ export default function InteractiveMap() {
                     type="date" 
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs"
+                    className="w-full px-3 py-2 md:py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs"
                   />
                 </div>
                 <div className="space-y-1">
@@ -448,7 +400,7 @@ export default function InteractiveMap() {
                     <select 
                       value={depth}
                       onChange={(e) => setDepth(e.target.value as FloodReport["severity"] | "")}
-                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs appearance-none"
+                      className="w-full px-3 py-2 md:py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs appearance-none"
                     >
                       <option value="">Pilih</option>
                       <option value="low">Rendah</option>
@@ -461,31 +413,72 @@ export default function InteractiveMap() {
                 </div>
               </div>
 
-              {/* Lokasi Koordinat */}
-              <div className="space-y-1">
-                <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Lokasi Koordinat</label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <input 
-                      type="text" 
-                      readOnly
-                      value={finalLat !== null && finalLng !== null ? `${finalLat.toFixed(5)}, ${finalLng.toFixed(5)}` : ""}
-                      placeholder="Klik peta atau gunakan GPS"
-                      className="w-full pl-3 pr-10 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-xs text-gray-500"
-                    />
+              {/* Lokasi — Search + Coordinates */}
+              <div className="space-y-1.5">
+                <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Cari Lokasi</label>
+                <div className="relative">
+                  <div className="flex gap-1.5">
+                    <div className="flex-1 flex items-center bg-white border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#005a9e] focus-within:ring-2 focus-within:ring-[#005a9e]/10 transition-all">
+                      <input 
+                        type="text"
+                        placeholder="Ketik alamat atau klik peta..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setShowSuggestions(true);
+                        }}
+                        onFocus={() => setShowSuggestions(true)}
+                        className="flex-1 min-w-0 px-3 py-2 md:py-2.5 bg-transparent outline-none text-xs text-[#003B6D] font-bold placeholder:text-gray-400"
+                      />
+                      <button 
+                        type="button"
+                        onClick={handleSearch}
+                        disabled={isSearching}
+                        className="shrink-0 p-2 text-[#005a9e] hover:bg-gray-50 transition-colors disabled:opacity-50"
+                      >
+                        {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setManualLocation(null)}
+                      title="Gunakan GPS"
+                      className="shrink-0 p-2 md:p-2.5 rounded-xl border border-gray-200 bg-white text-[#005a9e] hover:bg-gray-50 transition-all"
+                    >
+                      <Crosshair className="w-4 h-4 md:w-5 md:h-5" />
+                    </button>
                   </div>
-                  <button 
-                    type="button"
-                    onClick={() => setManualLocation(null)}
-                    className="p-2.5 rounded-xl border border-gray-200 bg-white text-[#005a9e] hover:bg-gray-50 transition-all"
-                  >
-                    <Crosshair className="w-5 h-5" />
-                  </button>
+
+                  {/* Inline Suggestions */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute top-full mt-1 left-0 right-0 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden py-1 z-50 max-h-40 overflow-y-auto">
+                      {suggestions.map((s, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleSelectSuggestion(s)}
+                          className="w-full text-left px-3 py-2 hover:bg-[#005a9e]/5 transition-colors flex items-start gap-2 border-b border-gray-50 last:border-0"
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-[#005a9e] mt-0.5 shrink-0" />
+                          <span className="text-[11px] font-bold text-[#003B6D] line-clamp-1 leading-snug">
+                            {s.display_name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
+                {/* Coordinate display */}
+                {finalLat !== null && finalLng !== null && (
+                  <p className="text-[10px] text-gray-400 font-mono pl-1">
+                    📍 {finalLat.toFixed(5)}, {finalLng.toFixed(5)}
+                  </p>
+                )}
               </div>
 
               {/* Dokumentasi */}
-              <div className="space-y-4 mb-8">
+              <div className="space-y-1 md:space-y-4 md:mb-8">
               <label className="block text-[#003B6D]/60 text-xs font-black uppercase tracking-widest mb-2">Unggah Foto</label>
               <div className="relative group">
                 <input 
@@ -497,14 +490,14 @@ export default function InteractiveMap() {
                 />
                 <label 
                   htmlFor="image-upload"
-                  className="flex flex-col items-center justify-center gap-3 w-full aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl hover:border-[#005a9e]/30 hover:bg-gray-100 transition-all cursor-pointer group-hover:scale-[0.99] active:scale-95 overflow-hidden"
+                  className="flex flex-col items-center justify-center gap-2 md:gap-3 w-full aspect-3/1 md:aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl md:rounded-3xl hover:border-[#005a9e]/30 hover:bg-gray-100 transition-all cursor-pointer group-hover:scale-[0.99] active:scale-95 overflow-hidden"
                 >
                   {imagePreview ? (
                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
                     <>
-                      <div className="p-4 bg-white rounded-2xl shadow-sm text-[#005a9e]">
-                        <Upload className="w-6 h-6" />
+                      <div className="p-2 md:p-4 bg-white rounded-xl md:rounded-2xl shadow-sm text-[#005a9e]">
+                        <Upload className="w-5 h-5 md:w-6 md:h-6" />
                       </div>
                       <span className="text-[#003B6D]/60 text-[10px] font-bold uppercase tracking-widest">Klik untuk unggah</span>
                     </>
@@ -541,7 +534,7 @@ export default function InteractiveMap() {
               <button 
                 type="submit"
                 disabled={!canSubmit || submitting}
-                className="w-full bg-[#005a9e] text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#004a82] transition-all disabled:opacity-50 mt-2 shadow-lg shadow-[#005a9e]/20"
+                className="w-full bg-[#005a9e] text-white py-3 md:py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#004a82] transition-all disabled:opacity-50 mt-1 md:mt-2 shadow-lg shadow-[#005a9e]/20 text-sm md:text-base"
               >
                 {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 {submitted ? "Berhasil Dikirim!" : "Kirim Laporan"}
@@ -654,4 +647,3 @@ export default function InteractiveMap() {
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export interface GeolocationState {
   latitude: number | null;
@@ -20,6 +20,9 @@ export function useGeolocation() {
     };
   });
 
+  // Track the best accuracy we've seen so far
+  const bestAccuracy = useRef<number>(Infinity);
+
   useEffect(() => {
     if (!navigator.geolocation) {
       return;
@@ -27,13 +30,20 @@ export function useGeolocation() {
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        setState({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          loading: false,
-          error: null,
-        });
+        const { latitude, longitude, accuracy } = position.coords;
+
+        // Only update state if this reading is more accurate than (or equal to)
+        // the best we've seen, OR if we haven't gotten a reading yet.
+        if (accuracy <= bestAccuracy.current || bestAccuracy.current === Infinity) {
+          bestAccuracy.current = accuracy;
+          setState({
+            latitude,
+            longitude,
+            accuracy,
+            loading: false,
+            error: null,
+          });
+        }
       },
       (err) => {
         setState((prev) => ({
@@ -49,8 +59,8 @@ export function useGeolocation() {
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 5000,
-        timeout: 15000,
+        maximumAge: 0,   // Never use cached positions — always request a fresh GPS fix
+        timeout: 30000,  // Allow up to 30s for the GPS to lock (important on cold starts)
       }
     );
 

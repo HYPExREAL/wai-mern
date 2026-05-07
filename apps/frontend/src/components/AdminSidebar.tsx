@@ -81,8 +81,8 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
       </div>
 
       {/* Reports List Card */}
-      <div className="flex-1 bg-white/95 backdrop-blur-md rounded-[32px] shadow-2xl border border-white/50 p-6 flex flex-col pointer-events-auto overflow-hidden">
-        <h2 className="text-[#005a9e] text-lg font-bold text-center mb-6">Laporan Masuk</h2>
+      <div className="flex-1 bg-white/95 backdrop-blur-md rounded-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-6 flex flex-col pointer-events-auto overflow-hidden">
+        <h2 className="text-[#005a9e] text-base md:text-lg font-bold text-center mb-4 md:mb-6">Laporan Masuk</h2>
         
         <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
           {pendingReports.length === 0 ? (
@@ -111,24 +111,24 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
                   </div>
                 )}
                 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button 
                     onClick={(e) => handleVerifyClick(report, e)}
-                    className="flex-1 bg-[#16A34A] text-white py-2 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-[#15803d] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                    className="flex-1 min-w-0 bg-[#16A34A] text-white py-2.5 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-[#15803d] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <Check size={14} />
-                    Verifikasi
+                    <span className="truncate">Verifikasi</span>
                   </button>
                   <button 
                     onClick={(e) => handleReject(report.id, e)}
-                    className="flex-1 bg-amber-500 text-white py-2 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-amber-600 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                    className="flex-1 min-w-0 bg-amber-500 text-white py-2.5 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-amber-600 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <XCircle size={14} />
-                    Tolak
+                    <span className="truncate">Tolak</span>
                   </button>
                   <button 
                     onClick={(e) => handleDelete(report.id, e)}
-                    className="aspect-square bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600 p-2 rounded-xl transition-all flex items-center justify-center shadow-xs"
+                    className="aspect-square bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600 p-2.5 rounded-xl transition-all flex items-center justify-center shadow-xs"
                     title="Hapus Laporan"
                   >
                     <Trash2 size={14} />
@@ -164,9 +164,13 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
           />
           
           {/* Modal Content */}
-          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-none">
+          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh]">
+            {/* Mobile drag handle */}
+            <div className="md:hidden flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+            </div>
             {/* Header / Image Area */}
-            <div className="relative w-full aspect-video bg-gray-100">
+            <div className="relative w-full aspect-video bg-gray-100 shrink-0">
               {selectedReportForVerification.imageUrl ? (
                 <img 
                   src={selectedReportForVerification.imageUrl} 
@@ -185,13 +189,13 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
               {/* Close Button */}
               <button 
                 onClick={() => setSelectedReportForVerification(null)}
-                className="absolute top-6 right-6 p-3 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl text-gray-500 hover:text-red-500 transition-all hover:scale-110"
+                className="absolute top-3 right-3 md:top-6 md:right-6 p-2 md:p-3 bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-xl text-gray-500 hover:text-red-500 transition-all hover:scale-110"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
 
               {/* Status Badge */}
-              <div className="absolute bottom-6 left-6 px-4 py-2 bg-[#16A34A] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg">
+              <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 px-3 py-1.5 md:px-4 md:py-2 bg-amber-500 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-widest shadow-lg">
                 Menunggu Verifikasi
               </div>
             </div>
@@ -199,16 +203,16 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
             {/* Content Area */}
             <div className="p-5 md:p-8 flex flex-col gap-4 md:gap-6 overflow-y-auto">
               <div>
-                <h3 className="text-2xl font-black text-[#003B6D] mb-2 leading-tight">
+                <h3 className="text-lg md:text-2xl font-black text-[#003B6D] mb-1 md:mb-2 leading-tight">
                   {selectedReportForVerification.title}
                 </h3>
-                <p className="text-gray-500 text-sm leading-relaxed italic">
+                <p className="text-gray-500 text-xs md:text-sm leading-relaxed italic">
                   "{selectedReportForVerification.description || "Tidak ada deskripsi tambahan"}"
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center gap-4">
+                <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
                   <div className="p-2.5 bg-white rounded-xl shadow-sm text-[#005a9e]">
                     <User size={18} />
                   </div>
@@ -218,7 +222,7 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center gap-4">
+                <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
                   <div className="p-2.5 bg-white rounded-xl shadow-sm text-amber-500">
                     <Clock size={18} />
                   </div>
@@ -231,7 +235,7 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-3xl border border-gray-100 flex items-center gap-4">
+              <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
                 <div className="p-2.5 bg-white rounded-xl shadow-sm text-red-500">
                   <MapPin size={18} />
                 </div>
@@ -244,19 +248,19 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4 mt-2">
+              <div className="flex gap-3 md:gap-4 mt-2 pb-2">
                 <button 
                   onClick={() => setSelectedReportForVerification(null)}
-                  className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-3xl font-bold hover:bg-gray-200 transition-all active:scale-95 uppercase text-xs tracking-widest"
+                  className="flex-1 py-3 md:py-4 bg-gray-100 text-gray-500 rounded-2xl md:rounded-3xl font-bold hover:bg-gray-200 transition-all active:scale-95 uppercase text-[11px] md:text-xs tracking-widest"
                 >
                   Kembali
                 </button>
                 <button 
                   onClick={handleConfirmApprove}
-                  className="flex-2 py-4 bg-[#16A34A] text-white rounded-3xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-95 uppercase text-xs tracking-widest flex items-center justify-center gap-2"
+                  className="flex-2 py-3 md:py-4 bg-[#16A34A] text-white rounded-2xl md:rounded-3xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-95 uppercase text-[11px] md:text-xs tracking-widest flex items-center justify-center gap-2"
                 >
-                  <Check size={18} />
-                  Konfirmasi Verifikasi
+                  <Check size={16} />
+                  <span className="hidden sm:inline">Konfirmasi</span> Verifikasi
                 </button>
               </div>
             </div>
