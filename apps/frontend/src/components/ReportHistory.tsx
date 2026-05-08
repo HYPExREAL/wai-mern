@@ -16,6 +16,7 @@ export default function ReportHistory() {
 
   const handleLogout = () => {
     localStorage.removeItem("isAdmin");
+    localStorage.removeItem("token");
     navigate("/");
   };
 

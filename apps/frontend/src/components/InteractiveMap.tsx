@@ -34,6 +34,12 @@ import type { FloodReport } from "../context/reportsContextDef";
 // ── Bandar Lampung center ──────────────────────────────────────
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
 
+interface NominatimResult {
+  lat: string;
+  lon: string;
+  display_name: string;
+}
+
 // ── Custom marker icons ────────────────────────────────────────
 function makeSvgIcon(color: string, strokeColor = "#fff") {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="44" viewBox="0 0 32 44">
@@ -155,11 +161,6 @@ export default function InteractiveMap() {
   const [base64Image, setBase64Image] = useState<string | null>(null);
   
   // Search Suggestions State
-  interface NominatimResult {
-    lat: string;
-    lon: string;
-    display_name: string;
-  }
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [flyToCoords, setFlyToCoords] = useState<[number, number]>(BANDAR_LAMPUNG);
@@ -327,7 +328,7 @@ export default function InteractiveMap() {
         setShowReportForm(false);
       }, 2000);
     } catch {
-      alert("Gagal mengirim laporan. Silakan coba lagi.");
+      notify("error", "Gagal mengirim laporan. Silakan coba lagi.");
     } finally {
       setSubmitting(false);
     }
