@@ -25,6 +25,7 @@ import {
   X,
   MapPin,
   Layers,
+  Info,
 } from "lucide-react";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useReports } from "../hooks/useReports";
@@ -144,6 +145,7 @@ export default function InteractiveMap() {
   const [showReportForm, setShowReportForm] = useState(false);
   const [recenterTrigger, setRecenterTrigger] = useState(0);
   const [showLayers, setShowLayers] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
   const [layerDAS, setLayerDAS] = useState(false);
   const [layerBorder, setLayerBorder] = useState(false);
 
@@ -472,7 +474,11 @@ export default function InteractiveMap() {
                     </div>
                     <button 
                       type="button"
-                      onClick={() => setManualLocation(null)}
+                      onClick={() => {
+                        setManualLocation(null);
+                        setSearchQuery("");
+                        setRecenterTrigger(prev => prev + 1);
+                      }}
                       title="Gunakan GPS"
                       className="shrink-0 p-2 md:p-2.5 rounded-xl border border-gray-200 bg-white text-[#005a9e] hover:bg-gray-50 transition-all"
                     >
@@ -669,58 +675,135 @@ export default function InteractiveMap() {
         )}
 
         {/* ── BOTTOM RIGHT: Controls ────────────────────────────── */}
-        <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
+        <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-row items-end gap-2 md:gap-4 pointer-events-auto">
           
-          {/* Layers Toggle */}
-          <div className="relative">
-            {showLayers && (
-              <div className="absolute bottom-full right-0 mb-2 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-3 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Map Layers</span>
-                <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={layerBorder} 
-                    onChange={() => setLayerBorder(!layerBorder)} 
-                    className="accent-[#EF4444] w-4 h-4 rounded"
-                  />
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-0.5 bg-red-500 rounded-full" />
-                    <span className="text-xs font-bold text-[#003B6D]">Batas Kota</span>
+          {/* Controls Stack (Left of Legend) */}
+          <div className="flex flex-col items-end gap-2 md:gap-4">
+            
+            {/* Legend Toggle (Mobile Only) */}
+            <div className="relative md:hidden">
+              {showLegend && (
+                <div className="absolute bottom-full right-0 mb-2 w-48 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Legenda Peta</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#2563EB] shadow-sm shadow-[#2563EB]/40" />
+                    <span className="text-xs font-bold text-[#003B6D]">Laporan Maret</span>
                   </div>
-                </label>
-                <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={layerDAS} 
-                    onChange={() => setLayerDAS(!layerDAS)} 
-                    className="accent-[#EAB308] w-4 h-4 rounded"
-                  />
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-0.5 bg-yellow-500 rounded-full" />
-                    <span className="text-xs font-bold text-[#003B6D]">DAS (Sungai)</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#EF4444] shadow-sm shadow-[#EF4444]/40" />
+                    <span className="text-xs font-bold text-[#003B6D]">Laporan April</span>
                   </div>
-                </label>
-              </div>
-            )}
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#16A34A] shadow-sm shadow-[#16A34A]/40" />
+                    <span className="text-xs font-bold text-[#003B6D]">Laporan Lainnya</span>
+                  </div>
+                  <div className="w-full h-px bg-gray-100 my-1" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#3B82F6] shadow-sm shadow-[#3B82F6]/40" />
+                    <span className="text-xs font-bold text-[#003B6D]">Lokasi Anda</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#A855F7] shadow-sm shadow-[#A855F7]/40" />
+                    <span className="text-xs font-bold text-[#003B6D]">Pin Manual</span>
+                  </div>
+                </div>
+              )}
+              <button 
+                onClick={() => {
+                  setShowLegend(!showLegend);
+                  if (!showLegend) setShowLayers(false);
+                }}
+                className={`p-3 rounded-full shadow-2xl border border-gray-100 transition-all ${
+                  showLegend ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
+                }`}
+                title="Legenda Peta"
+              >
+                <Info className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Layers Toggle */}
+            <div className="relative">
+              {showLayers && (
+                <div className="absolute bottom-full right-0 mb-2 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-3 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Map Layers</span>
+                  <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={layerBorder} 
+                      onChange={() => setLayerBorder(!layerBorder)} 
+                      className="accent-[#EF4444] w-4 h-4 rounded"
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-0.5 bg-red-500 rounded-full" />
+                      <span className="text-xs font-bold text-[#003B6D]">Batas Kota</span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={layerDAS} 
+                      onChange={() => setLayerDAS(!layerDAS)} 
+                      className="accent-[#EAB308] w-4 h-4 rounded"
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-0.5 bg-yellow-500 rounded-full" />
+                      <span className="text-xs font-bold text-[#003B6D]">DAS (Sungai)</span>
+                    </div>
+                  </label>
+                </div>
+              )}
+              <button 
+                onClick={() => {
+                  setShowLayers(!showLayers);
+                  if (!showLayers) setShowLegend(false);
+                }}
+                className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${
+                  showLayers ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
+                }`}
+              >
+                <Layers className="w-6 h-6 md:w-8 md:h-8" />
+              </button>
+            </div>
+
+            {/* Geo Control */}
             <button 
-              onClick={() => setShowLayers(!showLayers)}
-              className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${
-                showLayers ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
-              }`}
+              onClick={() => setRecenterTrigger(prev => prev + 1)}
+              className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
             >
-              <Layers className="w-6 h-6 md:w-8 md:h-8" />
+              <Navigation className="w-6 h-6 md:w-8 md:h-8" />
             </button>
+
+            {/* Zoom Control */}
+            <ZoomControls />
           </div>
 
-          {/* Geo Control */}
-          <button 
-            onClick={() => setRecenterTrigger(prev => prev + 1)}
-            className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
-          >
-            <Navigation className="w-6 h-6 md:w-8 md:h-8" />
-          </button>
-          {/* Zoom Control */}
-          <ZoomControls />
+          {/* Always Visible Legend (Desktop Only) */}
+          <div className="hidden md:flex w-48 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex-col gap-2.5">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Legenda Peta</span>
+            
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#2563EB] shadow-sm shadow-[#2563EB]/40" />
+              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Laporan Maret</span>
+            </div>
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#EF4444] shadow-sm shadow-[#EF4444]/40" />
+              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Laporan April</span>
+            </div>
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#16A34A] shadow-sm shadow-[#16A34A]/40" />
+              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Laporan Lainnya</span>
+            </div>
+            <div className="w-full h-px bg-gray-100 my-0.5 md:my-1" />
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#3B82F6] shadow-sm shadow-[#3B82F6]/40" />
+              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Lokasi Anda</span>
+            </div>
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#A855F7] shadow-sm shadow-[#A855F7]/40" />
+              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Pin Manual</span>
+            </div>
+          </div>
         </div>
       </MapContainer>
 
