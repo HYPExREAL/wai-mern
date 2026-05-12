@@ -62,8 +62,6 @@ const ICONS: Record<string, L.DivIcon> = {
   rejected: makeSvgIcon("#DC2626"), // red
   user: makeSvgIcon("#3B82F6"),     // blue — user location
   manual: makeSvgIcon("#A855F7"),   // purple — manual pin
-  blue: makeSvgIcon("#2563EB"),     // March
-  red: makeSvgIcon("#EF4444"),      // April
 };
 
 // ── Map sub-component: click handler ─────────────────────────
@@ -675,54 +673,43 @@ export default function InteractiveMap() {
         )}
 
         {/* ── BOTTOM RIGHT: Controls ────────────────────────────── */}
-        <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-row items-end gap-2 md:gap-4 pointer-events-auto">
+        <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
           
-          {/* Controls Stack (Left of Legend) */}
-          <div className="flex flex-col items-end gap-2 md:gap-4">
-            
-            {/* Legend Toggle (Mobile Only) */}
-            <div className="relative md:hidden">
-              {showLegend && (
-                <div className="absolute bottom-full right-0 mb-2 w-48 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Legenda Peta</span>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-[#2563EB] shadow-sm shadow-[#2563EB]/40" />
-                    <span className="text-xs font-bold text-[#003B6D]">Laporan Maret</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-[#EF4444] shadow-sm shadow-[#EF4444]/40" />
-                    <span className="text-xs font-bold text-[#003B6D]">Laporan April</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-[#16A34A] shadow-sm shadow-[#16A34A]/40" />
-                    <span className="text-xs font-bold text-[#003B6D]">Laporan Lainnya</span>
-                  </div>
-                  <div className="w-full h-px bg-gray-100 my-1" />
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-[#3B82F6] shadow-sm shadow-[#3B82F6]/40" />
-                    <span className="text-xs font-bold text-[#003B6D]">Lokasi Anda</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-[#A855F7] shadow-sm shadow-[#A855F7]/40" />
-                    <span className="text-xs font-bold text-[#003B6D]">Pin Manual</span>
-                  </div>
+          {/* Legend Toggle */}
+          <div className="relative">
+            {showLegend && (
+              <div className="absolute bottom-full right-0 mb-2 w-48 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Legenda Peta</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-[#16A34A] shadow-sm shadow-[#16A34A]/40" />
+                  <span className="text-xs font-bold text-[#003B6D]">Laporan Divalidasi</span>
                 </div>
-              )}
-              <button 
-                onClick={() => {
-                  setShowLegend(!showLegend);
-                  if (!showLegend) setShowLayers(false);
-                }}
-                className={`p-3 rounded-full shadow-2xl border border-gray-100 transition-all ${
-                  showLegend ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
-                }`}
-                title="Legenda Peta"
-              >
-                <Info className="w-6 h-6" />
-              </button>
-            </div>
+                <div className="w-full h-px bg-gray-100 my-1" />
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-[#3B82F6] shadow-sm shadow-[#3B82F6]/40" />
+                  <span className="text-xs font-bold text-[#003B6D]">Lokasi Anda</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-[#A855F7] shadow-sm shadow-[#A855F7]/40" />
+                  <span className="text-xs font-bold text-[#003B6D]">Pin Manual</span>
+                </div>
+              </div>
+            )}
+            <button 
+              onClick={() => {
+                setShowLegend(!showLegend);
+                if (!showLegend) setShowLayers(false);
+              }}
+              className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${
+                showLegend ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
+              }`}
+              title="Legenda Peta"
+            >
+              <Info className="w-6 h-6 md:w-8 md:h-8" />
+            </button>
+          </div>
 
-            {/* Layers Toggle */}
+          {/* Layers Toggle */}
             <div className="relative">
               {showLayers && (
                 <div className="absolute bottom-full right-0 mb-2 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-3 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -776,34 +763,6 @@ export default function InteractiveMap() {
 
             {/* Zoom Control */}
             <ZoomControls />
-          </div>
-
-          {/* Always Visible Legend (Desktop Only) */}
-          <div className="hidden md:flex w-48 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex-col gap-2.5">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Legenda Peta</span>
-            
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#2563EB] shadow-sm shadow-[#2563EB]/40" />
-              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Laporan Maret</span>
-            </div>
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#EF4444] shadow-sm shadow-[#EF4444]/40" />
-              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Laporan April</span>
-            </div>
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#16A34A] shadow-sm shadow-[#16A34A]/40" />
-              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Laporan Lainnya</span>
-            </div>
-            <div className="w-full h-px bg-gray-100 my-0.5 md:my-1" />
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#3B82F6] shadow-sm shadow-[#3B82F6]/40" />
-              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Lokasi Anda</span>
-            </div>
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#A855F7] shadow-sm shadow-[#A855F7]/40" />
-              <span className="text-[10px] md:text-xs font-bold text-[#003B6D]">Pin Manual</span>
-            </div>
-          </div>
         </div>
       </MapContainer>
 

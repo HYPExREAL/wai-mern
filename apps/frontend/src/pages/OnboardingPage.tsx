@@ -6,8 +6,17 @@ export default function OnboardingPage() {
       id="onboarding-page"
       className="min-h-svh w-full flex items-center justify-center p-6 bg-linear-to-b from-[#003B6D] to-[#0072B5]"
     >
+      {/* Header Logo */}
+      <div className="absolute top-6 left-6 md:top-8 md:left-8 z-10">
+        <img 
+          src="/RIF Logo.png" 
+          alt="RIF Header Logo" 
+          className="h-10 md:h-12 w-auto object-contain opacity-90"
+        />
+      </div>
+
       {/* Central Card */}
-      <div className="w-full max-w-4xl bg-white/10 backdrop-blur-sm border border-white/20 rounded-[32px] p-8 md:p-16 flex flex-col items-center text-center shadow-2xl">
+      <div className="w-full max-w-4xl bg-white/10 backdrop-blur-sm border border-white/20 rounded-[32px] p-8 md:p-16 flex flex-col items-center text-center shadow-2xl z-10">
         
         {/* Logo Section */}
         <div className="mb-8">
@@ -24,8 +33,7 @@ export default function OnboardingPage() {
         {/* Description */}
         <p className="text-white/90 text-base md:text-lg max-w-2xl leading-relaxed mb-12">
           Pantau kondisi banjir secara real-time, laporkan kejadian banjir 
-          di sekitar Anda, dan bantu pemerintah Kota Bandar Lampung 
-          dalam penanganan bencana secara cepat dan akurat.
+          di sekitar Anda, dan bantu dalam penanganan bencana secara cepat dan akurat.
         </p>
 
         {/* Actions */}

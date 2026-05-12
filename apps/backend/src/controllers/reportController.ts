@@ -68,21 +68,7 @@ export const getPublishedReports = async (req: Request, res: Response) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const reportsWithColor = reports.map((report) => {
-      let markerColor = "default";
-      if (report.createdAt) {
-        const month = report.createdAt.getMonth(); // 0-indexed: 2 is March, 3 is April
-        if (month === 2) markerColor = "blue";
-        else if (month === 3) markerColor = "red";
-      }
-
-      return {
-        ...report,
-        markerColor,
-      };
-    });
-
-    return res.json(reportsWithColor);
+    return res.json(reports);
   } catch (error: any) {
     console.error("Error fetching published reports:", error);
     return res.status(500).json({ message: "Gagal mengambil laporan publik." });

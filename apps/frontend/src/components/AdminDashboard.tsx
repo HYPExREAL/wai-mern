@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   Layers,
+  Info,
 } from "lucide-react";
 import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
@@ -33,8 +34,6 @@ const ICONS: Record<string, L.DivIcon> = {
   pending: makeSvgIcon("#0ea5e9"),
   approved: makeSvgIcon("#16A34A"),
   rejected: makeSvgIcon("#DC2626"),
-  blue: makeSvgIcon("#2563EB"),
-  red: makeSvgIcon("#EF4444"),
 };
 
 // ── Component to fly map to selected report ────────────────────
@@ -99,6 +98,7 @@ export default function AdminDashboard() {
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLayers, setShowLayers] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
   const [layerDAS, setLayerDAS] = useState(false);
   const [layerBorder, setLayerBorder] = useState(false);
   const navigate = useNavigate();
@@ -198,6 +198,41 @@ export default function AdminDashboard() {
           {/* Floating Controls (Bottom Right) */}
           <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
             
+            {/* Legend Toggle */}
+            <div className="relative">
+              {showLegend && (
+                <div className="absolute bottom-full right-0 mb-2 w-48 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Legenda Admin</span>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#0ea5e9] shadow-sm shadow-[#0ea5e9]/40" />
+                    <span className="text-xs font-bold text-[#003B6D]">Tertunda (Pending)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#DC2626] shadow-sm shadow-[#DC2626]/40" />
+                    <span className="text-xs font-bold text-[#003B6D]">Ditolak (Rejected)</span>
+                  </div>
+                  <div className="w-full h-px bg-gray-100 my-1" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#16A34A] shadow-sm shadow-[#16A34A]/40" />
+                    <span className="text-xs font-bold text-[#003B6D]">Laporan Divalidasi</span>
+                  </div>
+                </div>
+              )}
+              <button 
+                onClick={() => {
+                  setShowLegend(!showLegend);
+                  if (!showLegend) setShowLayers(false);
+                }}
+                className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${
+                  showLegend ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
+                }`}
+                title="Legenda Peta"
+              >
+                <Info className="w-6 h-6 md:w-8 md:h-8" />
+              </button>
+            </div>
+
             {/* Layers Toggle */}
             <div className="relative">
               {showLayers && (
@@ -230,7 +265,10 @@ export default function AdminDashboard() {
                 </div>
               )}
               <button 
-                onClick={() => setShowLayers(!showLayers)}
+                onClick={() => {
+                  setShowLayers(!showLayers);
+                  if (!showLayers) setShowLegend(false);
+                }}
                 className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${
                   showLayers ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
                 }`}
