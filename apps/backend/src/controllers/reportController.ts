@@ -28,10 +28,10 @@ export const submitReport = async (req: Request, res: Response) => {
       });
     }
 
-    // Validate GPS Accuracy (Relaxed to 50m for better UX)
-    if (typeof gps_accuracy !== "number" || gps_accuracy > 50) {
+    // Validate GPS Accuracy (Relaxed to 2000m for better UX and testing)
+    if (typeof gps_accuracy !== "number" || gps_accuracy > 2000) {
       return res.status(400).json({
-        message: "Akurasi GPS tidak memadai (harus <= 50 meter).",
+        message: "Akurasi GPS tidak memadai (harus <= 2000 meter).",
       });
     }
 

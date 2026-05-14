@@ -32,10 +32,10 @@ export function useGeolocation() {
       (position) => {
         const { latitude, longitude, accuracy } = position.coords;
 
-        // Only update state if this reading is more accurate than (or equal to)
-        // the best we've seen, OR if we haven't gotten a reading yet.
-        if (accuracy <= bestAccuracy.current || bestAccuracy.current === Infinity) {
-          bestAccuracy.current = accuracy;
+        // Update state if the reading is good enough (<= 2000m), which allows continuous tracking.
+        // If the reading is poor (> 2000m), only update if it's our first fix or an improvement.
+        if (accuracy <= 2000 || bestAccuracy.current === Infinity || accuracy < bestAccuracy.current) {
+          bestAccuracy.current = Math.min(accuracy, bestAccuracy.current);
           setState({
             latitude,
             longitude,

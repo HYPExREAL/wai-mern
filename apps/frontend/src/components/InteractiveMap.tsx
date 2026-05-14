@@ -166,7 +166,7 @@ export default function InteractiveMap() {
   const [flyToCoords, setFlyToCoords] = useState<[number, number]>(BANDAR_LAMPUNG);
   const [flyTrigger, setFlyTrigger] = useState(0);
 
-  const accuracyOk = geo.accuracy !== null && geo.accuracy <= 50; // Allow up to 50m — hook already keeps only the best reading
+  const accuracyOk = geo.accuracy !== null && geo.accuracy <= 2000; // Allow up to 2000m for testing and poor signals
   const hasValidLocation = manualLocation !== null || (!geo.loading && !geo.error && accuracyOk);
   const canSubmit =
     hasValidLocation &&
@@ -634,7 +634,21 @@ export default function InteractiveMap() {
 
         {manualLocation && (
           <Marker position={manualLocation} icon={ICONS.manual}>
-            <Popup>Lokasi Kejadian Manual</Popup>
+            <Popup>
+              <div className="flex flex-col gap-2 items-center text-center">
+                <span className="font-bold text-xs text-[#003B6D]">Lokasi Manual</span>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setManualLocation(null);
+                    setSearchQuery("");
+                  }}
+                  className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors w-full border border-red-100 mt-1"
+                >
+                  Hapus Pin
+                </button>
+              </div>
+            </Popup>
           </Marker>
         )}
 
