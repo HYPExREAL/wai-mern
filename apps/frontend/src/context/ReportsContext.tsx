@@ -41,7 +41,8 @@ const transformReport = (data: BackendReport): FloodReport => ({
 export function ReportsProvider({ children }: { children: ReactNode }) {
   const [reports, setReports] = useState<FloodReport[]>([]);
   const [pendingReports, setPendingReports] = useState<FloodReport[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [allReports, setAllReports] = useState<FloodReport[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const refreshReports = useCallback(async () => {
     try {
@@ -62,6 +63,18 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
       setPendingReports(res.data.map(transformReport));
     } catch (err: unknown) {
       console.error("Gagal mengambil laporan tertunda:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const refreshAll = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get("/reports/all");
+      setAllReports(res.data.map(transformReport));
+    } catch (err: unknown) {
+      console.error("Gagal mengambil semua laporan:", err);
     } finally {
       setLoading(false);
     }
@@ -121,22 +134,21 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     }
   }, [refreshReports, refreshPending]);
 
-  // Initial fetch
+  // Initial fetch — inline the API call so all setState happens in async callbacks,
+  // avoiding the React 19 "synchronous setState in effect" warning.
   useEffect(() => {
-    const initFetch = async () => {
-      await refreshReports();
-      // If we have a token, we might want to fetch pending as well
-      if (localStorage.getItem("token")) {
-        await refreshPending();
-      }
-    };
-    
-    initFetch();
-  }, [refreshReports, refreshPending]);
+    let cancelled = false;
+    apiClient.get("/reports/published")
+      .then(res => { if (!cancelled) setReports(res.data.map(transformReport)); })
+      .catch(err => console.error("Gagal mengambil laporan publik:", err))
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const contextValue = useMemo(() => ({
     reports,
     pendingReports,
+    allReports,
     loading,
     addReport,
     approveReport,
@@ -144,16 +156,19 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     deleteReport,
     refreshReports,
     refreshPending,
+    refreshAll,
   }), [
     reports,
     pendingReports,
+    allReports,
     loading,
     addReport,
     approveReport,
     rejectReport,
     deleteReport,
     refreshReports,
-    refreshPending
+    refreshPending,
+    refreshAll,
   ]);
 
   return (

@@ -5,14 +5,14 @@ import AdminSidebar from "./AdminSidebar";
 import { useEffect, useState } from "react";
 
 export default function ReportHistory() {
-  const { reports, refreshReports, refreshPending } = useReports();
+  const { allReports, refreshAll, refreshPending } = useReports();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    refreshReports();
+    refreshAll();
     refreshPending();
-  }, [refreshReports, refreshPending]);
+  }, [refreshAll, refreshPending]);
 
   const handleLogout = () => {
     localStorage.removeItem("isAdmin");
@@ -80,14 +80,14 @@ export default function ReportHistory() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {reports.length === 0 ? (
+                {allReports.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-8 py-20 text-center text-gray-400 font-medium">
                       Belum ada data laporan tersedia
                     </td>
                   </tr>
                 ) : (
-                  reports.map((report, idx) => (
+                  allReports.map((report, idx) => (
                     <tr key={report.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-8 py-5 text-sm font-bold text-gray-900">{idx + 1}</td>
                       <td className="px-8 py-5 text-sm font-black text-gray-800">{report.reporterName || "Anonim"}</td>
@@ -120,12 +120,12 @@ export default function ReportHistory() {
 
           {/* Mobile Card List */}
           <div className="md:hidden flex-1 overflow-y-auto p-4 space-y-3">
-            {reports.length === 0 ? (
+            {allReports.length === 0 ? (
               <div className="flex items-center justify-center h-40 text-gray-400 font-medium text-sm">
                 Belum ada data laporan tersedia
               </div>
             ) : (
-              reports.map((report, idx) => (
+              allReports.map((report, idx) => (
                 <div key={report.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-[10px] font-bold text-gray-400 uppercase">#{idx + 1}</span>

@@ -17,4 +17,17 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor: auto-redirect to login on 401 (expired/invalid token)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && localStorage.getItem("isAdmin")) {
+      localStorage.removeItem("isAdmin");
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default apiClient;

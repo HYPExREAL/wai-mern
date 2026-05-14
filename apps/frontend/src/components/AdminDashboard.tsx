@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
-import L from "leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { 
-  Plus, 
-  Minus, 
   Navigation,
   LogOut,
   Menu,
@@ -14,27 +11,9 @@ import {
 } from "lucide-react";
 import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
-
-// ── Custom marker icons ────────────────────────────────────────
-function makeSvgIcon(color: string, strokeColor = "#fff") {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="44" viewBox="0 0 32 44">
-    <path d="M16 0C7.164 0 0 7.164 0 16c0 12 16 28 16 28s16-16 16-28C32 7.164 24.836 0 16 0z" fill="${color}" stroke="${strokeColor}" stroke-width="2"/>
-    <circle cx="16" cy="16" r="6" fill="white"/>
-  </svg>`;
-  return L.divIcon({
-    html: svg,
-    className: "",
-    iconSize: [32, 44],
-    iconAnchor: [16, 44],
-    popupAnchor: [0, -44],
-  });
-}
-
-const ICONS: Record<string, L.DivIcon> = {
-  pending: makeSvgIcon("#0ea5e9"),
-  approved: makeSvgIcon("#16A34A"),
-  rejected: makeSvgIcon("#DC2626"),
-};
+import { ICONS } from "./map/icons";
+import ZoomControls from "./map/ZoomControls";
+import GeoJSONLayer from "./map/GeoJSONLayer";
 
 // ── Component to fly map to selected report ────────────────────
 function MapUpdater({ center }: { center: [number, number] | null }) {
@@ -45,50 +24,6 @@ function MapUpdater({ center }: { center: [number, number] | null }) {
     }
   }, [center, map]);
   return null;
-}
-
-// ── Map sub-component: zoom controls ───────────────────────────
-function ZoomControls() {
-  const map = useMap();
-  return (
-    <div className="flex items-center bg-white rounded-full shadow-xl border border-gray-100 overflow-hidden">
-      <button 
-        onClick={() => map.zoomOut()}
-        className="p-2.5 md:p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
-      >
-        <Minus className="w-5 h-5 md:w-6 md:h-6 stroke-3" />
-      </button>
-      <div className="w-px h-5 md:h-6 bg-gray-200" />
-      <button 
-        onClick={() => map.zoomIn()}
-        className="p-2.5 md:p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
-      >
-        <Plus className="w-5 h-5 md:w-6 md:h-6 stroke-3" />
-      </button>
-    </div>
-  );
-}
-
-// ── Map sub-component: GeoJSON layer loader ────────────────────
-interface GeoJSONLayerProps {
-  url: string;
-  style: L.PathOptions;
-}
-function GeoJSONLayer({ url, style }: GeoJSONLayerProps) {
-  const [data, setData] = useState<GeoJSON.GeoJsonObject | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Failed to load ${url}`);
-        return res.json();
-      })
-      .then((json) => { if (!cancelled) setData(json); })
-      .catch((err) => console.warn('GeoJSON load error:', err));
-    return () => { cancelled = true; };
-  }, [url]);
-  if (!data) return null;
-  return <GeoJSON key={url} data={data} style={() => style} />;
 }
 
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];

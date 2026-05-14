@@ -30,24 +30,24 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             
             {/* Protected Admin Routes */}
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              <ProtectedRoute>
-                <AdminDashboardPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/history" 
-            element={
-              <ProtectedRoute>
-                <ReportHistoryPage />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </BrowserRouter>
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/history" 
+              element={
+                <ProtectedRoute>
+                  <ReportHistoryPage />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </BrowserRouter>
       </ReportsProvider>
     </NotificationProvider>
   );

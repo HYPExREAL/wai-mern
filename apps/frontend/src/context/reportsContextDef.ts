@@ -19,6 +19,7 @@ export interface FloodReport {
 export interface ReportsContextType {
   reports: FloodReport[];
   pendingReports: FloodReport[];
+  allReports: FloodReport[];
   loading: boolean;
   addReport: (report: Omit<FloodReport, "id" | "status" | "createdAt">, accuracy: number) => Promise<void>;
   approveReport: (id: string) => Promise<void>;
@@ -26,6 +27,7 @@ export interface ReportsContextType {
   deleteReport: (id: string) => Promise<void>;
   refreshReports: () => Promise<void>;
   refreshPending: () => Promise<void>;
+  refreshAll: () => Promise<void>;
 }
 
 export const ReportsContext = createContext<ReportsContextType | undefined>(undefined);
