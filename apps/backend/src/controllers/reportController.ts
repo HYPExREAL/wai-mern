@@ -13,6 +13,7 @@ export const submitReport = async (req: Request, res: Response) => {
       reporterName,
       reporterContact,
       imageUrl,
+      imageUrls,
     } = req.body;
 
     // Validate location is a valid GeoJSON Point format
@@ -45,6 +46,7 @@ export const submitReport = async (req: Request, res: Response) => {
       reporterName,
       reporterContact,
       imageUrl,
+      imageUrls,
     });
 
     await newReport.save();

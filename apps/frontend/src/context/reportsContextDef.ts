@@ -9,6 +9,7 @@ export interface FloodReport {
   severity: "low" | "moderate" | "high" | "critical";
   status: "pending" | "approved" | "rejected";
   imageUrl?: string;
+  imageUrls?: string[];
   reporterName: string;
   reporterContact?: string;
   markerColor?: string;

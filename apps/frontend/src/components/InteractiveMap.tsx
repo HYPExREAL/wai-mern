@@ -157,8 +157,8 @@ export default function InteractiveMap() {
   const [manualLocation, setManualLocation] = useState<[number, number] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [base64Image, setBase64Image] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [base64Images, setBase64Images] = useState<string[]>([]);
   
   // Search Suggestions State
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
@@ -276,23 +276,31 @@ export default function InteractiveMap() {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+
+
+    for (const file of files) {
       if (file.size > 5 * 1024 * 1024) {
-        notify("error", "Ukuran file terlalu besar (maksimal 5MB)");
+        notify("error", `Ukuran file ${file.name} terlalu besar (maksimal 5MB)`);
         return;
       }
-      
-      try {
-        // Show a temporary preview quickly if needed, or wait for compression
-        const compressedBase64 = await compressImage(file);
-        setImagePreview(compressedBase64);
-        setBase64Image(compressedBase64);
-      } catch (error) {
-        console.error("Compression error:", error);
-        notify("error", "Gagal memproses gambar.");
-      }
     }
+    
+    try {
+      const compressedImages = await Promise.all(files.map(compressImage));
+      setImagePreviews(prev => [...prev, ...compressedImages]);
+      setBase64Images(prev => [...prev, ...compressedImages]);
+    } catch (error) {
+      console.error("Compression error:", error);
+      notify("error", "Gagal memproses gambar.");
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setBase64Images(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -309,7 +317,8 @@ export default function InteractiveMap() {
           longitude: finalLng,
           severity: depth as FloodReport["severity"],
           reporterName: name.trim(),
-          imageUrl: base64Image || undefined,
+          imageUrl: base64Images.length > 0 ? base64Images[0] : undefined,
+          imageUrls: base64Images.length > 0 ? base64Images : undefined,
           reporterContact: undefined,
         },
         manualLocation ? 0 : (geo.accuracy || 0)
@@ -320,8 +329,8 @@ export default function InteractiveMap() {
       setDepth("");
       setDescription("");
       setManualLocation(null);
-      setImagePreview(null);
-      setBase64Image(null);
+      setImagePreviews([]);
+      setBase64Images([]);
       setSearchQuery("");
       setTimeout(() => {
         setSubmitted(false);
@@ -389,7 +398,7 @@ export default function InteractiveMap() {
       {/* ── LEFT: Report Form Card ─────────────────────────────── */}
       {showReportForm && (
         <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:top-32 md:left-6 z-1000 w-full md:w-auto md:max-w-sm animate-[slideIn_0.4s_ease-out] pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-t-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-8 flex flex-col gap-3 md:gap-5 max-h-[55svh] md:max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="bg-white/95 backdrop-blur-md rounded-t-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-8 flex flex-col gap-3 md:gap-5 max-h-[75svh] md:max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between">
               <h2 className="text-[#005a9e] text-base md:text-xl font-bold">Lapor Banjir</h2>
               <button 
@@ -514,44 +523,46 @@ export default function InteractiveMap() {
 
               {/* Dokumentasi */}
               <div className="space-y-1 md:space-y-4 md:mb-8">
-              <label className="block text-[#003B6D]/60 text-xs font-black uppercase tracking-widest mb-2">Unggah Foto</label>
-              <div className="relative group">
-                <input 
-                  type="file" 
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden" 
-                  id="image-upload" 
-                />
-                <label 
-                  htmlFor="image-upload"
-                  className="flex flex-col items-center justify-center gap-2 md:gap-3 w-full aspect-3/1 md:aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl md:rounded-3xl hover:border-[#005a9e]/30 hover:bg-gray-100 transition-all cursor-pointer group-hover:scale-[0.99] active:scale-95 overflow-hidden"
-                >
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <>
-                      <div className="p-2 md:p-4 bg-white rounded-xl md:rounded-2xl shadow-sm text-[#005a9e]">
-                        <Upload className="w-5 h-5 md:w-6 md:h-6" />
+                <label className="block text-[#003B6D]/60 text-xs font-black uppercase tracking-widest mb-2">Unggah Foto</label>
+                
+                {/* Previews Grid */}
+                {imagePreviews.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                    {imagePreviews.map((preview, idx) => (
+                      <div key={idx} className="relative w-24 h-24 md:w-28 md:h-28 shrink-0 rounded-xl overflow-hidden border border-gray-200 shadow-sm group">
+                        <img src={preview} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button 
+                          onClick={(e) => { e.preventDefault(); removeImage(idx); }}
+                          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-all opacity-90 hover:opacity-100"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
-                      <span className="text-[#003B6D]/60 text-[10px] font-bold uppercase tracking-widest">Klik untuk unggah</span>
-                    </>
-                  )}
-                </label>
-                {imagePreview && (
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setImagePreview(null);
-                      setBase64Image(null);
-                    }}
-                    className="absolute top-3 right-3 p-2 bg-red-500 text-white rounded-xl shadow-lg hover:bg-red-600 transition-all scale-90 hover:scale-100"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                    ))}
+                  </div>
                 )}
+
+                {/* Upload Button */}
+                <div className="relative group mt-2">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="hidden" 
+                    id="image-upload" 
+                  />
+                  <label 
+                    htmlFor="image-upload"
+                    className="flex flex-col items-center justify-center gap-2 md:gap-3 w-full h-16 md:h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#005a9e]/30 hover:bg-gray-100 transition-all cursor-pointer group-hover:scale-[0.99] active:scale-95"
+                  >
+                    <div className="flex items-center gap-2 text-[#005a9e]">
+                      <Upload className="w-5 h-5" />
+                      <span className="text-[#003B6D]/60 text-[10px] font-bold uppercase tracking-widest">Tambah Foto ({imagePreviews.length})</span>
+                    </div>
+                  </label>
+                </div>
               </div>
-            </div>
 
               {/* Deskripsi */}
               <div className="space-y-1">
@@ -663,8 +674,16 @@ export default function InteractiveMap() {
             }
           >
             <Popup>
-              <div className="text-sm min-w-[200px]">
-                {report.imageUrl && (
+              <div className="text-sm min-w-[200px] max-w-[280px]">
+                {report.imageUrls && report.imageUrls.length > 0 ? (
+                  <div className="w-full flex gap-2 overflow-x-auto pb-2 mb-2 custom-scrollbar">
+                    {report.imageUrls.map((url, idx) => (
+                      <div key={idx} className="w-32 h-32 shrink-0 rounded-lg overflow-hidden border border-gray-100">
+                        <img src={url} alt={`Documentation ${idx + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                ) : report.imageUrl && (
                   <div className="w-full h-32 rounded-lg overflow-hidden mb-2">
                     <img src={report.imageUrl} alt="Documentation" className="w-full h-full object-cover" />
                   </div>

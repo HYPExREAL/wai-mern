@@ -170,15 +170,24 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
               <div className="w-10 h-1 bg-gray-300 rounded-full" />
             </div>
             {/* Header / Image Area */}
-            <div className="relative w-full aspect-video bg-gray-100 shrink-0">
-              {selectedReportForVerification.imageUrl ? (
+            <div className="relative w-full aspect-video bg-gray-100 shrink-0 overflow-x-auto flex snap-x snap-mandatory custom-scrollbar">
+              {selectedReportForVerification.imageUrls && selectedReportForVerification.imageUrls.length > 0 ? (
+                selectedReportForVerification.imageUrls.map((url, idx) => (
+                  <img 
+                    key={idx}
+                    src={url} 
+                    alt={`Documentation ${idx + 1}`} 
+                    className="w-full h-full object-cover shrink-0 snap-center"
+                  />
+                ))
+              ) : selectedReportForVerification.imageUrl ? (
                 <img 
                   src={selectedReportForVerification.imageUrl} 
                   alt="Documentation" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover shrink-0 snap-center"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-3">
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-3 shrink-0 snap-center">
                   <div className="p-4 bg-white rounded-2xl shadow-sm">
                     <CheckSquare className="w-8 h-8 opacity-20" />
                   </div>

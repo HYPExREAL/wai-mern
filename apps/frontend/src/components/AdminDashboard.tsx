@@ -178,8 +178,16 @@ export default function AdminDashboard() {
               }
             >
               <Popup>
-                <div className="text-sm min-w-[200px]">
-                  {report.imageUrl && (
+                <div className="text-sm min-w-[200px] max-w-[280px]">
+                  {report.imageUrls && report.imageUrls.length > 0 ? (
+                    <div className="w-full flex gap-2 overflow-x-auto pb-2 mb-2 custom-scrollbar">
+                      {report.imageUrls.map((url, idx) => (
+                        <div key={idx} className="w-32 h-32 shrink-0 rounded-lg overflow-hidden border border-gray-100">
+                          <img src={url} alt={`Documentation ${idx + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : report.imageUrl && (
                     <div className="w-full h-32 rounded-lg overflow-hidden mb-2">
                       <img src={report.imageUrl} alt="Documentation" className="w-full h-full object-cover" />
                     </div>

@@ -13,6 +13,7 @@ export interface IReport extends Document {
   reporterName: string;
   reporterContact?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,6 +57,7 @@ const ReportSchema: Schema = new Schema(
     reporterName: { type: String, required: true },
     reporterContact: { type: String },
     imageUrl: { type: String },
+    imageUrls: { type: [String], default: [] },
   },
   { timestamps: true }
 );
