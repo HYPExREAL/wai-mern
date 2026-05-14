@@ -5,11 +5,9 @@ import {
   TileLayer,
   Marker,
   Popup,
-  GeoJSON,
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
   Crosshair,
@@ -18,8 +16,6 @@ import {
   ChevronDown,
   Search,
   Upload,
-  Plus,
-  Minus,
   Navigation,
   LogOut,
   X,
@@ -31,6 +27,9 @@ import { useGeolocation } from "../hooks/useGeolocation";
 import { useReports } from "../hooks/useReports";
 import { useNotifications } from "../context/notificationContextDef";
 import type { FloodReport } from "../context/reportsContextDef";
+import { ICONS } from "./map/icons";
+import ZoomControls from "./map/ZoomControls";
+import GeoJSONLayer from "./map/GeoJSONLayer";
 
 // ── Bandar Lampung center ──────────────────────────────────────
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
@@ -40,29 +39,6 @@ interface NominatimResult {
   lon: string;
   display_name: string;
 }
-
-// ── Custom marker icons ────────────────────────────────────────
-function makeSvgIcon(color: string, strokeColor = "#fff") {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="44" viewBox="0 0 32 44">
-    <path d="M16 0C7.164 0 0 7.164 0 16c0 12 16 28 16 28s16-16 16-28C32 7.164 24.836 0 16 0z" fill="${color}" stroke="${strokeColor}" stroke-width="2"/>
-    <circle cx="16" cy="16" r="6" fill="white"/>
-  </svg>`;
-  return L.divIcon({
-    html: svg,
-    className: "",
-    iconSize: [32, 44],
-    iconAnchor: [16, 44],
-    popupAnchor: [0, -44],
-  });
-}
-
-const ICONS: Record<string, L.DivIcon> = {
-  pending: makeSvgIcon("#0ea5e9"),   // light blue
-  approved: makeSvgIcon("#16A34A"),  // green
-  rejected: makeSvgIcon("#DC2626"), // red
-  user: makeSvgIcon("#3B82F6"),     // blue — user location
-  manual: makeSvgIcon("#A855F7"),   // purple — manual pin
-};
 
 // ── Map sub-component: click handler ─────────────────────────
 function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
@@ -86,50 +62,6 @@ function RecenterButton({ center, trigger, zoom = 16 }: { center: [number, numbe
     }
   }, [trigger, map, center, zoom]);
   return null;
-}
-
-// ── Map sub-component: zoom controls ───────────────────────────
-function ZoomControls() {
-  const map = useMap();
-  return (
-    <div className="flex items-center bg-white rounded-full shadow-xl border border-gray-100 overflow-hidden">
-      <button 
-        onClick={() => map.zoomOut()}
-        className="p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
-      >
-        <Minus className="w-6 h-6 stroke-3" />
-      </button>
-      <div className="w-px h-6 bg-gray-200" />
-      <button 
-        onClick={() => map.zoomIn()}
-        className="p-3 hover:bg-gray-50 transition-colors text-[#005a9e]"
-      >
-        <Plus className="w-6 h-6 stroke-3" />
-      </button>
-    </div>
-  );
-}
-
-// ── Map sub-component: GeoJSON layer loader ────────────────────
-interface GeoJSONLayerProps {
-  url: string;
-  style: L.PathOptions;
-}
-function GeoJSONLayer({ url, style }: GeoJSONLayerProps) {
-  const [data, setData] = useState<GeoJSON.GeoJsonObject | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Failed to load ${url}`);
-        return res.json();
-      })
-      .then((json) => { if (!cancelled) setData(json); })
-      .catch((err) => console.warn('GeoJSON load error:', err));
-    return () => { cancelled = true; };
-  }, [url]);
-  if (!data) return null;
-  return <GeoJSON key={url} data={data} style={() => style} />;
 }
 
 // ── Main component ─────────────────────────────────────────────
@@ -279,23 +211,32 @@ export default function InteractiveMap() {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-
-
+    // Filter out oversized files, keep valid ones
+    const validFiles: File[] = [];
+    const skippedNames: string[] = [];
     for (const file of files) {
       if (file.size > 5 * 1024 * 1024) {
-        notify("error", `Ukuran file ${file.name} terlalu besar (maksimal 5MB)`);
-        return;
+        skippedNames.push(file.name);
+      } else {
+        validFiles.push(file);
       }
     }
-    
+    if (skippedNames.length > 0) {
+      notify("error", `File terlalu besar (maks 5MB): ${skippedNames.join(", ")}`);
+    }
+    if (validFiles.length === 0) return;
+
     try {
-      const compressedImages = await Promise.all(files.map(compressImage));
+      const compressedImages = await Promise.all(validFiles.map(compressImage));
       setImagePreviews(prev => [...prev, ...compressedImages]);
       setBase64Images(prev => [...prev, ...compressedImages]);
     } catch (error) {
       console.error("Compression error:", error);
       notify("error", "Gagal memproses gambar.");
     }
+
+    // Reset input so the same file can be re-selected after removal
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {

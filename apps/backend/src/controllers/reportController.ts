@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
 import Report from "../models/Report";
 
+// Fields to exclude from list queries (base64 images are huge)
+const LIST_PROJECTION = "-imageUrl -imageUrls";
+
 // POST /api/reports (Public)
 export const submitReport = async (req: Request, res: Response) => {
   try {
@@ -63,10 +66,11 @@ export const submitReport = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/reports/published (Public)
+// GET /api/reports/published (Public) — list without image data
 export const getPublishedReports = async (req: Request, res: Response) => {
   try {
     const reports = await Report.find({ status: "approved" })
+      .select(LIST_PROJECTION)
       .sort({ createdAt: -1 })
       .lean();
 
@@ -77,14 +81,48 @@ export const getPublishedReports = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/reports/pending (Protected)
+// GET /api/reports/pending (Protected) — list without image data
 export const getPendingReports = async (req: Request, res: Response) => {
   try {
-    const reports = await Report.find({ status: "pending" }).sort({ createdAt: -1 });
+    const reports = await Report.find({ status: "pending" })
+      .select(LIST_PROJECTION)
+      .sort({ createdAt: -1 })
+      .lean();
     return res.json(reports);
   } catch (error: any) {
     console.error("Error fetching pending reports:", error);
     return res.status(500).json({ message: "Gagal mengambil laporan tertunda." });
+  }
+};
+
+// GET /api/reports/all (Protected) — all reports for admin history, without image data
+export const getAllReports = async (req: Request, res: Response) => {
+  try {
+    const reports = await Report.find()
+      .select(LIST_PROJECTION)
+      .sort({ createdAt: -1 })
+      .lean();
+    return res.json(reports);
+  } catch (error: any) {
+    console.error("Error fetching all reports:", error);
+    return res.status(500).json({ message: "Gagal mengambil semua laporan." });
+  }
+};
+
+// GET /api/reports/:id (Public) — single report WITH image data
+export const getReportById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const report = await Report.findById(id).lean();
+
+    if (!report) {
+      return res.status(404).json({ message: "Laporan tidak ditemukan." });
+    }
+
+    return res.json(report);
+  } catch (error: any) {
+    console.error("Error fetching report:", error);
+    return res.status(500).json({ message: "Gagal mengambil detail laporan." });
   }
 };
 

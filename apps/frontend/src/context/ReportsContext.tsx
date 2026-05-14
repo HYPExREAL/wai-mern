@@ -14,6 +14,7 @@ interface BackendReport {
   severity: FloodReport["severity"];
   status: FloodReport["status"];
   imageUrl?: string;
+  imageUrls?: string[];
   reporterName: string;
   reporterContact?: string;
   markerColor?: string;
@@ -30,6 +31,7 @@ const transformReport = (data: BackendReport): FloodReport => ({
   severity: data.severity,
   status: data.status,
   imageUrl: data.imageUrl,
+  imageUrls: data.imageUrls,
   reporterName: data.reporterName,
   reporterContact: data.reporterContact,
   markerColor: data.markerColor,

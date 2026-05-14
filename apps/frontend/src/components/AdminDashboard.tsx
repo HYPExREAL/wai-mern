@@ -312,22 +312,6 @@ export default function AdminDashboard() {
           </button>
         </div>
       </main>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #005a9e20;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #005a9e40;
-        }
-      `}</style>
     </div>
   );
 }
