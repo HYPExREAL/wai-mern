@@ -105,7 +105,15 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
                   {report.description || "Tidak ada deskripsi"}
                 </p>
 
-                {report.imageUrl && (
+                {report.imageUrls && report.imageUrls.length > 0 ? (
+                  <div className="w-full flex gap-2 overflow-x-auto pb-2 mb-3 snap-x snap-mandatory custom-scrollbar">
+                    {report.imageUrls.map((url, imgIdx) => (
+                      <div key={imgIdx} className="w-[85%] h-32 shrink-0 rounded-xl overflow-hidden border border-gray-100 snap-center">
+                        <img src={url} alt={`Documentation ${imgIdx + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                ) : report.imageUrl && (
                   <div className="w-full h-32 rounded-xl overflow-hidden mb-3 border border-gray-100">
                     <img src={report.imageUrl} alt="Documentation" className="w-full h-full object-cover" />
                   </div>
@@ -257,19 +265,19 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 md:gap-4 mt-2 pb-2">
+              <div className="flex flex-col-reverse md:flex-row gap-3 md:gap-4 mt-2 pb-2">
                 <button 
                   onClick={() => setSelectedReportForVerification(null)}
-                  className="flex-1 py-3 md:py-4 bg-gray-100 text-gray-500 rounded-2xl md:rounded-3xl font-bold hover:bg-gray-200 transition-all active:scale-95 uppercase text-[11px] md:text-xs tracking-widest"
+                  className="w-full md:w-1/3 py-3.5 md:py-4 bg-gray-100 text-gray-500 rounded-xl md:rounded-2xl font-bold hover:bg-gray-200 transition-all active:scale-95 uppercase text-xs tracking-widest"
                 >
                   Kembali
                 </button>
                 <button 
                   onClick={handleConfirmApprove}
-                  className="flex-2 py-3 md:py-4 bg-[#16A34A] text-white rounded-2xl md:rounded-3xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-95 uppercase text-[11px] md:text-xs tracking-widest flex items-center justify-center gap-2"
+                  className="w-full md:w-2/3 py-3.5 md:py-4 bg-[#16A34A] text-white rounded-xl md:rounded-2xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-95 uppercase text-xs tracking-widest flex items-center justify-center gap-2"
                 >
                   <Check size={16} />
-                  <span className="hidden sm:inline">Konfirmasi</span> Verifikasi
+                  <span>Konfirmasi Verifikasi</span>
                 </button>
               </div>
             </div>
