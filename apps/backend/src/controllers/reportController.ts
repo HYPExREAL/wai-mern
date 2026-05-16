@@ -81,11 +81,10 @@ export const getPublishedReports = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/reports/pending (Protected) — list without image data
+// GET /api/reports/pending (Protected) — includes image data for admin verification
 export const getPendingReports = async (req: Request, res: Response) => {
   try {
     const reports = await Report.find({ status: "pending" })
-      .select(LIST_PROJECTION)
       .sort({ createdAt: -1 })
       .lean();
     return res.json(reports);

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   MapContainer,
@@ -56,11 +56,18 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
 // ── Map sub-component: fly to logic ────────────────────────────
 function RecenterButton({ center, trigger, zoom = 16 }: { center: [number, number], trigger: number, zoom?: number }) {
   const map = useMap();
+  const centerRef = useRef(center);
+
+  // Keep ref in sync with latest center — must be in an effect (React 19)
+  useEffect(() => {
+    centerRef.current = center;
+  }, [center]);
+
   useEffect(() => {
     if (trigger > 0) {
-      map.flyTo(center, zoom, { duration: 1.5 });
+      map.flyTo(centerRef.current, zoom, { duration: 1.5 });
     }
-  }, [trigger, map, center, zoom]);
+  }, [trigger, map, zoom]);
   return null;
 }
 

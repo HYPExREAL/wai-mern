@@ -265,19 +265,21 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col-reverse md:flex-row gap-3 md:gap-4 mt-2 pb-2">
-                <button 
-                  onClick={() => setSelectedReportForVerification(null)}
-                  className="w-full md:w-1/3 py-3.5 md:py-4 bg-gray-100 text-gray-500 rounded-xl md:rounded-2xl font-bold hover:bg-gray-200 transition-all active:scale-95 uppercase text-xs tracking-widest"
-                >
-                  Kembali
-                </button>
+              <div className="flex flex-col gap-3 mt-2 pb-2">
+                {/* Verify — always prominent and on top on mobile */}
                 <button 
                   onClick={handleConfirmApprove}
-                  className="w-full md:w-2/3 py-3.5 md:py-4 bg-[#16A34A] text-white rounded-xl md:rounded-2xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-95 uppercase text-xs tracking-widest flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-[#16A34A] text-white rounded-2xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-[0.98] uppercase text-sm tracking-widest flex items-center justify-center gap-2.5"
                 >
-                  <Check size={16} />
+                  <Check size={18} />
                   <span>Konfirmasi Verifikasi</span>
+                </button>
+                {/* Back — subtle secondary */}
+                <button 
+                  onClick={() => setSelectedReportForVerification(null)}
+                  className="w-full py-3 bg-gray-50 text-gray-400 rounded-xl font-bold hover:bg-gray-100 hover:text-gray-500 transition-all active:scale-[0.98] uppercase text-xs tracking-widest border border-gray-100"
+                >
+                  Kembali
                 </button>
               </div>
             </div>
