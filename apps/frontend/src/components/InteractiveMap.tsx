@@ -30,6 +30,7 @@ import type { FloodReport } from "../context/reportsContextDef";
 import { ICONS } from "./map/icons";
 import ZoomControls from "./map/ZoomControls";
 import GeoJSONLayer from "./map/GeoJSONLayer";
+import { useLayers } from "../hooks/useLayers";
 
 // ── Bandar Lampung center ──────────────────────────────────────
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
@@ -77,6 +78,7 @@ export default function InteractiveMap() {
   const geo = useGeolocation();
   const { reports, addReport } = useReports();
   const { notify } = useNotifications();
+  const { layers: publicLayers, enabledIds, geoDataCache, toggleLayer } = useLayers(true);
 
   // UI State
   const [showReportForm, setShowReportForm] = useState(false);
@@ -591,6 +593,11 @@ export default function InteractiveMap() {
           />
         )}
 
+        {/* Dynamic DB Layers (public only) */}
+        {publicLayers.map(layer => enabledIds.has(layer._id) && geoDataCache[layer._id] && (
+          <GeoJSONLayer key={layer._id} data={geoDataCache[layer._id]} style={layer.style} />
+        ))}
+
         {manualLocation && (
           <Marker position={manualLocation} icon={ICONS.manual}>
             <Popup>
@@ -693,32 +700,37 @@ export default function InteractiveMap() {
           {/* Layers Toggle */}
             <div className="relative">
               {showLayers && (
-                <div className="absolute bottom-full right-0 mb-2 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-3 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Map Layers</span>
+                <div className="absolute bottom-full right-0 mb-2 w-56 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-3 flex flex-col gap-1 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">Layer Statis</span>
                   <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={layerBorder} 
-                      onChange={() => setLayerBorder(!layerBorder)} 
-                      className="accent-[#EF4444] w-4 h-4 rounded"
-                    />
+                    <input type="checkbox" checked={layerBorder} onChange={() => setLayerBorder(!layerBorder)} className="accent-[#EF4444] w-4 h-4 rounded" />
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-0.5 bg-red-500 rounded-full" />
                       <span className="text-xs font-bold text-[#003B6D]">Batas Kota</span>
                     </div>
                   </label>
                   <label className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={layerDAS} 
-                      onChange={() => setLayerDAS(!layerDAS)} 
-                      className="accent-[#EAB308] w-4 h-4 rounded"
-                    />
+                    <input type="checkbox" checked={layerDAS} onChange={() => setLayerDAS(!layerDAS)} className="accent-[#EAB308] w-4 h-4 rounded" />
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-0.5 bg-yellow-500 rounded-full" />
                       <span className="text-xs font-bold text-[#003B6D]">DAS (Sungai)</span>
                     </div>
                   </label>
+                  {publicLayers.length > 0 && (
+                    <>
+                      <div className="w-full h-px bg-gray-100 my-1" />
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">Layer Tambahan</span>
+                      {publicLayers.map(layer => (
+                        <label key={layer._id} className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                          <input type="checkbox" checked={enabledIds.has(layer._id)} onChange={() => toggleLayer(layer._id)} className="w-4 h-4 rounded" style={{ accentColor: layer.style.color }} />
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className="w-5 h-0.5 rounded-full shrink-0" style={{ backgroundColor: layer.style.color }} />
+                            <span className="text-xs font-bold text-[#003B6D] truncate">{layer.name}</span>
+                          </div>
+                        </label>
+                      ))}
+                    </>
+                  )}
                 </div>
               )}
               <button 

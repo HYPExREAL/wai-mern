@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoutes from "./src/routes/authRoutes";
 import reportRoutes from "./src/routes/reportRoutes";
+import layerRoutes from "./src/routes/layerRoutes";
 
 // Load environment variables
 dotenv.config();
@@ -18,6 +19,7 @@ app.use(express.json({ limit: "50mb" }));
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/layers", layerRoutes);
 
 // Basic health check route
 app.get("/api/health", (req, res) => {
