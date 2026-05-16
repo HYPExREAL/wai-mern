@@ -16,6 +16,12 @@ export interface FloodReport {
   createdAt: Date;
 }
 
+export interface ReportFilters {
+  from?: string;
+  to?: string;
+  status?: string;
+}
+
 export interface ReportsContextType {
   reports: FloodReport[];
   pendingReports: FloodReport[];
@@ -27,7 +33,7 @@ export interface ReportsContextType {
   deleteReport: (id: string) => Promise<void>;
   refreshReports: () => Promise<void>;
   refreshPending: () => Promise<void>;
-  refreshAll: () => Promise<void>;
+  refreshAll: (filters?: ReportFilters) => Promise<void>;
 }
 
 export const ReportsContext = createContext<ReportsContextType | undefined>(undefined);

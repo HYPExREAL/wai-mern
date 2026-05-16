@@ -1,23 +1,60 @@
 import { useNavigate } from "react-router-dom";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, Filter, Download, ChevronDown, Calendar, X } from "lucide-react";
 import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { exportToCSV, exportToXLSX, exportToGeoJSON } from "../utils/exportReports";
 
 export default function ReportHistory() {
   const { allReports, refreshAll, refreshPending } = useReports();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Filter state
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+
+  const fetchFiltered = useCallback(() => {
+    const filters: Record<string, string> = {};
+    if (filterFrom) filters.from = filterFrom;
+    if (filterTo) filters.to = filterTo;
+    if (filterStatus) filters.status = filterStatus;
+    refreshAll(Object.keys(filters).length > 0 ? filters : undefined);
+  }, [filterFrom, filterTo, filterStatus, refreshAll]);
+
   useEffect(() => {
-    refreshAll();
+    fetchFiltered();
     refreshPending();
-  }, [refreshAll, refreshPending]);
+  }, [fetchFiltered, refreshPending]);
+
+  const clearFilters = () => {
+    setFilterFrom("");
+    setFilterTo("");
+    setFilterStatus("");
+  };
+
+  const hasActiveFilters = filterFrom || filterTo || filterStatus;
 
   const handleLogout = () => {
     localStorage.removeItem("isAdmin");
     localStorage.removeItem("token");
     navigate("/");
+  };
+
+  const handleExport = (format: "csv" | "xlsx" | "geojson") => {
+    const dateSuffix = filterFrom || filterTo
+      ? `_${filterFrom || "awal"}_sd_${filterTo || "sekarang"}`
+      : "";
+    const filename = `laporan-banjir${dateSuffix}`;
+
+    if (format === "csv") exportToCSV(allReports, filename);
+    else if (format === "xlsx") exportToXLSX(allReports, filename);
+    else exportToGeoJSON(allReports, filename);
+
+    setShowExportMenu(false);
   };
 
   return (
@@ -44,7 +81,7 @@ export default function ReportHistory() {
       <main className="flex-1 flex flex-col p-4 md:p-10 z-10 overflow-hidden">
         
         {/* Header Area */}
-        <div className="flex justify-between items-center mb-4 md:mb-8">
+        <div className="flex justify-between items-center mb-4 md:mb-6">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setSidebarOpen(true)}
@@ -64,6 +101,116 @@ export default function ReportHistory() {
           </button>
         </div>
 
+        {/* ── Filter & Export Bar ─────────────────────────────── */}
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
+          {/* Filter Toggle */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm border ${
+              showFilters || hasActiveFilters
+                ? "bg-[#005a9e] text-white border-[#005a9e]"
+                : "bg-white text-[#005a9e] border-gray-100 hover:bg-gray-50"
+            }`}
+          >
+            <Filter className="w-4 h-4" />
+            <span className="hidden sm:inline">Filter</span>
+            {hasActiveFilters && (
+              <span className="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full">ON</span>
+            )}
+          </button>
+
+          {/* Export Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              disabled={allReports.length === 0}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-white text-[#005a9e] border border-gray-100 hover:bg-gray-50 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            {showExportMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
+                <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 min-w-[160px]">
+                  <button onClick={() => handleExport("xlsx")} className="w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3 border-b border-gray-50">
+                    <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-black">XLSX</span>
+                    Excel
+                  </button>
+                  <button onClick={() => handleExport("csv")} className="w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3 border-b border-gray-50">
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black">CSV</span>
+                    Comma Separated
+                  </button>
+                  <button onClick={() => handleExport("geojson")} className="w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3">
+                    <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black">GEO</span>
+                    GeoJSON
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Report count */}
+          <span className="text-xs text-gray-400 font-bold ml-auto">
+            {allReports.length} laporan
+          </span>
+        </div>
+
+        {/* ── Filter Panel (collapsible) ──────────────────────── */}
+        {showFilters && (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4 md:p-5 mb-4 flex flex-col sm:flex-row sm:items-end gap-3 md:gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex-1 flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 space-y-1">
+                <label className="text-[#005a9e] text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                  <Calendar className="w-3 h-3" /> Dari Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={filterFrom}
+                  onChange={(e) => setFilterFrom(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold text-[#003B6D] focus:border-[#005a9e] focus:ring-2 focus:ring-[#005a9e]/10 outline-none transition-all"
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <label className="text-[#005a9e] text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                  <Calendar className="w-3 h-3" /> Sampai Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={filterTo}
+                  onChange={(e) => setFilterTo(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold text-[#003B6D] focus:border-[#005a9e] focus:ring-2 focus:ring-[#005a9e]/10 outline-none transition-all"
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <label className="text-[#005a9e] text-[10px] font-bold uppercase tracking-widest">
+                  Status
+                </label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold text-[#003B6D] focus:border-[#005a9e] outline-none transition-all appearance-none bg-white"
+                >
+                  <option value="">Semua</option>
+                  <option value="approved">Divalidasi</option>
+                  <option value="pending">Menunggu</option>
+                  <option value="rejected">Ditolak</option>
+                </select>
+              </div>
+            </div>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 border border-red-100 transition-all"
+              >
+                <X className="w-3.5 h-3.5" />
+                Reset
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Data Card — Table on desktop, Cards on mobile */}
         <div className="flex-1 bg-white rounded-[24px] md:rounded-[32px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col">
           
@@ -77,13 +224,14 @@ export default function ReportHistory() {
                   <th className="px-8 py-6 text-[#005a9e] font-black uppercase tracking-wider text-xs">Deskripsi</th>
                   <th className="px-8 py-6 text-[#005a9e] font-black uppercase tracking-wider text-xs">Kedalaman</th>
                   <th className="px-8 py-6 text-[#005a9e] font-black uppercase tracking-wider text-xs">Status</th>
+                  <th className="px-8 py-6 text-[#005a9e] font-black uppercase tracking-wider text-xs">Tanggal</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {allReports.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-8 py-20 text-center text-gray-400 font-medium">
-                      Belum ada data laporan tersedia
+                    <td colSpan={6} className="px-8 py-20 text-center text-gray-400 font-medium">
+                      {hasActiveFilters ? "Tidak ada laporan yang sesuai filter" : "Belum ada data laporan tersedia"}
                     </td>
                   </tr>
                 ) : (
@@ -108,8 +256,12 @@ export default function ReportHistory() {
                           report.status === 'rejected' ? 'bg-[#DC2626]/10 text-[#DC2626]' :
                           'bg-[#0ea5e9]/10 text-[#0ea5e9]'
                         }`}>
-                          {report.status}
+                          {report.status === 'approved' ? 'Divalidasi' :
+                           report.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
                         </span>
+                      </td>
+                      <td className="px-8 py-5 text-xs text-gray-400 font-medium whitespace-nowrap">
+                        {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
                       </td>
                     </tr>
                   ))
@@ -122,7 +274,7 @@ export default function ReportHistory() {
           <div className="md:hidden flex-1 overflow-y-auto p-4 space-y-3">
             {allReports.length === 0 ? (
               <div className="flex items-center justify-center h-40 text-gray-400 font-medium text-sm">
-                Belum ada data laporan tersedia
+                {hasActiveFilters ? "Tidak ada laporan yang sesuai filter" : "Belum ada data laporan tersedia"}
               </div>
             ) : (
               allReports.map((report, idx) => (
@@ -134,19 +286,25 @@ export default function ReportHistory() {
                       report.status === 'rejected' ? 'bg-[#DC2626]/10 text-[#DC2626]' :
                       'bg-[#0ea5e9]/10 text-[#0ea5e9]'
                     }`}>
-                      {report.status}
+                      {report.status === 'approved' ? 'Divalidasi' :
+                       report.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
                     </span>
                   </div>
                   <h3 className="text-sm font-black text-gray-800 mb-1">{report.reporterName || "Anonim"}</h3>
                   <p className="text-xs text-gray-500 line-clamp-2 mb-2">{report.description}</p>
-                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                    report.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                    report.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                    report.severity === 'moderate' ? 'bg-amber-100 text-amber-700' :
-                    'bg-emerald-100 text-emerald-700'
-                  }`}>
-                    {report.severity}
-                  </span>
+                  <div className="flex justify-between items-center">
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                      report.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                      report.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                      report.severity === 'moderate' ? 'bg-amber-100 text-amber-700' :
+                      'bg-emerald-100 text-emerald-700'
+                    }`}>
+                      {report.severity}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-medium">
+                      {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                    </span>
+                  </div>
                 </div>
               ))
             )}

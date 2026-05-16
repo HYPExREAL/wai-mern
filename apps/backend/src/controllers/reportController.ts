@@ -95,9 +95,30 @@ export const getPendingReports = async (req: Request, res: Response) => {
 };
 
 // GET /api/reports/all (Protected) — all reports for admin history, without image data
+// Supports query params: ?from=YYYY-MM-DD&to=YYYY-MM-DD&status=approved|pending|rejected
 export const getAllReports = async (req: Request, res: Response) => {
   try {
-    const reports = await Report.find()
+    const { from, to, status } = req.query;
+    const filter: Record<string, any> = {};
+
+    // Date range filter on createdAt
+    if (from || to) {
+      filter.createdAt = {};
+      if (typeof from === "string") filter.createdAt.$gte = new Date(from);
+      if (typeof to === "string") {
+        // End of the "to" day (23:59:59.999)
+        const endDate = new Date(to);
+        endDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = endDate;
+      }
+    }
+
+    // Status filter
+    if (typeof status === "string" && ["approved", "pending", "rejected"].includes(status)) {
+      filter.status = status;
+    }
+
+    const reports = await Report.find(filter)
       .select(LIST_PROJECTION)
       .sort({ createdAt: -1 })
       .lean();

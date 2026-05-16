@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
-import { ReportsContext, type FloodReport } from "./reportsContextDef";
+import { ReportsContext, type FloodReport, type ReportFilters } from "./reportsContextDef";
 import apiClient from "../api/apiClient";
 
 interface BackendReport {
@@ -68,10 +68,15 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const refreshAll = useCallback(async () => {
+  const refreshAll = useCallback(async (filters?: ReportFilters) => {
     try {
       setLoading(true);
-      const res = await apiClient.get("/reports/all");
+      const params = new URLSearchParams();
+      if (filters?.from) params.set("from", filters.from);
+      if (filters?.to) params.set("to", filters.to);
+      if (filters?.status) params.set("status", filters.status);
+      const query = params.toString();
+      const res = await apiClient.get(`/reports/all${query ? `?${query}` : ""}`);
       setAllReports(res.data.map(transformReport));
     } catch (err: unknown) {
       console.error("Gagal mengambil semua laporan:", err);
