@@ -29,7 +29,7 @@ function reportToRow(report: FloodReport) {
     "Nama Pelapor": report.reporterName || "Anonim",
     "Judul": report.title,
     "Deskripsi": report.description,
-    "Kedalaman": report.severity,
+    "Kedalaman (cm)": report.severity,
     "Status": report.status,
     "Latitude": report.latitude,
     "Longitude": report.longitude,

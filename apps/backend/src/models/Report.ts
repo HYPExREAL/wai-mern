@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IReport extends Document {
   title: string;
   description: string;
-  severity: "low" | "moderate" | "high" | "critical";
+  severity: number; // depth in centimeters
   status: "pending" | "approved" | "rejected";
   location: {
     type: "Point";
@@ -23,9 +23,9 @@ const ReportSchema: Schema = new Schema(
     title: { type: String, required: true },
     description: { type: String, required: true },
     severity: {
-      type: String,
-      enum: ["low", "moderate", "high", "critical"],
+      type: Number,
       required: true,
+      min: 0,
     },
     status: {
       type: String,

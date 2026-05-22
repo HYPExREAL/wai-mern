@@ -6,7 +6,7 @@ export interface FloodReport {
   description: string;
   latitude: number;
   longitude: number;
-  severity: "low" | "moderate" | "high" | "critical";
+  severity: number; // depth in cm
   status: "pending" | "approved" | "rejected";
   imageUrl?: string;
   imageUrls?: string[];

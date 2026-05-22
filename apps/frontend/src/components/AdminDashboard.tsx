@@ -170,7 +170,7 @@ export default function AdminDashboard() {
                   <strong className="block mb-1">{report.title}</strong>
                   <p className="text-gray-600 leading-tight">{report.description}</p>
                   <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    <span>{report.severity}</span>
+                    <span>{typeof report.severity === 'number' ? `${report.severity} cm` : report.severity}</span>
                     <span>{new Date(report.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>

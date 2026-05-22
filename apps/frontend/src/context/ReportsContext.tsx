@@ -11,7 +11,7 @@ interface BackendReport {
     type: "Point";
     coordinates: [number, number];
   };
-  severity: FloodReport["severity"];
+  severity: number;
   status: FloodReport["status"];
   imageUrl?: string;
   imageUrls?: string[];

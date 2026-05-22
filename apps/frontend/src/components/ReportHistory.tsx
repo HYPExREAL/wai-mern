@@ -4,6 +4,7 @@ import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
 import { useEffect, useState, useCallback } from "react";
 import { exportToCSV, exportToXLSX, exportToGeoJSON } from "../utils/exportReports";
+import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 
 export default function ReportHistory() {
   const { allReports, refreshAll, refreshPending } = useReports();
@@ -241,13 +242,8 @@ export default function ReportHistory() {
                       <td className="px-8 py-5 text-sm font-black text-gray-800">{report.reporterName || "Anonim"}</td>
                       <td className="px-8 py-5 text-sm text-gray-500 max-w-xs truncate">{report.description}</td>
                       <td className="px-8 py-5">
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                          report.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                          report.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                          report.severity === 'moderate' ? 'bg-amber-100 text-amber-700' :
-                          'bg-emerald-100 text-emerald-700'
-                        }`}>
-                          {report.severity}
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
+                          {formatDepth(report.severity)}
                         </span>
                       </td>
                       <td className="px-8 py-5">
@@ -293,13 +289,8 @@ export default function ReportHistory() {
                   <h3 className="text-sm font-black text-gray-800 mb-1">{report.reporterName || "Anonim"}</h3>
                   <p className="text-xs text-gray-500 line-clamp-2 mb-2">{report.description}</p>
                   <div className="flex justify-between items-center">
-                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                      report.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                      report.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                      report.severity === 'moderate' ? 'bg-amber-100 text-amber-700' :
-                      'bg-emerald-100 text-emerald-700'
-                    }`}>
-                      {report.severity}
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
+                      {formatDepth(report.severity)}
                     </span>
                     <span className="text-[10px] text-gray-400 font-medium">
                       {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}

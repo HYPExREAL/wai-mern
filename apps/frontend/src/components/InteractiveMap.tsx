@@ -13,7 +13,6 @@ import {
   Crosshair,
   Send,
   Loader2,
-  ChevronDown,
   Search,
   Upload,
   Navigation,
@@ -26,7 +25,6 @@ import {
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useReports } from "../hooks/useReports";
 import { useNotifications } from "../context/notificationContextDef";
-import type { FloodReport } from "../context/reportsContextDef";
 import { ICONS } from "./map/icons";
 import ZoomControls from "./map/ZoomControls";
 import GeoJSONLayer from "./map/GeoJSONLayer";
@@ -91,7 +89,7 @@ export default function InteractiveMap() {
   // Form state
   const [name, setName] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [depth, setDepth] = useState<FloodReport["severity"] | "">("");
+  const [depth, setDepth] = useState("");;
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -265,7 +263,7 @@ export default function InteractiveMap() {
           description: description.trim() || `Dilaporkan pada ${date}`,
           latitude: finalLat,
           longitude: finalLng,
-          severity: depth as FloodReport["severity"],
+          severity: Number(depth),
           reporterName: name.trim(),
           imageUrl: base64Images.length > 0 ? base64Images[0] : undefined,
           imageUrls: base64Images.length > 0 ? base64Images : undefined,
@@ -385,21 +383,15 @@ export default function InteractiveMap() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Kedalaman</label>
-                  <div className="relative">
-                    <select 
-                      value={depth}
-                      onChange={(e) => setDepth(e.target.value as FloodReport["severity"] | "")}
-                      className="w-full px-3 py-2 md:py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs appearance-none"
-                    >
-                      <option value="">Pilih</option>
-                      <option value="low">Rendah</option>
-                      <option value="moderate">Sedang</option>
-                      <option value="high">Tinggi</option>
-                      <option value="critical">Kritis</option>
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  </div>
+                  <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Kedalaman (cm)</label>
+                  <input 
+                    type="number"
+                    min="0"
+                    placeholder="Contoh: 50"
+                    value={depth}
+                    onChange={(e) => setDepth(e.target.value)}
+                    className="w-full px-3 py-2 md:py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs"
+                  />
                 </div>
               </div>
 
@@ -646,7 +638,7 @@ export default function InteractiveMap() {
                 <strong className="block mb-1">{report.title}</strong>
                 <p className="text-gray-600 leading-tight">{report.description}</p>
                 <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  <span>{report.severity}</span>
+                  <span>{typeof report.severity === 'number' ? `${report.severity} cm` : report.severity}</span>
                   <span>{new Date(report.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
