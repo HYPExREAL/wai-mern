@@ -32,7 +32,7 @@ const COLOR_PRESETS = [
 export default function AdminDashboard() {
   const { reports, pendingReports, refreshPending } = useReports();
   const { layers, enabledIds, geoDataCache, toggleLayer, createLayer, deleteLayer, updateLayer } = useLayers();
-  const { notify } = useNotifications();
+  const { notify, confirm } = useNotifications();
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLayers, setShowLayers] = useState(false);
@@ -87,14 +87,20 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteLayer = async (id: string, name: string) => {
-    if (!window.confirm(`Hapus layer "${name}"?`)) return;
-    try {
-      await deleteLayer(id);
-      notify("success", "Layer berhasil dihapus.");
-    } catch {
-      notify("error", "Gagal menghapus layer.");
-    }
+  const handleDeleteLayer = (id: string, name: string) => {
+    confirm({
+      title: "Hapus Layer?",
+      message: `Apakah Anda yakin ingin menghapus layer "${name}"? Tindakan ini tidak dapat dibatalkan.`,
+      confirmText: "Ya, Hapus",
+      onConfirm: async () => {
+        try {
+          await deleteLayer(id);
+          notify("success", "Layer berhasil dihapus.");
+        } catch {
+          notify("error", "Gagal menghapus layer.");
+        }
+      }
+    });
   };
 
   const handleTogglePublic = async (id: string, currentPublic: boolean) => {
