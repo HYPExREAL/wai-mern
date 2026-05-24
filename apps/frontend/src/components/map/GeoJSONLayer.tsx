@@ -27,18 +27,23 @@ export default function GeoJSONLayer({ url, data: rawData, style }: GeoJSONLayer
 
   const geoData = rawData ? (rawData as GeoJSON.GeoJsonObject) : fetchedData;
 
+  const iconColor = style?.color || "#3B82F6";
+
   // Render Point features as pin markers matching the layer's color
   const pointToLayer = useMemo(() => {
-    const icon = makeSvgIcon((style.color as string) || "#3B82F6");
+    const icon = makeSvgIcon(iconColor);
     return (_feature: GeoJSON.Feature, latlng: L.LatLng) => {
       return L.marker(latlng, { icon });
     };
-  }, [style.color]);
+  }, [iconColor]);
 
   if (!geoData) return null;
 
-  // Use a key that changes when the data source changes to force re-render
-  const key = url || JSON.stringify(rawData).slice(0, 100);
+  // Extremely robust key that forces Leaflet to completely rebuild the GeoJSON layer
+  // whenever the data, style, or color changes.
+  const geoDataString = JSON.stringify(geoData);
+  const key = `${url || "rawData"}-${geoDataString.length}-${iconColor}-${geoDataString.slice(0, 100)}`;
+
   return (
     <GeoJSON
       key={key}
