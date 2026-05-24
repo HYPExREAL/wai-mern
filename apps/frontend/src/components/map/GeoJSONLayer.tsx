@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { GeoJSON } from "react-leaflet";
 import L from "leaflet";
+import { makeSvgIcon } from "./icons";
 
 interface GeoJSONLayerProps {
   url?: string;
@@ -26,17 +27,11 @@ export default function GeoJSONLayer({ url, data: rawData, style }: GeoJSONLayer
 
   const geoData = rawData ? (rawData as GeoJSON.GeoJsonObject) : fetchedData;
 
-  // Render Point features as circle markers using the layer's color
+  // Render Point features as pin markers matching the layer's color
   const pointToLayer = useMemo(() => {
+    const icon = makeSvgIcon((style.color as string) || "#3B82F6");
     return (_feature: GeoJSON.Feature, latlng: L.LatLng) => {
-      return L.circleMarker(latlng, {
-        radius: 7,
-        fillColor: (style.color as string) || "#3B82F6",
-        color: "#fff",
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 0.85,
-      });
+      return L.marker(latlng, { icon });
     };
   }, [style.color]);
 
