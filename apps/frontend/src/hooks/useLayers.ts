@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import apiClient from "../api/apiClient";
 
 export interface LayerMeta {
@@ -54,15 +54,18 @@ export function useLayers(publicOnly = false) {
   }, [publicOnly]);
 
   // Toggle a layer on/off
-  const toggleLayer = useCallback(async (id: string) => {
+  const geoDataCacheRef = useRef(geoDataCache);
+  useEffect(() => { geoDataCacheRef.current = geoDataCache; }, [geoDataCache]);
+
+  const toggleLayer = useCallback((id: string) => {
     setEnabledIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
       } else {
         next.add(id);
-        // Fetch geoData if not cached
-        if (!geoDataCache[id]) {
+        // Fetch geoData if not cached — use ref to avoid stale closure
+        if (!geoDataCacheRef.current[id]) {
           apiClient.get(`/layers/${id}`)
             .then(res => {
               setGeoDataCache(cache => ({ ...cache, [id]: res.data.geoData }));
@@ -72,7 +75,7 @@ export function useLayers(publicOnly = false) {
       }
       return next;
     });
-  }, [geoDataCache]);
+  }, []);
 
   // CRUD operations (admin)
   const createLayer = useCallback(async (data: {

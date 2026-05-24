@@ -3,6 +3,7 @@ import { CheckSquare, History, XCircle, Trash2, Check, Clock, MapPin, User, X } 
 import { useState } from "react";
 import { useReports } from "../hooks/useReports";
 import { useNotifications } from "../context/notificationContextDef";
+import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 
 interface AdminSidebarProps {
   onReportClick?: (lat: number, lng: number) => void;
@@ -250,6 +251,22 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* Depth Info */}
+              <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className={`p-2.5 rounded-xl shadow-sm ${getSeverityFromDepth(selectedReportForVerification.severity).colorClass}`}>
+                    <MapPin size={18} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Kedalaman</span>
+                    <span className="text-sm font-bold text-[#003B6D]">{formatDepth(selectedReportForVerification.severity)}</span>
+                  </div>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${getSeverityFromDepth(selectedReportForVerification.severity).colorClass}`}>
+                  {getSeverityFromDepth(selectedReportForVerification.severity).label}
+                </span>
               </div>
 
               <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">

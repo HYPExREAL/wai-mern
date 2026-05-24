@@ -89,7 +89,7 @@ export default function InteractiveMap() {
   // Form state
   const [name, setName] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [depth, setDepth] = useState("");;
+  const [depth, setDepth] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
