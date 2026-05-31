@@ -13,7 +13,11 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json({ limit: "50mb" }));
 
 // Connect to MongoDB (cached for serverless)
@@ -21,8 +25,8 @@ const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/wai-flood"
 
 let isConnected = false;
 async function connectDB() {
-  if (isConnected) return;
-  await mongoose.connect(MONGO_URI);
+  // 5-second timeout to prevent Vercel 10s serverless timeout crash
+  await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
   isConnected = true;
   console.log("✅ Connected to MongoDB");
 }
@@ -48,7 +52,6 @@ app.use("/api/layers", layerRoutes);
 app.get("/api/health", (_req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
-
 
 
 // ── Local dev: start the server with app.listen ────────────────
