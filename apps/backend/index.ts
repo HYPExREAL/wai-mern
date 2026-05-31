@@ -54,7 +54,8 @@ if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
 
 // ── Vercel serverless export ───────────────────────────────────
 // Wraps every request with a DB connection check before handling
-export default async function handler(req: any, res: any) {
+import type { IncomingMessage, ServerResponse } from "http";
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
   await connectDB();
   return app(req, res);
 }
