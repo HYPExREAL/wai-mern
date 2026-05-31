@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: wai-flood-api
+    runtime: node
+    plan: free
+    rootDir: apps/backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        sync: false  # Set manually in Render dashboard
+      - key: MONGO_URI
+        sync: false  # Set manually in Render dashboard
+      - key: ADMIN_EMAIL
+        sync: false  # Set manually in Render dashboard
+      - key: ADMIN_PASSWORD_HASH
+        sync: false  # Set manually in Render dashboard
+    healthCheckPath: /api/health
