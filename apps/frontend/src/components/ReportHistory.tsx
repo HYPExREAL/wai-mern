@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { LogOut, Menu, Filter, Download, ChevronDown, Calendar, X } from "lucide-react";
+import { LogOut, Menu, Filter, Download, ChevronDown, Calendar, X, User, Clock, MapPin, Droplets, Eye } from "lucide-react";
+import type { FloodReport } from "../context/reportsContextDef";
 import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
 import { useEffect, useState, useCallback } from "react";
@@ -17,6 +18,7 @@ export default function ReportHistory() {
   const [filterStatus, setFilterStatus] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<FloodReport | null>(null);
 
   const fetchFiltered = useCallback(() => {
     const filters: Record<string, string> = {};
@@ -237,7 +239,7 @@ export default function ReportHistory() {
                   </tr>
                 ) : (
                   allReports.map((report, idx) => (
-                    <tr key={report.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={report.id} onClick={() => setSelectedReport(report)} className="hover:bg-gray-50 transition-colors cursor-pointer group">
                       <td className="px-8 py-5 text-sm font-bold text-gray-900">{idx + 1}</td>
                       <td className="px-8 py-5 text-sm font-black text-gray-800">{report.reporterName || "Anonim"}</td>
                       <td className="px-8 py-5 text-sm text-gray-500 max-w-xs truncate">{report.description}</td>
@@ -256,8 +258,13 @@ export default function ReportHistory() {
                            report.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
                         </span>
                       </td>
-                      <td className="px-8 py-5 text-xs text-gray-400 font-medium whitespace-nowrap">
-                        {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                            {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                          </span>
+                          <Eye className="w-4 h-4 text-gray-300 group-hover:text-[#005a9e] transition-colors" />
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -267,14 +274,14 @@ export default function ReportHistory() {
           </div>
 
           {/* Mobile Card List */}
-          <div className="md:hidden flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="md:hidden flex-1 overflow-y-auto p-4 space-y-3 stagger-children">
             {allReports.length === 0 ? (
               <div className="flex items-center justify-center h-40 text-gray-400 font-medium text-sm">
                 {hasActiveFilters ? "Tidak ada laporan yang sesuai filter" : "Belum ada data laporan tersedia"}
               </div>
             ) : (
               allReports.map((report, idx) => (
-                <div key={report.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 cursor-pointer hover:border-[#005a9e]/20 hover:shadow-md transition-all active:scale-[0.98]">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-[10px] font-bold text-gray-400 uppercase">#{idx + 1}</span>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
@@ -302,6 +309,145 @@ export default function ReportHistory() {
           </div>
         </div>
       </main>
+
+      {/* ── Report Detail Modal ──────────────────────────────── */}
+      {selectedReport && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md animate-backdrop-in"
+            onClick={() => setSelectedReport(null)}
+          />
+
+          {/* Modal Content */}
+          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh] animate-slide-up md:animate-scale-in">
+            {/* Mobile drag handle */}
+            <div className="md:hidden flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+            </div>
+
+            {/* Header / Image Area */}
+            <div className="relative w-full aspect-video bg-gray-100 shrink-0 overflow-x-auto flex snap-x snap-mandatory custom-scrollbar">
+              {selectedReport.imageUrls && selectedReport.imageUrls.length > 0 ? (
+                selectedReport.imageUrls.map((url, idx) => (
+                  <img
+                    key={idx}
+                    src={url}
+                    alt={`Dokumentasi ${idx + 1}`}
+                    className="w-full h-full object-cover shrink-0 snap-center"
+                  />
+                ))
+              ) : selectedReport.imageUrl ? (
+                <img
+                  src={selectedReport.imageUrl}
+                  alt="Dokumentasi"
+                  className="w-full h-full object-cover shrink-0 snap-center"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-3 shrink-0 snap-center">
+                  <div className="p-4 bg-white rounded-2xl shadow-sm">
+                    <Droplets className="w-8 h-8 opacity-20" />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Tidak ada foto</span>
+                </div>
+              )}
+
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="absolute top-3 right-3 md:top-6 md:right-6 p-2 md:p-3 bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-xl text-gray-500 hover:text-red-500 transition-all hover:scale-110"
+              >
+                <X size={18} />
+              </button>
+
+              {/* Status Badge */}
+              <div className={`absolute bottom-3 left-3 md:bottom-6 md:left-6 px-3 py-1.5 md:px-4 md:py-2 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-widest shadow-lg ${
+                selectedReport.status === 'approved' ? 'bg-[#16A34A]' :
+                selectedReport.status === 'rejected' ? 'bg-[#DC2626]' :
+                'bg-amber-500'
+              }`}>
+                {selectedReport.status === 'approved' ? 'Divalidasi' :
+                 selectedReport.status === 'rejected' ? 'Ditolak' : 'Menunggu Verifikasi'}
+              </div>
+            </div>
+
+            {/* Content Area */}
+            <div className="p-5 md:p-8 flex flex-col gap-4 md:gap-6 overflow-y-auto custom-scrollbar">
+              <div>
+                <h3 className="text-lg md:text-2xl font-black text-[#003B6D] mb-1 md:mb-2 leading-tight">
+                  {selectedReport.title}
+                </h3>
+                <p className="text-gray-500 text-xs md:text-sm leading-relaxed italic">
+                  "{selectedReport.description || 'Tidak ada deskripsi tambahan'}"
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                {/* Reporter */}
+                <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
+                  <div className="p-2.5 bg-white rounded-xl shadow-sm text-[#005a9e]">
+                    <User size={18} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Pelapor</span>
+                    <span className="text-sm font-bold text-[#003B6D]">{selectedReport.reporterName || 'Anonim'}</span>
+                  </div>
+                </div>
+
+                {/* Time */}
+                <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
+                  <div className="p-2.5 bg-white rounded-xl shadow-sm text-amber-500">
+                    <Clock size={18} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Waktu</span>
+                    <span className="text-sm font-bold text-[#003B6D]">
+                      {new Date(selectedReport.createdAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Depth Info */}
+              <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className={`p-2.5 rounded-xl shadow-sm ${getSeverityFromDepth(selectedReport.severity).colorClass}`}>
+                    <Droplets size={18} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Kedalaman</span>
+                    <span className="text-sm font-bold text-[#003B6D]">{formatDepth(selectedReport.severity)}</span>
+                  </div>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${getSeverityFromDepth(selectedReport.severity).colorClass}`}>
+                  {getSeverityFromDepth(selectedReport.severity).label}
+                </span>
+              </div>
+
+              {/* Coordinates */}
+              <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
+                <div className="p-2.5 bg-white rounded-xl shadow-sm text-red-500">
+                  <MapPin size={18} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Koordinat</span>
+                  <span className="text-sm font-bold text-[#003B6D]">
+                    {selectedReport.latitude.toFixed(5)}, {selectedReport.longitude.toFixed(5)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="w-full py-3 bg-gray-50 text-gray-400 rounded-xl font-bold hover:bg-gray-100 hover:text-gray-500 transition-all active:scale-[0.98] uppercase text-xs tracking-widest border border-gray-100"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

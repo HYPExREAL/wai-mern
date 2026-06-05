@@ -85,7 +85,7 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
       <div className="flex-1 bg-white/95 backdrop-blur-md rounded-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-6 flex flex-col pointer-events-auto overflow-hidden">
         <h2 className="text-[#005a9e] text-base md:text-lg font-bold text-center mb-4 md:mb-6">Laporan Masuk</h2>
         
-        <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar stagger-children">
           {pendingReports.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 text-gray-400">
               <CheckSquare className="w-10 h-10 mb-3 opacity-20" />
@@ -168,12 +168,12 @@ export default function AdminSidebar({ onReportClick }: AdminSidebarProps) {
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6 pointer-events-auto">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md"
+            className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md animate-backdrop-in"
             onClick={() => setSelectedReportForVerification(null)}
           />
           
           {/* Modal Content */}
-          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh]">
+          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh] animate-slide-up md:animate-scale-in">
             {/* Mobile drag handle */}
             <div className="md:hidden flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 rounded-full" />

@@ -16,10 +16,10 @@ export default function OnboardingPage() {
       </div>
 
       {/* Central Card */}
-      <div className="w-full max-w-4xl bg-white/10 backdrop-blur-sm border border-white/20 rounded-[32px] p-8 md:p-16 flex flex-col items-center text-center shadow-2xl z-10">
+      <div className="w-full max-w-4xl bg-white/10 backdrop-blur-sm border border-white/20 rounded-[32px] p-8 md:p-16 flex flex-col items-center text-center shadow-2xl z-10 animate-scale-in">
         
         {/* Logo Section */}
-        <div className="mb-8">
+        <div className="mb-8 animate-fade-in-up">
           <img 
             src="/WAIMark.png" 
             alt="WAI Logo" 
@@ -37,7 +37,7 @@ export default function OnboardingPage() {
         </p>
 
         {/* Actions */}
-        <div className="flex flex-col gap-4 w-full max-w-xs">
+        <div className="flex flex-col gap-4 w-full max-w-xs stagger-children" style={{ animationDelay: '0.3s' }}>
           <Link
             to="/map"
             className="w-full bg-white text-[#005a9e] font-bold py-3.5 rounded-lg hover:bg-white/90 transition-all text-center text-lg shadow-lg"

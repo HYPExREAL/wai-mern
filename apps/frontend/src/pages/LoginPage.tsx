@@ -53,7 +53,7 @@ export default function LoginPage() {
       </Link>
 
       {/* Main Split Card */}
-      <div className="w-full max-w-5xl bg-white rounded-[32px] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px]">
+      <div className="w-full max-w-5xl bg-white rounded-[32px] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px] animate-scale-in">
         
         {/* Left Side: Illustration */}
         <div className="hidden md:block w-1/2 relative bg-[#E6F3FF]">

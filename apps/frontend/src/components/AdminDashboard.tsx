@@ -295,8 +295,8 @@ export default function AdminDashboard() {
       {/* ── Layer Management Modal ─────────────────────────────── */}
       {showLayerPanel && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6">
-          <div className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md" onClick={() => setShowLayerPanel(false)} />
-          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[85svh]">
+          <div className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md animate-backdrop-in" onClick={() => setShowLayerPanel(false)} />
+          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[85svh] animate-slide-up md:animate-scale-in">
             
             <div className="md:hidden flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 rounded-full" />

@@ -345,7 +345,7 @@ export default function InteractiveMap() {
 
       {/* ── LEFT: Report Form Card ─────────────────────────────── */}
       {showReportForm && (
-        <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:top-32 md:left-6 z-1000 w-full md:w-auto md:max-w-sm animate-[slideIn_0.4s_ease-out] pointer-events-auto">
+        <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:top-32 md:left-6 z-1000 w-full md:w-auto md:max-w-sm animate-slide-up md:animate-slide-in-left pointer-events-auto">
           <div className="bg-white/95 backdrop-blur-md rounded-t-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-8 flex flex-col gap-3 md:gap-5 max-h-[60svh] md:max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between">
               <h2 className="text-[#005a9e] text-base md:text-xl font-bold">Lapor Banjir</h2>
@@ -750,14 +750,6 @@ export default function InteractiveMap() {
             <ZoomControls />
         </div>
       </MapContainer>
-
-      {/* Animations */}
-      <style>{`
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateX(-20px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-      `}</style>
     </div>
   );
 }
