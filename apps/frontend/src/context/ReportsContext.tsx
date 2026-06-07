@@ -118,6 +118,7 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
       await Promise.all([refreshReports(), refreshPending()]);
     } catch (err: unknown) {
       console.error("Gagal verifikasi laporan:", err);
+      throw err;
     }
   }, [refreshReports, refreshPending]);
 
@@ -127,6 +128,7 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
       await refreshPending();
     } catch (err: unknown) {
       console.error("Gagal menolak laporan:", err);
+      throw err;
     }
   }, [refreshPending]);
 
@@ -136,6 +138,7 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
       await Promise.all([refreshReports(), refreshPending()]);
     } catch (err: unknown) {
       console.error("Gagal menghapus laporan:", err);
+      throw err;
     }
   }, [refreshReports, refreshPending]);
 

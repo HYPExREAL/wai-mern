@@ -9,7 +9,6 @@
   "devDependencies": {
     "@cucumber/cucumber": "^12.8.1",
     "@types/bcryptjs": "^3.0.0",
-    "@types/bun": "latest",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",

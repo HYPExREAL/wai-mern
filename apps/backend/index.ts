@@ -25,6 +25,7 @@ const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/wai-flood"
 
 let isConnected = false;
 async function connectDB() {
+  if (isConnected) return;
   // 5-second timeout to prevent Vercel 10s serverless timeout crash
   await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
   isConnected = true;

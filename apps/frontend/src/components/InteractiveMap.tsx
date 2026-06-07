@@ -21,7 +21,9 @@ import {
   MapPin,
   Layers,
   Info,
+  Eye,
 } from "lucide-react";
+import type { FloodReport } from "../context/reportsContextDef";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useReports } from "../hooks/useReports";
 import { useNotifications } from "../context/notificationContextDef";
@@ -29,6 +31,8 @@ import { ICONS } from "./map/icons";
 import ZoomControls from "./map/ZoomControls";
 import GeoJSONLayer from "./map/GeoJSONLayer";
 import { useLayers } from "../hooks/useLayers";
+import ReportDetailModal from "./ReportDetailModal";
+import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 
 // ── Bandar Lampung center ──────────────────────────────────────
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
@@ -85,6 +89,7 @@ export default function InteractiveMap() {
   const [showLegend, setShowLegend] = useState(false);
   const [layerDAS, setLayerDAS] = useState(false);
   const [layerBorder, setLayerBorder] = useState(false);
+  const [detailReport, setDetailReport] = useState<FloodReport | null>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -621,26 +626,28 @@ export default function InteractiveMap() {
             }
           >
             <Popup>
-              <div className="text-sm min-w-[200px] max-w-[280px]">
-                {report.imageUrls && report.imageUrls.length > 0 ? (
-                  <div className="w-full flex gap-2 overflow-x-auto pb-2 mb-2 custom-scrollbar">
-                    {report.imageUrls.map((url, idx) => (
-                      <div key={idx} className="w-32 h-32 shrink-0 rounded-lg overflow-hidden border border-gray-100">
-                        <img src={url} alt={`Documentation ${idx + 1}`} className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                ) : report.imageUrl && (
-                  <div className="w-full h-32 rounded-lg overflow-hidden mb-2">
-                    <img src={report.imageUrl} alt="Documentation" className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <strong className="block mb-1">{report.title}</strong>
-                <p className="text-gray-600 leading-tight">{report.description}</p>
-                <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  <span>{typeof report.severity === 'number' ? `${report.severity} cm` : report.severity}</span>
-                  <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+              <div className="text-sm min-w-[200px] max-w-[260px]">
+                <strong className="block text-[#003B6D] text-sm mb-1">{report.title}</strong>
+                <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description}</p>
+
+                {/* Severity + Date row */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
+                    {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
+                  </span>
+                  <span className="text-[10px] font-bold text-gray-400">
+                    {new Date(report.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </span>
                 </div>
+
+                {/* View Detail Button */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
+                  className="w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  Lihat Detail
+                </button>
               </div>
             </Popup>
           </Marker>
@@ -750,6 +757,15 @@ export default function InteractiveMap() {
             <ZoomControls />
         </div>
       </MapContainer>
+
+      {/* ── Report Detail Modal ─────────────────────────────────── */}
+      {detailReport && (
+        <ReportDetailModal
+          report={detailReport}
+          onClose={() => setDetailReport(null)}
+          showStatus={false}
+        />
+      )}
     </div>
   );
 }

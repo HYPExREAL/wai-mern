@@ -140,51 +140,51 @@ body {
 
 /* Utility classes */
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out both;
+  animation: fadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out both;
+  animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-fade-in-down {
-  animation: fadeInDown 0.4s ease-out both;
+  animation: fadeInDown 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: scaleIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-backdrop-in {
-  animation: backdropIn 0.3s ease-out both;
+  animation: backdropIn 0.4s ease-out both;
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.4s ease-out both;
+  animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Staggered list children — each child delayed by its index */
 .stagger-children > * {
   opacity: 0;
-  animation: fadeInUp 0.4s ease-out both;
+  animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
-.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
-.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
-.stagger-children > *:nth-child(9) { animation-delay: 400ms; }
-.stagger-children > *:nth-child(10) { animation-delay: 450ms; }
-.stagger-children > *:nth-child(n+11) { animation-delay: 500ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 280ms; }
+.stagger-children > *:nth-child(9) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(10) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(n+11) { animation-delay: 400ms; }
 
 /* Subtle page wrapper transition */
 .page-enter {
-  animation: fadeIn 0.5s ease-out both;
+  animation: fadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
