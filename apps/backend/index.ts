@@ -1,5 +1,4 @@
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoutes from "./src/routes/authRoutes";
@@ -13,15 +12,21 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-const corsOptions = {
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-};
-app.use(cors(corsOptions));
+app.use((_req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
 
-// Explicitly handle ALL preflight requests — must come before DB middleware
-app.options("{*path}", cors(corsOptions));
+// Handle preflight requests immediately — never touch DB
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+  next();
+});
 
 app.use(express.json({ limit: "50mb" }));
 
