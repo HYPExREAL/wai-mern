@@ -7,9 +7,9 @@
     "allowJs": true,
     "types": ["node"],
 
-    // Module resolution — "preserve" leaves transforms to the runtime (tsx / @vercel/node)
-    "module": "Preserve",
-    "moduleResolution": "Bundler",
+    // Module resolution — CommonJS prevents Vercel esbuild from generating ES modules without extensions
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "noEmit": true,
     "esModuleInterop": true,
 
