@@ -1,64 +1,276 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+
+const ArrowRight = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+);
+
+function useReveal(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry!.isIntersecting) setVisible(true); },
+      { threshold }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+  return { ref, visible };
+}
 
 export default function OnboardingPage() {
+  const { ref: panduanRef, visible: panduanVisible } = useReveal();
+  const { ref: aboutRef, visible: aboutVisible } = useReveal();
+
+  /* Scroll-aware navbar */
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div
-      id="onboarding-page"
-      className="min-h-svh w-full flex items-center justify-center p-6 bg-linear-to-b from-[#003B6D] to-[#0072B5]"
-    >
-      {/* Header Logo */}
-      <div className="absolute top-6 left-6 md:top-8 md:left-8 z-10">
-        <img 
-          src="/RIF Logo.png" 
-          alt="RIF Header Logo" 
-          className="h-10 md:h-12 w-auto object-contain opacity-90"
-        />
-      </div>
+    <div id="homepage" className="min-h-svh w-full bg-white overflow-x-hidden">
 
-      {/* Central Card */}
-      <div className="w-full max-w-4xl bg-white/10 backdrop-blur-sm border border-white/20 rounded-[32px] p-8 md:p-16 flex flex-col items-center text-center shadow-2xl z-10 animate-scale-in">
-        
-        {/* Logo Section */}
-        <div className="mb-8 animate-fade-in-up">
-          <img 
-            src="/WAIMark.png" 
-            alt="WAI Logo" 
-            className="h-32 md:h-48 w-auto object-contain"
-          />
-          <h2 className="text-white text-xl md:text-2xl font-medium tracking-wide mt-2">
-            Water Awareness & Information
-          </h2>
-        </div>
+      {/* ═══════════════════════ NAVBAR ═══════════════════════ */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 animate-fade-in-down ${
+        scrolled
+          ? "bg-white/95 backdrop-blur-md shadow-lg shadow-black/5"
+          : "bg-transparent"
+      }`}>
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="flex items-center justify-between h-16 md:h-20">
+            {/* Logo */}
+            <a href="#homepage" className="flex items-center gap-3 group">
+              <img
+                src="/RIF Logo Blue.png"
+                alt="RIF Logo"
+                className={`h-8 md:h-10 w-auto object-contain transition-all duration-300 ${
+                  scrolled ? "opacity-100" : "brightness-0 invert opacity-90 group-hover:opacity-100"
+                }`}
+              />
+            </a>
 
-        {/* Description */}
-        <p className="text-white/90 text-base md:text-lg max-w-2xl leading-relaxed mb-12">
-          Pantau kondisi banjir secara real-time, laporkan kejadian banjir 
-          di sekitar Anda, dan bantu dalam penanganan bencana secara cepat dan akurat.
-        </p>
-
-        {/* Actions */}
-        <div className="flex flex-col gap-4 w-full max-w-xs stagger-children" style={{ animationDelay: '0.3s' }}>
-          <Link
-            to="/map"
-            className="w-full bg-white text-[#005a9e] font-bold py-3.5 rounded-lg hover:bg-white/90 transition-all text-center text-lg shadow-lg"
-          >
-            Mulai Menggunakan
-          </Link>
-          
-          <div className="flex flex-col items-center gap-2 mt-2">
-            <Link
-              to="/login"
-              className="w-full py-3 rounded-lg border-2 border-white/30 bg-white/5 text-white font-bold hover:bg-white/10 transition-all text-center text-lg shadow-inner"
-            >
-              Login
-            </Link>
-            <span className="text-white/60 text-xs font-medium">
-              login sebagai admin
-            </span>
+            {/* Nav Links */}
+            <div className="flex items-center gap-6 md:gap-8">
+              <a href="#panduan" className={`text-sm font-medium transition-colors hidden sm:block ${
+                scrolled ? "text-slate-600 hover:text-[#005a9e]" : "text-white/80 hover:text-white"
+              }`}>
+                Panduan
+              </a>
+              <a href="#tentang" className={`text-sm font-medium transition-colors hidden sm:block ${
+                scrolled ? "text-slate-600 hover:text-[#005a9e]" : "text-white/80 hover:text-white"
+              }`}>
+                Tentang Kami
+              </a>
+              <Link
+                to="/login"
+                className={`text-xs md:text-sm font-semibold px-4 py-2 rounded-full transition-all ${
+                  scrolled
+                    ? "text-white bg-[#005a9e] hover:bg-[#004a8a] shadow-lg shadow-[#005a9e]/20"
+                    : "text-[#005a9e] bg-white hover:bg-white/90 shadow-lg shadow-black/10"
+                }`}
+              >
+                Login Admin
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
+
+      {/* ═══════════════════════ HERO SECTION ═══════════════════════ */}
+      <section className="relative min-h-svh flex items-center justify-center bg-linear-to-b from-[#001d3d] via-[#003566] to-[#005a9e]">
+        {/* Bottom globe-like curve separator */}
+        <div className="absolute bottom-0 left-0 right-0 translate-y-px">
+          <svg viewBox="0 0 1440 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto block">
+            <path d="M0,160 C480,0 960,0 1440,160 L1440,160 L0,160 Z" fill="white"/>
+          </svg>
+        </div>
+
+        {/* Hero Content */}
+        <div className="relative z-10 max-w-5xl mx-auto px-5 md:px-8 text-center pt-24 pb-32 md:pb-40">
+          <div className="animate-fade-in-up">
+            <img
+              src="/WAIMark.png"
+              alt="WAI Logo"
+              className="h-28 md:h-44 lg:h-52 w-auto object-contain mx-auto mb-4"
+            />
+            <p className="text-white/60 text-sm md:text-base font-medium tracking-[0.25em] uppercase mb-8">
+              Water Awareness & Information
+            </p>
+          </div>
+
+          <h1
+            className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6 animate-fade-in-up"
+            style={{ animationDelay: "0.15s" }}
+          >
+            Pantau.{" "}
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-sky-300 to-cyan-200">
+            Laporkan.
+            </span>{" "}
+          </h1>
+
+          <p
+            className="text-white/80 text-base md:text-xl max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-in-up"
+            style={{ animationDelay: "0.3s" }}
+          >
+            Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu dalam penanganan bencana secara cepat dan akurat.
+          </p>
+
+          {/* CTA Buttons */}
+          <div
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up"
+            style={{ animationDelay: "0.45s" }}
+          >
+            <Link
+              to="/map"
+              className="group flex items-center gap-2 bg-white text-[#005a9e] font-bold px-8 py-4 rounded-full text-base md:text-lg shadow-xl shadow-black/15 hover:shadow-2xl hover:scale-[1.03] transition-all"
+            >
+              Mulai Menggunakan
+              <span className="inline-block group-hover:translate-x-1 transition-transform">
+                <ArrowRight />
+              </span>
+            </Link>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ═══════════════════════ PANDUAN SECTION ═══════════════════════ */}
+      <section id="panduan" className="py-20 md:py-32 bg-white">
+        <div
+          ref={panduanRef}
+          className={`max-w-5xl mx-auto px-5 md:px-8 transition-all duration-700 ${
+            panduanVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <span className="inline-block text-[#005a9e] font-semibold text-sm tracking-wider uppercase bg-[#005a9e]/10 px-4 py-1.5 rounded-full mb-4">
+              Panduan Penggunaan
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">
+              Tiga Langkah Mudah
+            </h2>
+          </div>
+
+          {/* Guide Card: Image + Text side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+            {/* Image placeholder */}
+            <div className="bg-linear-to-br from-slate-100 to-slate-50 border border-slate-200 rounded-2xl min-h-[260px] flex items-center justify-center overflow-hidden shadow-lg shadow-[#005a9e]/5">
+              <img
+                src="/flood-hero.png"
+                alt="Peta Banjir"
+                className="w-full h-full object-cover rounded-2xl opacity-90 hover:opacity-100 transition-opacity"
+              />
+            </div>
+
+            {/* Text */}
+            <div className="bg-linear-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-8 md:p-10 flex items-center shadow-lg shadow-[#005a9e]/5">
+              <p className="text-slate-600 text-base md:text-lg leading-relaxed">
+                Pantau kondisi banjir secara real-time, laporkan kejadian banjir 
+                di sekitar Anda, dan bantu dalam penanganan bencana secara cepat dan akurat.
+                Sistem ini dapat diakses langsung dari browser tanpa perlu menginstal aplikasi apapun.
+              </p>
+            </div>
+          </div>
+
+          {/* Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
+            {[
+              {
+                number: "01",
+                title: "Buka Peta Banjir",
+                description: "Akses peta interaktif langsung dari browser Anda — tidak perlu menginstal aplikasi."
+              },
+              {
+                number: "02",
+                title: "Laporkan Kejadian",
+                description: "Isi form singkat, lampirkan foto, dan sistem otomatis membaca lokasi GPS Anda."
+              },
+              {
+                number: "03",
+                title: "Verifikasi Admin",
+                description: "Tim admin memvalidasi laporan. Hanya laporan terverifikasi yang ditampilkan di peta."
+              }
+            ].map((step, i, arr) => (
+              <div key={i} className="relative flex flex-col items-center text-center group">
+                {/* Connector line (hidden on mobile & last item) */}
+                {i < arr.length - 1 && (
+                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-[2px] bg-linear-to-r from-[#005a9e]/30 to-[#005a9e]/10" />
+                )}
+
+                {/* Number Badge */}
+                <div className="relative z-10 w-20 h-20 rounded-2xl bg-linear-to-br from-[#005a9e] to-[#003B6D] text-white flex items-center justify-center text-2xl font-extrabold mb-6 shadow-lg shadow-[#005a9e]/25 group-hover:scale-110 transition-transform duration-300">
+                  {step.number}
+                </div>
+
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{step.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed max-w-xs">{step.description}</p>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* ═══════════════════════ ABOUT SECTION ═══════════════════════ */}
+      <section id="tentang" className="py-20 md:py-32 bg-white">
+        <div
+          ref={aboutRef}
+          className={`max-w-5xl mx-auto px-5 md:px-8 transition-all duration-700 ${
+            aboutVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          <div className="bg-linear-to-br from-[#001d3d] via-[#003566] to-[#005a9e] rounded-3xl p-8 md:p-16 text-center relative overflow-hidden shadow-2xl shadow-[#005a9e]/20">
+            {/* Decorative circles */}
+            <div className="absolute -top-20 -right-20 w-60 h-60 bg-white/5 rounded-full" />
+            <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-white/5 rounded-full" />
+
+            <div className="relative z-10">
+              <img
+                src="/RIF Logo.png"
+                alt="Research In Flood"
+                className="h-16 md:h-24 w-auto object-contain mx-auto mb-6 opacity-90"
+              />
+
+              <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-4">
+                Tentang Kami
+              </h2>
+              <p className="text-white/85 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-3">
+                <strong className="text-white">WAI (Water Awareness & Information)</strong> adalah platform WebGIS pelaporan dan monitoring banjir
+                yang dikembangkan oleh Tim <strong className="text-white">Research in Flood (RIF) ITERA</strong>.
+              </p>
+              <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+                Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu pemerintah Kota Bandar Lampung dalam penanganan bencana secara cepat dan akurat.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════ FOOTER ═══════════════════════ */}
+      <footer className="bg-slate-950 text-white/60 py-8">
+        <div className="max-w-6xl mx-auto px-5 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <img
+              src="/RIF Logo.png"
+              alt="RIF"
+              className="h-7 w-auto object-contain opacity-60"
+            />
+            <span className="text-sm">© {new Date().getFullYear()} Tim RIF ITERA. All rights reserved.</span>
+          </div>
+          <div className="flex items-center gap-6 text-sm">
+            <a href="#panduan" className="hover:text-white transition-colors">Panduan</a>
+            <a href="#tentang" className="hover:text-white transition-colors">Tentang Kami</a>
+            <Link to="/login" className="hover:text-white transition-colors">Login Admin</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
-
