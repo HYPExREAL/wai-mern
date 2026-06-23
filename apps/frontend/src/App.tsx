@@ -6,6 +6,7 @@ import MapPage from "./pages/MapPage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ReportHistoryPage from "./pages/ReportHistoryPage";
+import AdminStatisticsPage from "./pages/AdminStatisticsPage";
 
 // Component to protect admin routes
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -43,6 +44,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ReportHistoryPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/statistics" 
+              element={
+                <ProtectedRoute>
+                  <AdminStatisticsPage />
                 </ProtectedRoute>
               } 
             />

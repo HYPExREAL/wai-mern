@@ -10,7 +10,7 @@ import { useReports } from "../hooks/useReports";
 import { useLayers } from "../hooks/useLayers";
 import { useNotifications } from "../context/notificationContextDef";
 import AdminSidebar from "./AdminSidebar";
-import { ICONS } from "./map/icons";
+import { getIconFromSeverity } from "./map/icons";
 import ZoomControls from "./map/ZoomControls";
 import GeoJSONLayer from "./map/GeoJSONLayer";
 
@@ -154,9 +154,7 @@ export default function AdminDashboard() {
           {/* Report Markers */}
           {[...reports, ...pendingReports].map((report) => (
             <Marker key={report.id} position={[report.latitude, report.longitude]}
-              icon={report.status === "approved"
-                ? (report.markerColor && ICONS[report.markerColor] ? ICONS[report.markerColor] : ICONS.approved)
-                : ICONS.pending}
+              icon={getIconFromSeverity(report.severity, report.status)}
             >
               <Popup>
                 <div className="text-sm min-w-[200px] max-w-[280px]">

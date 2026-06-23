@@ -27,7 +27,7 @@ import type { FloodReport } from "../context/reportsContextDef";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useReports } from "../hooks/useReports";
 import { useNotifications } from "../context/notificationContextDef";
-import { ICONS } from "./map/icons";
+import { ICONS, getIconFromSeverity } from "./map/icons";
 import ZoomControls from "./map/ZoomControls";
 import GeoJSONLayer from "./map/GeoJSONLayer";
 import { useLayers } from "../hooks/useLayers";
@@ -388,15 +388,18 @@ export default function InteractiveMap() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Kedalaman (cm)</label>
-                  <input 
-                    type="number"
-                    min="0"
-                    placeholder="Contoh: 50"
+                  <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Tingkat Banjir</label>
+                  <select 
                     value={depth}
                     onChange={(e) => setDepth(e.target.value)}
-                    className="w-full px-3 py-2 md:py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs"
-                  />
+                    className="w-full px-3 py-2 md:py-2.5 rounded-xl border border-gray-200 focus:border-[#005a9e] outline-none text-xs text-[#003B6D] font-bold bg-white"
+                  >
+                    <option value="" disabled>Pilih tingkat...</option>
+                    <option value="15">Rendah (&lt; 30 cm)</option>
+                    <option value="50">Sedang (30 - 70 cm)</option>
+                    <option value="100">Tinggi (70 - 150 cm)</option>
+                    <option value="160">Kritis (&gt; 150 cm)</option>
+                  </select>
                 </div>
               </div>
 
@@ -619,11 +622,7 @@ export default function InteractiveMap() {
           <Marker
             key={report.id}
             position={[report.latitude, report.longitude]}
-            icon={
-              report.markerColor && ICONS[report.markerColor]
-                ? ICONS[report.markerColor]
-                : ICONS.approved
-            }
+            icon={getIconFromSeverity(report.severity, report.status)}
           >
             <Popup>
               <div className="text-sm min-w-[200px] max-w-[260px]">

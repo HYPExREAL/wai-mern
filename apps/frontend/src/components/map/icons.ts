@@ -28,8 +28,22 @@ export function makeSvgIcon(color: string, strokeColor = "#fff") {
 
 export const ICONS: Record<string, L.DivIcon> = {
   pending: makeSvgIcon("#0ea5e9"),   // light blue
-  approved: makeSvgIcon("#16A34A"),  // green
+  approved: makeSvgIcon("#16A34A"),  // green (default)
   rejected: makeSvgIcon("#DC2626"), // red
   user: makeSvgIcon("#3B82F6"),     // blue — user location
   manual: makeSvgIcon("#A855F7"),   // purple — manual pin
+  rendah: makeSvgIcon("#10B981"),   // emerald
+  sedang: makeSvgIcon("#F59E0B"),   // amber
+  tinggi: makeSvgIcon("#F97316"),   // orange
+  kritis: makeSvgIcon("#EF4444"),   // red
 };
+
+export function getIconFromSeverity(cm: number, status?: string): L.DivIcon {
+  if (status === "pending") return ICONS.pending;
+  if (status === "rejected") return ICONS.rejected;
+
+  if (cm >= 150) return ICONS.kritis;
+  if (cm >= 70) return ICONS.tinggi;
+  if (cm >= 30) return ICONS.sedang;
+  return ICONS.rendah;
+}

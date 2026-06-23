@@ -246,7 +246,7 @@ export default function OnboardingPage() {
                 yang dikembangkan oleh Tim <strong className="text-white">Research in Flood (RIF) ITERA</strong>.
               </p>
               <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu pemerintah Kota Bandar Lampung dalam penanganan bencana secara cepat dan akurat.
+                Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu dalam penanganan bencana secara cepat dan akurat.
               </p>
             </div>
           </div>
