@@ -71,11 +71,11 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
   };
 
   return (
-    <aside className="w-full h-full flex flex-col p-4 md:p-6 z-20 pointer-events-none">
+    <aside className={`w-full h-full flex flex-col z-20 pointer-events-none transition-all duration-300 ${isOpen ? 'p-4 md:p-6' : 'p-2'}`}>
       
-      {/* Logo & Toggle Card */}
-      <div className={`bg-white p-3 md:p-4 rounded-2xl shadow-xl border border-gray-100 mb-4 md:mb-6 pointer-events-auto flex items-center transition-all ${isOpen ? 'justify-between' : 'justify-center'}`}>
-        <Link to="/" className={`flex items-center gap-3 overflow-hidden transition-all ${isOpen ? 'w-auto opacity-100' : 'w-0 opacity-0 hidden'}`}>
+      {/* Toggle Button */}
+      <div className={`pointer-events-auto flex items-center transition-all duration-300 shrink-0 ${isOpen ? 'bg-white p-3 md:p-4 rounded-2xl shadow-xl border border-gray-100 mb-4 md:mb-6 justify-between' : 'justify-center mb-3'}`}>
+        <Link to="/" className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${isOpen ? 'w-auto opacity-100' : 'w-0 opacity-0 pointer-events-none absolute'}`}>
           <img src="/WAI.png" alt="WAI Logo" className="h-8 md:h-10 w-auto object-contain shrink-0" />
           <div className="flex flex-col border-l border-gray-200 pl-3">
             <span className="text-[#005a9e] font-bold text-xs md:text-sm tracking-tight leading-none mb-0.5 whitespace-nowrap">Water Awareness</span>
@@ -84,17 +84,18 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
         </Link>
         <button 
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 bg-white text-[#005a9e] hover:bg-gray-50 rounded-xl transition-all"
+          className={`text-[#005a9e] hover:bg-gray-100 rounded-xl transition-all duration-200 ${isOpen ? 'p-2' : 'w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-lg border border-gray-100'}`}
         >
           <Menu className="w-5 h-5 md:w-6 md:h-6" />
         </button>
       </div>
 
-      {/* Main Container for List & Nav */}
-      <div className="flex-1 flex flex-col overflow-hidden pointer-events-auto gap-4">
+      {/* Main Container */}
+      <div className="flex-1 flex flex-col overflow-hidden pointer-events-auto gap-3">
         
         {/* Reports List Card (Only visible if open) */}
-        <div className={`flex-1 bg-white/95 backdrop-blur-md rounded-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-6 flex flex-col overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100' : 'hidden'}`}>
+        {isOpen && (
+        <div className="flex-1 bg-white/95 backdrop-blur-md rounded-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-6 flex flex-col overflow-hidden">
           <h2 className="text-[#005a9e] text-base md:text-lg font-bold text-center mb-4 md:mb-6 shrink-0">Laporan Masuk</h2>
           
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar stagger-children">
@@ -159,47 +160,63 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
             ))
           )}
         </div>
+
+          {/* Footer Navigation (inside card when open) */}
+          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-2 shrink-0">
+            <Link to="/admin/dashboard" className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition-all text-sm ${!isHistoryPage && !isStatsPage ? "bg-[#005a9e] text-white shadow-md" : "text-gray-500 hover:bg-gray-50 border border-gray-100 hover:text-[#005a9e]"}`}>
+              <MapIcon className="w-5 h-5 shrink-0" />
+              <span>Dashboard Map</span>
+            </Link>
+            <Link to="/admin/history" className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition-all text-sm ${isHistoryPage ? "bg-[#005a9e] text-white shadow-md" : "text-gray-500 hover:bg-gray-50 border border-gray-100 hover:text-[#005a9e]"}`}>
+              <History className="w-5 h-5 shrink-0" />
+              <span>Riwayat Laporan</span>
+            </Link>
+            <Link to="/admin/statistics" className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition-all text-sm ${isStatsPage ? "bg-[#005a9e] text-white shadow-md" : "text-gray-500 hover:bg-gray-50 border border-gray-100 hover:text-[#005a9e]"}`}>
+              <BarChart3 className="w-5 h-5 shrink-0" />
+              <span>Statistik</span>
+            </Link>
+          </div>
         </div>
-        
-        {/* Footer Navigation (Inside Reports Card if open, otherwise detached) */}
-        <div className={`shrink-0 flex flex-col gap-2 transition-all ${isOpen ? 'mt-4 pt-4 border-t border-gray-100' : 'bg-white p-2 rounded-2xl shadow-xl border border-gray-100'}`}>
-          <Link 
-            to="/admin/dashboard"
-            title="Dashboard Map"
-            className={`w-full flex items-center justify-center gap-3 py-3 rounded-xl font-bold transition-all text-sm ${
-              !isHistoryPage && !isStatsPage
-              ? "bg-[#005a9e] text-white shadow-md" 
-              : "text-gray-500 hover:bg-gray-50 hover:text-[#005a9e]"
-            } ${isOpen ? 'px-4 justify-start border border-transparent' : 'px-0 border border-gray-100'}`}
-          >
-            <MapIcon className="w-5 h-5 shrink-0" />
-            <span className={`truncate transition-all ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>Dashboard Map</span>
-          </Link>
-          <Link 
-            to="/admin/history"
-            title="Riwayat Laporan"
-            className={`w-full flex items-center justify-center gap-3 py-3 rounded-xl font-bold transition-all text-sm ${
-              isHistoryPage 
-              ? "bg-[#005a9e] text-white shadow-md" 
-              : "text-gray-500 hover:bg-gray-50 hover:text-[#005a9e]"
-            } ${isOpen ? 'px-4 justify-start border border-transparent' : 'px-0 border border-gray-100'}`}
-          >
-            <History className="w-5 h-5 shrink-0" />
-            <span className={`truncate transition-all ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>Riwayat Laporan</span>
-          </Link>
-          <Link 
-            to="/admin/statistics"
-            title="Statistik"
-            className={`w-full flex items-center justify-center gap-3 py-3 rounded-xl font-bold transition-all text-sm ${
-              isStatsPage 
-              ? "bg-[#005a9e] text-white shadow-md" 
-              : "text-gray-500 hover:bg-gray-50 hover:text-[#005a9e]"
-            } ${isOpen ? 'px-4 justify-start border border-transparent' : 'px-0 border border-gray-100'}`}
-          >
-            <BarChart3 className="w-5 h-5 shrink-0" />
-            <span className={`truncate transition-all ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>Statistik</span>
-          </Link>
-        </div>
+        )}
+
+        {/* Collapsed Navigation Rail */}
+        {!isOpen && (
+          <div className="flex flex-col items-center gap-2">
+            <Link 
+              to="/admin/dashboard"
+              title="Dashboard Map"
+              className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-200 ${
+                !isHistoryPage && !isStatsPage
+                ? "bg-[#005a9e] text-white shadow-lg shadow-[#005a9e]/25" 
+                : "bg-white text-gray-400 hover:text-[#005a9e] hover:bg-gray-50 shadow-sm border border-gray-100"
+              }`}
+            >
+              <MapIcon className="w-5 h-5" />
+            </Link>
+            <Link 
+              to="/admin/history"
+              title="Riwayat Laporan"
+              className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-200 ${
+                isHistoryPage 
+                ? "bg-[#005a9e] text-white shadow-lg shadow-[#005a9e]/25" 
+                : "bg-white text-gray-400 hover:text-[#005a9e] hover:bg-gray-50 shadow-sm border border-gray-100"
+              }`}
+            >
+              <History className="w-5 h-5" />
+            </Link>
+            <Link 
+              to="/admin/statistics"
+              title="Statistik"
+              className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-200 ${
+                isStatsPage 
+                ? "bg-[#005a9e] text-white shadow-lg shadow-[#005a9e]/25" 
+                : "bg-white text-gray-400 hover:text-[#005a9e] hover:bg-gray-50 shadow-sm border border-gray-100"
+              }`}
+            >
+              <BarChart3 className="w-5 h-5" />
+            </Link>
+          </div>
+        )}
       </div>
       {/* ── Verification Modal ─────────────────────────────────── */}
       {selectedReportForVerification && (

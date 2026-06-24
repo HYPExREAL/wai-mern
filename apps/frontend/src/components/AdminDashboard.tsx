@@ -288,7 +288,15 @@ export default function AdminDashboard() {
         </MapContainer>
 
         {/* Top bar */}
-        <div className="absolute top-3 left-3 right-3 md:top-6 md:left-6 md:right-6 z-1000 pointer-events-auto flex justify-end items-center gap-3">
+        <div className="absolute top-3 left-3 right-3 md:top-6 md:left-6 md:right-6 z-1000 pointer-events-auto flex justify-between items-center gap-3">
+          {/* Mobile hamburger (only visible on mobile when sidebar closed) */}
+          <button 
+            onClick={() => setSidebarOpen(true)} 
+            className="md:hidden p-3 bg-white rounded-xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+          <div className="hidden md:block" />
           <button onClick={handleLogout}
             className="group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider">
             <span className="hidden sm:inline">Logout</span>
