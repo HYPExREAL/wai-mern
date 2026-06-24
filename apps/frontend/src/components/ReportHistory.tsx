@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { LogOut, Menu, Filter, Download, ChevronDown, Calendar, Eye, X } from "lucide-react";
+import { LogOut, Filter, Download, ChevronDown, Calendar, Eye, X } from "lucide-react";
 import type { FloodReport } from "../context/reportsContextDef";
 import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
@@ -75,12 +75,10 @@ export default function ReportHistory() {
       {/* ── LEFT: Sidebar (Shared) ────────────────────────────── */}
       <div className={`
         fixed inset-y-0 left-0 z-40 h-full bg-gray-100 transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'w-[85vw] md:w-[380px]' : 'w-0'}
+        ${sidebarOpen ? 'w-[85vw] md:w-[380px]' : 'w-0 md:w-[88px]'}
         md:relative
       `}>
-        <div className="w-[85vw] md:w-[380px] h-full">
-          <AdminSidebar />
-        </div>
+        <AdminSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       </div>
 
       {/* ── RIGHT: Content ────────────────────────────────────── */}
@@ -89,13 +87,10 @@ export default function ReportHistory() {
         {/* Header Area */}
         <div className="flex justify-between items-center mb-4 md:mb-6">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-3 bg-white rounded-xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
-            >
-              <Menu className="w-5 h-5 md:w-6 md:h-6" />
-            </button>
-            <h1 className="text-[#005a9e] text-xl md:text-4xl font-black tracking-tight">Riwayat Laporan</h1>
+            <div className="flex flex-col gap-0.5 md:gap-1">
+              <h1 className="text-[#005a9e] text-xl md:text-4xl font-black tracking-tight">Riwayat Laporan</h1>
+              <p className="text-xs md:text-sm text-gray-500 font-medium">Akses seluruh riwayat laporan masuk</p>
+            </div>
           </div>
           
           <button 

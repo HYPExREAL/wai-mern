@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { 
-  Navigation, LogOut, Menu, Layers, Info,
+  Navigation, LogOut, Layers, Info,
   Plus, Trash2, Eye, EyeOff, Upload, X,
 } from "lucide-react";
 import { useReports } from "../hooks/useReports";
@@ -125,15 +125,17 @@ export default function AdminDashboard() {
 
       <div className={`
         fixed inset-y-0 left-0 z-40 h-full bg-gray-100 transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'w-[85vw] md:w-[380px]' : 'w-0'}
+        ${sidebarOpen ? 'w-[85vw] md:w-[380px]' : 'w-0 md:w-[88px]'}
         md:relative
       `}>
-        <div className="w-[85vw] md:w-[380px] h-full">
-          <AdminSidebar onReportClick={(lat, lng) => {
+        <AdminSidebar 
+          isOpen={sidebarOpen} 
+          setIsOpen={setSidebarOpen}
+          onReportClick={(lat, lng) => {
             setSelectedLocation([lat, lng]);
             if (window.innerWidth < 768) setSidebarOpen(false);
-          }} />
-        </div>
+          }} 
+        />
       </div>
 
       <main className="flex-1 relative z-10 pointer-events-none">
@@ -286,10 +288,7 @@ export default function AdminDashboard() {
         </MapContainer>
 
         {/* Top bar */}
-        <div className="absolute top-3 left-3 right-3 md:top-6 md:left-6 md:right-6 z-1000 pointer-events-auto flex justify-between items-center gap-3">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-3 md:p-3.5 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all">
-            <Menu className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
+        <div className="absolute top-3 left-3 right-3 md:top-6 md:left-6 md:right-6 z-1000 pointer-events-auto flex justify-end items-center gap-3">
           <button onClick={handleLogout}
             className="group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider">
             <span className="hidden sm:inline">Logout</span>

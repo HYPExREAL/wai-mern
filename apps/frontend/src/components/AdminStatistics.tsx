@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useReports } from "../hooks/useReports";
 import AdminSidebar from "./AdminSidebar";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
-import { BarChart3, CheckCircle, XCircle, AlertTriangle, Layers, Menu, LogOut } from "lucide-react";
+import { BarChart3, CheckCircle, XCircle, AlertTriangle, Layers, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminStatistics() {
@@ -80,13 +80,11 @@ export default function AdminStatistics() {
       <div
         className={`
         fixed inset-y-0 left-0 z-40 h-full bg-gray-100 transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'w-[85vw] md:w-[380px]' : 'w-0'}
+        ${sidebarOpen ? 'w-[85vw] md:w-[380px]' : 'w-0 md:w-[88px]'}
         md:relative
       `}
       >
-        <div className="w-[85vw] md:w-[380px] h-full">
-          <AdminSidebar />
-        </div>
+        <AdminSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       </div>
 
       {/* Main Content */}
@@ -94,15 +92,9 @@ export default function AdminStatistics() {
         {/* Header Area */}
         <div className="flex justify-between items-start md:items-center mb-6 md:mb-8 max-w-6xl w-full mx-auto">
           <div className="flex items-start md:items-center gap-3 md:gap-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-3 bg-white rounded-xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all shrink-0 mt-1 md:mt-0"
-            >
-              <Menu className="w-5 h-5 md:w-6 md:h-6" />
-            </button>
             <div className="flex flex-col gap-0.5 md:gap-1">
               <h1 className="text-[#005a9e] text-xl md:text-4xl font-black tracking-tight">Statistik Laporan</h1>
-              <p className="text-xs md:text-sm text-gray-500 font-medium">Ringkasan data banjir di Bandar Lampung</p>
+              <p className="text-xs md:text-sm text-gray-500 font-medium">Akses informasi statistik dari data yang masuk</p>
             </div>
           </div>
           
