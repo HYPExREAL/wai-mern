@@ -120,12 +120,12 @@ export default function AdminDashboard() {
     <div className="flex h-svh w-full bg-gray-100 overflow-hidden relative">
       
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/30 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-black/30 z-30 md:hidden animate-backdrop-in" onClick={() => setSidebarOpen(false)} />
       )}
 
       <div className={`
-        fixed inset-y-0 left-0 z-40 h-full bg-gray-100 transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'w-[85vw] md:w-[380px]' : 'w-0 md:w-[88px]'}
+        fixed inset-y-0 left-0 z-40 h-full transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
+        ${sidebarOpen ? 'w-[85vw] md:w-[380px] translate-x-0 bg-gray-100' : 'w-[85vw] md:w-[72px] -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
         md:relative
       `}>
         <AdminSidebar 
