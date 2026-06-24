@@ -13,6 +13,9 @@ import AdminSidebar from "./AdminSidebar";
 import { getIconFromSeverity } from "./map/icons";
 import ZoomControls from "./map/ZoomControls";
 import GeoJSONLayer from "./map/GeoJSONLayer";
+import type { FloodReport } from "../context/reportsContextDef";
+import ReportDetailModal from "./ReportDetailModal";
+import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 
 function MapUpdater({ center }: { center: [number, number] | null }) {
   const map = useMap();
@@ -34,7 +37,7 @@ export default function AdminDashboard() {
   const { layers, enabledIds, geoDataCache, toggleLayer, createLayer, deleteLayer, updateLayer } = useLayers();
   const { notify, confirm } = useNotifications();
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const [showLayers, setShowLayers] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [layerDAS, setLayerDAS] = useState(false);
@@ -42,6 +45,7 @@ export default function AdminDashboard() {
 
   // Layer management panel
   const [showLayerPanel, setShowLayerPanel] = useState(false);
+  const [detailReport, setDetailReport] = useState<FloodReport | null>(null);
   const [uploadName, setUploadName] = useState("");
   const [uploadColor, setUploadColor] = useState("#3B82F6");
   const [uploadPublic, setUploadPublic] = useState(false);
@@ -120,14 +124,16 @@ export default function AdminDashboard() {
       )}
 
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-[85vw] max-w-[380px] transform transition-transform duration-300 ease-in-out bg-gray-100
-        md:relative md:translate-x-0 md:w-[380px] md:max-w-none
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        fixed inset-y-0 left-0 z-40 h-full bg-gray-100 transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
+        ${sidebarOpen ? 'w-[85vw] md:w-[380px]' : 'w-0'}
+        md:relative
       `}>
-        <AdminSidebar onReportClick={(lat, lng) => {
-          setSelectedLocation([lat, lng]);
-          setSidebarOpen(false);
-        }} />
+        <div className="w-[85vw] md:w-[380px] h-full">
+          <AdminSidebar onReportClick={(lat, lng) => {
+            setSelectedLocation([lat, lng]);
+            if (window.innerWidth < 768) setSidebarOpen(false);
+          }} />
+        </div>
       </div>
 
       <main className="flex-1 relative z-10 pointer-events-none">
@@ -157,26 +163,28 @@ export default function AdminDashboard() {
               icon={getIconFromSeverity(report.severity, report.status)}
             >
               <Popup>
-                <div className="text-sm min-w-[200px] max-w-[280px]">
-                  {report.imageUrls && report.imageUrls.length > 0 ? (
-                    <div className="w-full flex gap-2 overflow-x-auto pb-2 mb-2 custom-scrollbar">
-                      {report.imageUrls.map((url, idx) => (
-                        <div key={idx} className="w-32 h-32 shrink-0 rounded-lg overflow-hidden border border-gray-100">
-                          <img src={url} alt={`Doc ${idx + 1}`} className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : report.imageUrl && (
-                    <div className="w-full h-32 rounded-lg overflow-hidden mb-2">
-                      <img src={report.imageUrl} alt="Documentation" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <strong className="block mb-1">{report.title}</strong>
-                  <p className="text-gray-600 leading-tight">{report.description}</p>
-                  <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    <span>{typeof report.severity === 'number' ? `${report.severity} cm` : report.severity}</span>
-                    <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+                <div className="text-sm min-w-[200px] max-w-[260px]">
+                  <strong className="block text-[#003B6D] text-sm mb-1">{report.title}</strong>
+                  <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description}</p>
+
+                  {/* Severity + Date row */}
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
+                      {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-400">
+                      {new Date(report.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </span>
                   </div>
+
+                  {/* View Detail Button */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
+                    className="w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    Lihat Detail
+                  </button>
                 </div>
               </Popup>
             </Marker>
@@ -278,9 +286,9 @@ export default function AdminDashboard() {
         </MapContainer>
 
         {/* Top bar */}
-        <div className="absolute top-3 left-3 right-3 md:top-6 md:right-6 md:left-auto z-1000 pointer-events-auto flex justify-between md:justify-end items-center gap-3">
-          <button onClick={() => setSidebarOpen(true)} className="md:hidden p-3 bg-white rounded-xl shadow-xl border border-gray-100 text-[#005a9e]">
-            <Menu className="w-5 h-5" />
+        <div className="absolute top-3 left-3 right-3 md:top-6 md:left-6 md:right-6 z-1000 pointer-events-auto flex justify-between items-center gap-3">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-3 md:p-3.5 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all">
+            <Menu className="w-5 h-5 md:w-6 md:h-6" />
           </button>
           <button onClick={handleLogout}
             className="group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider">
@@ -380,6 +388,10 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+      )}
+      {/* Report Detail Modal */}
+      {detailReport && (
+        <ReportDetailModal report={detailReport} onClose={() => setDetailReport(null)} />
       )}
     </div>
   );

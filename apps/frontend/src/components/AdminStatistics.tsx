@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function AdminStatistics() {
   const { allReports } = useReports();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -79,45 +79,44 @@ export default function AdminStatistics() {
       {/* Sidebar */}
       <div
         className={`
-        fixed inset-y-0 left-0 z-40 w-[85vw] max-w-[380px] transform transition-transform duration-300 ease-in-out bg-gray-100
-        md:relative md:translate-x-0 md:w-[380px] md:max-w-none
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        fixed inset-y-0 left-0 z-40 h-full bg-gray-100 transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
+        ${sidebarOpen ? 'w-[85vw] md:w-[380px]' : 'w-0'}
+        md:relative
       `}
       >
-        <AdminSidebar />
+        <div className="w-[85vw] md:w-[380px] h-full">
+          <AdminSidebar />
+        </div>
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-full overflow-y-auto relative custom-scrollbar">
-        {/* Top Header */}
-        <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-4 md:px-8 md:py-6 flex justify-between items-center">
-          <div className="flex items-center gap-3">
+      <main className="flex-1 flex flex-col p-4 md:p-10 z-10 overflow-y-auto custom-scrollbar">
+        {/* Header Area */}
+        <div className="flex justify-between items-start md:items-center mb-6 md:mb-8 max-w-6xl w-full mx-auto">
+          <div className="flex items-start md:items-center gap-3 md:gap-4">
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-3 bg-white rounded-xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all shrink-0 mt-1 md:mt-0"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5 md:w-6 md:h-6" />
             </button>
-            <div>
-              <h1 className="text-xl md:text-2xl font-black text-[#003B6D]">
-                Statistik Laporan
-              </h1>
-              <p className="text-xs md:text-sm text-gray-500 font-medium">
-                Ringkasan data banjir di Bandar Lampung
-              </p>
+            <div className="flex flex-col gap-0.5 md:gap-1">
+              <h1 className="text-[#005a9e] text-xl md:text-4xl font-black tracking-tight">Statistik Laporan</h1>
+              <p className="text-xs md:text-sm text-gray-500 font-medium">Ringkasan data banjir di Bandar Lampung</p>
             </div>
           </div>
-          <button
+          
+          <button 
             onClick={handleLogout}
-            className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-white rounded-xl shadow-sm border border-gray-200 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider"
+            className="group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider shrink-0"
           >
             <span className="hidden sm:inline">Logout</span>
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
 
         {/* Content Area */}
-        <div className="p-4 md:p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto">
+        <div className="flex flex-col gap-6 max-w-6xl w-full mx-auto pb-8">
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-2">
