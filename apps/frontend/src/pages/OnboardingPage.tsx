@@ -33,12 +33,14 @@ export default function OnboardingPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div id="homepage" className="min-h-svh w-full bg-white overflow-x-hidden">
 
       {/* ═══════════════════════ NAVBAR ═══════════════════════ */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 animate-fade-in-down ${
-        scrolled
+        scrolled || mobileMenuOpen
           ? "bg-white/95 backdrop-blur-md shadow-lg shadow-black/5"
           : "bg-transparent"
       }`}>
@@ -50,19 +52,19 @@ export default function OnboardingPage() {
                 src="/RIF Logo Blue.png"
                 alt="RIF Logo"
                 className={`h-8 md:h-10 w-auto object-contain transition-all duration-300 ${
-                  scrolled ? "opacity-100" : "brightness-0 invert opacity-90 group-hover:opacity-100"
+                  scrolled || mobileMenuOpen ? "opacity-100" : "brightness-0 invert opacity-90 group-hover:opacity-100"
                 }`}
               />
             </a>
 
-            {/* Nav Links */}
-            <div className="flex items-center gap-6 md:gap-8">
-              <a href="#panduan" className={`text-sm font-medium transition-colors hidden sm:block ${
+            {/* Desktop Nav Links */}
+            <div className="hidden sm:flex items-center gap-6 md:gap-8">
+              <a href="#panduan" className={`text-sm font-medium transition-colors ${
                 scrolled ? "text-slate-600 hover:text-[#005a9e]" : "text-white/80 hover:text-white"
               }`}>
                 Panduan
               </a>
-              <a href="#tentang" className={`text-sm font-medium transition-colors hidden sm:block ${
+              <a href="#tentang" className={`text-sm font-medium transition-colors ${
                 scrolled ? "text-slate-600 hover:text-[#005a9e]" : "text-white/80 hover:text-white"
               }`}>
                 Tentang Kami
@@ -78,6 +80,50 @@ export default function OnboardingPage() {
                 Login Admin
               </Link>
             </div>
+
+            {/* Mobile Burger Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={`sm:hidden p-2 rounded-xl transition-all ${
+                scrolled || mobileMenuOpen ? "text-[#005a9e] hover:bg-gray-100" : "text-white hover:bg-white/10"
+              }`}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Dropdown Menu */}
+        <div className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+          mobileMenuOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
+        }`}>
+          <div className="px-5 pb-5 pt-2 flex flex-col gap-2 border-t border-gray-100">
+            <a 
+              href="#panduan" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm font-medium text-slate-600 hover:text-[#005a9e] py-2.5 px-3 rounded-xl hover:bg-gray-50 transition-all"
+            >
+              Panduan
+            </a>
+            <a 
+              href="#tentang" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm font-medium text-slate-600 hover:text-[#005a9e] py-2.5 px-3 rounded-xl hover:bg-gray-50 transition-all"
+            >
+              Tentang Kami
+            </a>
+            <Link
+              to="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm font-semibold text-white bg-[#005a9e] hover:bg-[#004a8a] py-2.5 px-4 rounded-xl transition-all text-center shadow-md shadow-[#005a9e]/20"
+            >
+              Login Admin
+            </Link>
           </div>
         </div>
       </nav>

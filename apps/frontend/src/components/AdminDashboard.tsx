@@ -17,11 +17,16 @@ import type { FloodReport } from "../context/reportsContextDef";
 import ReportDetailModal from "./ReportDetailModal";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 
-function MapUpdater({ center }: { center: [number, number] | null }) {
+function MapUpdater({ center, sidebarOpen }: { center: [number, number] | null; sidebarOpen?: boolean }) {
   const map = useMap();
   useEffect(() => {
     if (center) map.flyTo(center, 16, { duration: 1.5 });
   }, [center, map]);
+  useEffect(() => {
+    // Wait for the CSS transition to finish (300ms), then tell Leaflet to recalculate
+    const timer = setTimeout(() => map.invalidateSize(), 350);
+    return () => clearTimeout(timer);
+  }, [sidebarOpen, map]);
   return null;
 }
 
@@ -125,7 +130,7 @@ export default function AdminDashboard() {
 
       <div className={`
         fixed inset-y-0 left-0 z-40 h-full transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'w-[85vw] md:w-[380px] translate-x-0 bg-gray-100' : 'w-[85vw] md:w-[72px] -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
+        ${sidebarOpen ? 'w-[85vw] md:w-[380px] translate-x-0 bg-white' : 'w-[85vw] md:w-[72px] -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
         md:relative
       `}>
         <AdminSidebar 
@@ -144,7 +149,7 @@ export default function AdminDashboard() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <MapUpdater center={selectedLocation} />
+          <MapUpdater center={selectedLocation} sidebarOpen={sidebarOpen} />
 
           {/* Static GeoJSON Layers */}
           {layerBorder && (
