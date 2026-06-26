@@ -91,6 +91,26 @@ export function useLayers(publicOnly = false) {
     return res.data;
   }, [fetchLayers]);
 
+  /** Upload a spatial file (Shapefile ZIP, KML, KMZ, GPX, CSV, GeoJSON) for server-side conversion */
+  const uploadLayer = useCallback(async (data: {
+    file: File;
+    name: string;
+    color?: string;
+    isPublic?: boolean;
+  }) => {
+    const formData = new FormData();
+    formData.append("file", data.file);
+    formData.append("name", data.name);
+    if (data.color) formData.append("color", data.color);
+    if (data.isPublic) formData.append("isPublic", "true");
+
+    const res = await apiClient.post("/layers/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    await fetchLayers();
+    return res.data;
+  }, [fetchLayers]);
+
   const updateLayer = useCallback(async (id: string, data: Partial<Pick<LayerMeta, "name" | "description" | "style" | "isPublic">>) => {
     const res = await apiClient.patch(`/layers/${id}`, data);
     await fetchLayers();
@@ -119,8 +139,10 @@ export function useLayers(publicOnly = false) {
     loading,
     toggleLayer,
     createLayer,
+    uploadLayer,
     updateLayer,
     deleteLayer,
     fetchLayers,
   };
 }
+

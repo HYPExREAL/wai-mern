@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import SpatialLayer from "../models/SpatialLayer";
+import { convertToGeoJSON, getSupportedFormats } from "../utils/geoConverter";
 
 // List projection — exclude geoData from list queries (it can be huge)
 const LIST_PROJECTION = "-geoData";
@@ -35,7 +36,7 @@ export const getLayerById = async (req: Request, res: Response) => {
   }
 };
 
-// POST /api/layers (Admin) — create a new layer
+// POST /api/layers (Admin) — create a new layer (raw JSON body, backward compat)
 export const createLayer = async (req: Request, res: Response) => {
   try {
     const { name, description, fileName, geoData, style, isPublic } = req.body;
@@ -65,6 +66,65 @@ export const createLayer = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Error creating layer:", error);
     return res.status(500).json({ message: "Gagal menambahkan layer." });
+  }
+};
+
+// POST /api/layers/upload (Admin) — upload a spatial file (multipart/form-data)
+export const uploadLayer = async (req: Request, res: Response) => {
+  try {
+    const file = (req as any).file as Express.Multer.File | undefined;
+
+    if (!file) {
+      return res.status(400).json({
+        message: "File wajib diunggah.",
+        supportedFormats: getSupportedFormats(),
+      });
+    }
+
+    const { name, color, isPublic } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "Nama layer wajib diisi." });
+    }
+
+    // Convert file to GeoJSON
+    const result = await convertToGeoJSON(file.buffer, file.originalname);
+
+    // Build style
+    const style = {
+      color: color || "#3B82F6",
+      weight: 2,
+      opacity: 0.8,
+      fillOpacity: 0.1,
+    };
+
+    // Save to DB
+    const layer = new SpatialLayer({
+      name: name.trim(),
+      description: `Diimpor dari ${result.detectedFormat} (${result.featureCount} fitur)`,
+      fileName: file.originalname,
+      geoData: result.geojson,
+      style,
+      isPublic: isPublic === "true" || isPublic === true,
+    });
+
+    await layer.save();
+
+    const saved = layer.toObject();
+    const { geoData: _, ...withoutGeo } = saved;
+
+    return res.status(201).json({
+      message: "Layer berhasil diimpor!",
+      layer: withoutGeo,
+      conversion: {
+        detectedFormat: result.detectedFormat,
+        featureCount: result.featureCount,
+        geometryTypes: result.geometryTypes,
+      },
+    });
+  } catch (error: any) {
+    console.error("Error uploading layer:", error);
+    const message = error.message || "Gagal mengimpor layer.";
+    return res.status(400).json({ message });
   }
 };
 
@@ -109,3 +169,4 @@ export const deleteLayer = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Gagal menghapus layer." });
   }
 };
+

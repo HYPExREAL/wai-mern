@@ -39,7 +39,7 @@ const COLOR_PRESETS = [
 
 export default function AdminDashboard() {
   const { reports, pendingReports, refreshPending } = useReports();
-  const { layers, enabledIds, geoDataCache, toggleLayer, createLayer, deleteLayer, updateLayer } = useLayers();
+  const { layers, enabledIds, geoDataCache, toggleLayer, uploadLayer, deleteLayer, updateLayer } = useLayers();
   const { notify, confirm } = useNotifications();
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -70,27 +70,28 @@ export default function AdminDashboard() {
 
   const handleUploadLayer = async () => {
     if (!uploadFile || !uploadName.trim()) {
-      notify("error", "Nama layer dan file GeoJSON wajib diisi.");
+      notify("error", "Nama layer dan file wajib diisi.");
       return;
     }
     try {
       setUploading(true);
-      const text = await uploadFile.text();
-      const geoData = JSON.parse(text);
-      await createLayer({
+      const result = await uploadLayer({
+        file: uploadFile,
         name: uploadName.trim(),
-        fileName: uploadFile.name,
-        geoData,
-        style: { color: uploadColor, weight: 2, opacity: 0.8, fillOpacity: 0.1 },
+        color: uploadColor,
         isPublic: uploadPublic,
       });
-      notify("success", "Layer berhasil ditambahkan!");
+      const info = result.conversion;
+      notify("success", `Layer berhasil diimpor! (${info.detectedFormat}, ${info.featureCount} fitur)`);
       setUploadName("");
       setUploadFile(null);
       setUploadPublic(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
-    } catch {
-      notify("error", "Gagal menambahkan layer. Pastikan file GeoJSON valid.");
+    } catch (err: unknown) {
+      const msg = (err instanceof Error && 'response' in err)
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message || err.message
+        : "Gagal mengimpor layer.";
+      notify("error", msg);
     } finally {
       setUploading(false);
     }
@@ -360,15 +361,17 @@ export default function AdminDashboard() {
                   <button onClick={() => fileInputRef.current?.click()}
                     className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-sm font-bold text-gray-400 hover:border-[#005a9e] hover:text-[#005a9e] transition-all">
                     <Upload className="w-4 h-4" />
-                    {uploadFile ? uploadFile.name : "Pilih file .geojson / .json"}
+                    {uploadFile ? uploadFile.name : "Pilih file spasial"}
                   </button>
-                  <input ref={fileInputRef} type="file" accept=".geojson,.json" className="hidden"
+                  <input ref={fileInputRef} type="file" accept=".geojson,.json,.zip,.kml,.kmz,.gpx,.csv" className="hidden"
                     onChange={e => { if (e.target.files?.[0]) setUploadFile(e.target.files[0]); }} />
                 </div>
 
+                <p className="text-[10px] text-gray-400 font-medium leading-relaxed">Format: GeoJSON, Shapefile (.zip), KML, KMZ, GPX, CSV</p>
+
                 <button onClick={handleUploadLayer} disabled={uploading || !uploadFile || !uploadName.trim()}
                   className="w-full py-3 bg-[#005a9e] text-white rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-[#004a8e] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                  {uploading ? "Mengupload..." : <><Plus className="w-4 h-4" /> Tambah Layer</>}
+                  {uploading ? "Mengkonversi & Upload..." : <><Plus className="w-4 h-4" /> Tambah Layer</>}
                 </button>
               </div>
 
