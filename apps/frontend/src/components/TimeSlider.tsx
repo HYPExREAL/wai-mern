@@ -8,17 +8,31 @@ interface TimeSliderProps {
 }
 
 export default function TimeSlider({ reports, onFilterChange }: TimeSliderProps) {
-  // Extract and sort unique months from reports (YYYY-MM format)
+  // Generate a continuous array of all months between the earliest and latest report
   const months = useMemo(() => {
-    const m = new Set<string>();
+    if (!reports || reports.length === 0) return [];
+
+    let minDate = new Date(reports[0].createdAt);
+    let maxDate = new Date(reports[0].createdAt);
+
     reports.forEach((r) => {
-      // Use the native createdAt timestamp from the backend
       const d = new Date(r.createdAt);
       if (!isNaN(d.getTime())) {
-        m.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+        if (d < minDate) minDate = d;
+        if (d > maxDate) maxDate = d;
       }
     });
-    return Array.from(m).sort();
+
+    const result: string[] = [];
+    const current = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+    const end = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+
+    while (current <= end) {
+      result.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}`);
+      current.setMonth(current.getMonth() + 1);
+    }
+    
+    return result;
   }, [reports]);
 
   const [sliderIndex, setSliderIndex] = useState<number>(-1); // -1 means "Show All"
@@ -43,49 +57,51 @@ export default function TimeSlider({ reports, onFilterChange }: TimeSliderProps)
   const formatMonth = (yyyMM: string) => {
     const [year, month] = yyyMM.split("-");
     const date = new Date(parseInt(year!), parseInt(month!) - 1);
-    return date.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+    return date.toLocaleDateString("id-ID", { month: "short", year: "numeric" });
   };
 
   if (months.length === 0) return null;
 
   return (
-    <div className="absolute top-24 md:top-auto md:bottom-10 left-1/2 -translate-x-1/2 z-1000 w-[90%] max-w-md pointer-events-auto">
-      <div className="bg-white/95 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 text-[#005a9e]">
-            <History className="w-4 h-4 md:w-5 md:h-5" />
-            <span className="font-bold text-xs md:text-sm uppercase tracking-wider">Histori Waktu (Timeliness)</span>
+    <div className="absolute top-24 md:top-auto md:bottom-8 left-1/2 -translate-x-1/2 z-1000 w-[90%] max-w-[340px] pointer-events-auto">
+      <div className="bg-white/95 backdrop-blur-md border border-white/20 p-3 rounded-2xl shadow-xl transition-all">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5 text-[#005a9e]">
+            <History className="w-4 h-4" />
+            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">Histori Waktu</span>
           </div>
-          <span className="text-xs md:text-sm font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+          <span className="text-[10px] font-bold text-[#005a9e] bg-[#005a9e]/10 px-2.5 py-1 rounded-full">
             {sliderIndex === -1 ? "Semua Waktu" : formatMonth(months[sliderIndex]!)}
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setSliderIndex(-1)}
-            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${
+            className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all shrink-0 ${
               sliderIndex === -1 ? "bg-[#005a9e] text-white shadow-md" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
             }`}
           >
             All
           </button>
           
-          <input
-            type="range"
-            min="-1"
-            max={months.length - 1}
-            step="1"
-            value={sliderIndex}
-            onChange={(e) => setSliderIndex(parseInt(e.target.value))}
-            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#005a9e]"
-          />
+          <div className="flex-1 relative flex items-center h-4">
+            <input
+              type="range"
+              min="-1"
+              max={months.length - 1}
+              step="1"
+              value={sliderIndex}
+              onChange={(e) => setSliderIndex(parseInt(e.target.value))}
+              className="absolute w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#005a9e] z-10"
+            />
+          </div>
         </div>
         
-        <div className="flex justify-between mt-2 px-[60px]">
-          <span className="text-[9px] text-gray-400 font-medium">{formatMonth(months[0]!)}</span>
+        <div className="flex justify-between mt-1 px-11">
+          <span className="text-[8px] text-gray-400 font-medium">{formatMonth(months[0]!)}</span>
           {months.length > 1 && (
-            <span className="text-[9px] text-gray-400 font-medium">{formatMonth(months[months.length - 1]!)}</span>
+            <span className="text-[8px] text-gray-400 font-medium">{formatMonth(months[months.length - 1]!)}</span>
           )}
         </div>
       </div>

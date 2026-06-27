@@ -74,7 +74,7 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
     <aside className={`w-full h-full flex flex-col z-20 pointer-events-none transition-all duration-300 ${isOpen ? 'p-4 md:p-6' : 'p-2'}`}>
       
       {/* Toggle Button */}
-      <div className={`pointer-events-auto flex items-center transition-all duration-300 shrink-0 ${isOpen ? 'bg-white p-3 md:p-4 rounded-2xl shadow-xl border border-gray-100 mb-4 md:mb-6 justify-between' : 'justify-center mb-3'}`}>
+      <div className={`pointer-events-auto flex items-center transition-all duration-300 shrink-0 ${isOpen ? 'p-3 md:p-4 mb-4 md:mb-6 justify-between' : 'justify-center mb-3'}`}>
         <Link to="/" className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${isOpen ? 'w-auto opacity-100' : 'w-0 opacity-0 pointer-events-none absolute'}`}>
           <img src="/WAI.png" alt="WAI Logo" className="h-8 md:h-10 w-auto object-contain shrink-0" />
           <div className="flex flex-col border-l border-gray-200 pl-3">
@@ -95,7 +95,7 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
         
         {/* Reports List Card (Only visible if open) */}
         {isOpen && (
-        <div className="flex-1 bg-white/95 backdrop-blur-md rounded-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-6 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden">
           <h2 className="text-[#005a9e] text-base md:text-lg font-bold text-center mb-4 md:mb-6 shrink-0">Laporan Masuk</h2>
           
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar stagger-children">

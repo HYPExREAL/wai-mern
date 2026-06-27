@@ -666,13 +666,28 @@ export default function InteractiveMap() {
           {/* Legend Toggle */}
           <div className="relative">
             {showLegend && (
-              <div className="absolute bottom-full right-0 mb-2 w-48 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Legenda Peta</span>
+              <div className="absolute bottom-full right-0 mb-2 w-56 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Tingkat Bahaya</span>
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-[#16A34A] shadow-sm shadow-[#16A34A]/40" />
-                  <span className="text-xs font-bold text-[#003B6D]">Laporan Divalidasi</span>
+                  <div className="w-3 h-3 rounded-full bg-[#10B981] shadow-sm shadow-[#10B981]/40" />
+                  <span className="text-xs font-bold text-[#003B6D]">Rendah (&lt; 30 cm)</span>
                 </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-[#F59E0B] shadow-sm shadow-[#F59E0B]/40" />
+                  <span className="text-xs font-bold text-[#003B6D]">Sedang (30 - 70 cm)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-[#F97316] shadow-sm shadow-[#F97316]/40" />
+                  <span className="text-xs font-bold text-[#003B6D]">Tinggi (70 - 150 cm)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-[#EF4444] shadow-sm shadow-[#EF4444]/40" />
+                  <span className="text-xs font-bold text-[#003B6D]">Kritis (&ge; 150 cm)</span>
+                </div>
+                
                 <div className="w-full h-px bg-gray-100 my-1" />
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 mt-1">Lainnya</span>
+                
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-[#3B82F6] shadow-sm shadow-[#3B82F6]/40" />
                   <span className="text-xs font-bold text-[#003B6D]">Lokasi Anda</span>
