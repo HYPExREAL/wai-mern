@@ -33,6 +33,7 @@ import GeoJSONLayer from "./map/GeoJSONLayer";
 import { useLayers } from "../hooks/useLayers";
 import ReportDetailModal from "./ReportDetailModal";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
+import TimeSlider from "./TimeSlider";
 
 // ── Bandar Lampung center ──────────────────────────────────────
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
@@ -90,6 +91,7 @@ export default function InteractiveMap() {
   const [layerDAS, setLayerDAS] = useState(false);
   const [layerBorder, setLayerBorder] = useState(false);
   const [detailReport, setDetailReport] = useState<FloodReport | null>(null);
+  const [filteredReports, setFilteredReports] = useState<FloodReport[]>(reports);
 
   // Form state
   const [name, setName] = useState("");
@@ -618,7 +620,7 @@ export default function InteractiveMap() {
           </Marker>
         )}
 
-        {reports.map((report) => (
+        {filteredReports.map((report) => (
           <Marker
             key={report.id}
             position={[report.latitude, report.longitude]}
@@ -754,6 +756,9 @@ export default function InteractiveMap() {
 
             {/* Zoom Control */}
             <ZoomControls />
+            
+            {/* Time Slider */}
+            <TimeSlider reports={reports} onFilterChange={setFilteredReports} />
         </div>
       </MapContainer>
 

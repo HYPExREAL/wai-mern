@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -16,6 +16,7 @@ import GeoJSONLayer from "./map/GeoJSONLayer";
 import type { FloodReport } from "../context/reportsContextDef";
 import ReportDetailModal from "./ReportDetailModal";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
+import TimeSlider from "./TimeSlider";
 
 function MapUpdater({ center, sidebarOpen }: { center: [number, number] | null; sidebarOpen?: boolean }) {
   const map = useMap();
@@ -39,6 +40,8 @@ const COLOR_PRESETS = [
 
 export default function AdminDashboard() {
   const { reports, pendingReports, refreshPending } = useReports();
+  const allReports = useMemo(() => [...reports, ...pendingReports], [reports, pendingReports]);
+  const [filteredReports, setFilteredReports] = useState<FloodReport[]>(allReports);
   const { layers, enabledIds, geoDataCache, toggleLayer, uploadLayer, deleteLayer, updateLayer } = useLayers();
   const { notify, confirm } = useNotifications();
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
@@ -166,7 +169,7 @@ export default function AdminDashboard() {
           ))}
 
           {/* Report Markers */}
-          {[...reports, ...pendingReports].map((report) => (
+          {filteredReports.map((report) => (
             <Marker key={report.id} position={[report.latitude, report.longitude]}
               icon={getIconFromSeverity(report.severity, report.status)}
             >
@@ -291,6 +294,8 @@ export default function AdminDashboard() {
             </button>
             <ZoomControls />
           </div>
+
+          <TimeSlider reports={allReports} onFilterChange={setFilteredReports} />
         </MapContainer>
 
         {/* Top bar */}
@@ -302,7 +307,9 @@ export default function AdminDashboard() {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
           </button>
+          
           <div className="hidden md:block" />
+
           <button onClick={handleLogout}
             className="group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider">
             <span className="hidden sm:inline">Logout</span>
