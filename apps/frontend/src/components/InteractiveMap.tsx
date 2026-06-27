@@ -756,11 +756,11 @@ export default function InteractiveMap() {
 
             {/* Zoom Control */}
             <ZoomControls />
-            
-            {/* Time Slider */}
-            <TimeSlider reports={reports} onFilterChange={setFilteredReports} />
         </div>
       </MapContainer>
+      
+      {/* Time Slider */}
+      <TimeSlider reports={reports} onFilterChange={setFilteredReports} />
 
       {/* ── Report Detail Modal ─────────────────────────────────── */}
       {detailReport && (

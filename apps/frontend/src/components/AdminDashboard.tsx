@@ -294,9 +294,9 @@ export default function AdminDashboard() {
             </button>
             <ZoomControls />
           </div>
-
-          <TimeSlider reports={allReports} onFilterChange={setFilteredReports} />
         </MapContainer>
+
+        <TimeSlider reports={allReports} onFilterChange={setFilteredReports} />
 
         {/* Top bar */}
         <div className="absolute top-3 left-3 right-3 md:top-6 md:left-6 md:right-6 z-1000 pointer-events-auto flex justify-between items-center gap-3">

@@ -49,7 +49,7 @@ export default function TimeSlider({ reports, onFilterChange }: TimeSliderProps)
   if (months.length === 0) return null;
 
   return (
-    <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-1000 w-[90%] max-w-md">
+    <div className="absolute top-24 md:top-auto md:bottom-10 left-1/2 -translate-x-1/2 z-1000 w-[90%] max-w-md pointer-events-auto">
       <div className="bg-white/95 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2 text-[#005a9e]">
