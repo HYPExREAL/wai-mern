@@ -162,36 +162,43 @@ async function parseShapefileZip(buffer: Buffer): Promise<any> {
     const shpFiles = findFiles(tmpDir, ".shp");
     if (shpFiles.length === 0) throw new Error("File ZIP tidak mengandung file .shp.");
 
-    const shpPath = shpFiles[0]!;
-    const baseName = path.basename(shpPath, ".shp");
-    const baseDir = path.dirname(shpPath);
+    const allFeatures: any[] = [];
 
-    // Find matching files
-    const dbfPath = findFiles(baseDir, ".dbf")
-      .find(f => path.basename(f, ".dbf").toLowerCase() === baseName.toLowerCase());
-    const prjPath = findFiles(baseDir, ".prj")
-      .find(f => path.basename(f, ".prj").toLowerCase() === baseName.toLowerCase());
+    for (const shpPath of shpFiles) {
+      const baseName = path.basename(shpPath, ".shp");
+      const baseDir = path.dirname(shpPath);
 
-    // Parse shapefile
-    const geojson = await shapefile.read(shpPath, dbfPath || undefined);
+      // Find matching files
+      const dbfPath = findFiles(baseDir, ".dbf")
+        .find(f => path.basename(f, ".dbf").toLowerCase() === baseName.toLowerCase());
+      const prjPath = findFiles(baseDir, ".prj")
+        .find(f => path.basename(f, ".prj").toLowerCase() === baseName.toLowerCase());
 
-    // Handle projection
-    if (prjPath) {
-      const prjContent = fs.readFileSync(prjPath, "utf-8");
-      const sourceProj = detectProjection(prjContent);
+      // Parse shapefile
+      let geojson = await shapefile.read(shpPath, dbfPath || undefined);
 
-      if (sourceProj && needsReprojection(geojson)) {
-        return reprojectGeoJSON(geojson, sourceProj);
+      // Handle projection
+      if (prjPath) {
+        const prjContent = fs.readFileSync(prjPath, "utf-8");
+        const sourceProj = detectProjection(prjContent);
+
+        if (sourceProj && needsReprojection(geojson)) {
+          geojson = reprojectGeoJSON(geojson, sourceProj);
+        }
+      } else if (needsReprojection(geojson)) {
+        // Default assumption: Web Mercator
+        geojson = reprojectGeoJSON(geojson, KNOWN_PROJECTIONS["EPSG:3857"]!);
+      }
+
+      if (geojson && geojson.features) {
+        allFeatures.push(...geojson.features);
       }
     }
 
-    // Even without .prj, check if coordinates look projected
-    if (needsReprojection(geojson)) {
-      // Default assumption: Web Mercator (most common projected CRS)
-      return reprojectGeoJSON(geojson, KNOWN_PROJECTIONS["EPSG:3857"]!);
-    }
-
-    return geojson;
+    return {
+      type: "FeatureCollection",
+      features: allFeatures,
+    };
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

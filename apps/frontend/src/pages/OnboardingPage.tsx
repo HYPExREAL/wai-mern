@@ -200,29 +200,25 @@ export default function OnboardingPage() {
               Panduan Penggunaan
             </span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">
-              Tiga Langkah Mudah
+              Pantau & Laporkan
             </h2>
           </div>
 
-          {/* Guide Card: Image + Text side by side */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-            {/* Image placeholder */}
-            <div className="bg-linear-to-br from-slate-100 to-slate-50 border border-slate-200 rounded-2xl min-h-[260px] flex items-center justify-center overflow-hidden shadow-lg shadow-[#005a9e]/5">
-              <img
-                src="/flood-hero.png"
-                alt="Peta Banjir"
-                className="w-full h-full object-cover rounded-2xl opacity-90 hover:opacity-100 transition-opacity"
-              />
-            </div>
-
-            {/* Text */}
-            <div className="bg-linear-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-8 md:p-10 flex items-center shadow-lg shadow-[#005a9e]/5">
-              <p className="text-slate-600 text-base md:text-lg leading-relaxed">
-                Pantau kondisi banjir secara real-time, laporkan kejadian banjir 
-                di sekitar Anda, dan bantu dalam penanganan bencana secara cepat dan akurat.
-                Sistem ini dapat diakses langsung dari browser tanpa perlu menginstal aplikasi apapun.
-              </p>
-            </div>
+          {/* Guide Video */}
+          <div className="mb-16 mx-auto max-w-4xl bg-slate-900 rounded-2xl overflow-hidden shadow-2xl shadow-[#005a9e]/20 border border-slate-200 group relative">
+            <video 
+              src="/WAI%20Vid.mp4" 
+              autoPlay
+              loop
+              muted
+              playsInline
+              controls={false}
+              preload="auto"
+              className="w-full h-auto aspect-video object-cover pointer-events-none"
+              poster="/flood-hero.png"
+            >
+              Maaf, browser Anda tidak mendukung pemutaran video.
+            </video>
           </div>
 
           {/* Steps */}
