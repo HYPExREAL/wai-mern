@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import FloodHero from "../assets/flood-hero.png";
 import { useState, useEffect, useRef } from "react";
 
 const ArrowRight = () => (
@@ -164,7 +165,7 @@ export default function OnboardingPage() {
             className="text-white/80 text-base md:text-xl max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-in-up"
             style={{ animationDelay: "0.3s" }}
           >
-            Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu dalam penanganan bencana secara cepat dan akurat.
+            Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu dalam pendataan bencana secara cepat dan akurat.
           </p>
 
           {/* CTA Buttons */}
@@ -215,7 +216,7 @@ export default function OnboardingPage() {
               controls={false}
               preload="auto"
               className="w-full h-auto aspect-video object-cover pointer-events-none"
-              poster="/flood-hero.png"
+              poster={FloodHero}
             >
               Maaf, browser Anda tidak mendukung pemutaran video.
             </video>
@@ -288,7 +289,7 @@ export default function OnboardingPage() {
                 yang dikembangkan oleh Tim <strong className="text-white">Research in Flood (RIF) ITERA</strong>.
               </p>
               <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu dalam penanganan bencana secara cepat dan akurat.
+                Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu dalam pendataan bencana secara cepat dan akurat.
               </p>
             </div>
           </div>
