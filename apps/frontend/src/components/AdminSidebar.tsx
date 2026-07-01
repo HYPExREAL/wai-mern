@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { CheckSquare, History, XCircle, Trash2, Check, Clock, MapPin, User, X, BarChart3, Map as MapIcon, Menu, Loader2, Bot } from "lucide-react";
+import { CheckSquare, History, XCircle, Trash2, Check, Clock, MapPin, User, X, BarChart3, Map as MapIcon, Menu, Loader2, Bot, Droplets } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useReports } from "../hooks/useReports";
 import { useNotifications } from "../context/notificationContextDef";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 import { predictImage } from "../utils/aiService";
+import { getDistrictFromCoords } from "../utils/locationUtils";
 
 interface AdminSidebarProps {
   onReportClick?: (lat: number, lng: number) => void;
@@ -366,7 +367,7 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
             <div className="p-5 md:p-8 flex flex-col gap-4 md:gap-6 overflow-y-auto">
               <div>
                 <h3 className="text-lg md:text-2xl font-black text-[#003B6D] mb-1 md:mb-2 leading-tight">
-                  {selectedReportForVerification.title}
+                  {selectedReportForVerification.reporterName || "Anonim"}
                 </h3>
                 <p className="text-gray-500 text-xs md:text-sm leading-relaxed italic">
                   "{selectedReportForVerification.description || "Tidak ada deskripsi tambahan"}"
@@ -397,11 +398,47 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
                 </div>
               </div>
 
+              {/* AI Prediction Box */}
+              {aiScores[selectedReportForVerification.id] && (
+                <div className={`p-3 md:p-4 rounded-2xl md:rounded-3xl border flex items-center justify-between ${
+                   aiScores[selectedReportForVerification.id].className.toLowerCase().includes("bukan") || aiScores[selectedReportForVerification.id].className.toLowerCase().includes("tidak")
+                     ? "bg-red-50 border-red-100" 
+                     : "bg-emerald-50 border-emerald-100"
+                }`}>
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div className={`p-2.5 bg-white rounded-xl shadow-sm ${
+                       aiScores[selectedReportForVerification.id].className.toLowerCase().includes("bukan") || aiScores[selectedReportForVerification.id].className.toLowerCase().includes("tidak")
+                         ? "text-red-500"
+                         : "text-emerald-500"
+                    }`}>
+                      <Bot size={18} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Rekomendasi AI</span>
+                      <span className={`text-sm font-bold ${
+                         aiScores[selectedReportForVerification.id].className.toLowerCase().includes("bukan") || aiScores[selectedReportForVerification.id].className.toLowerCase().includes("tidak")
+                         ? "text-red-700"
+                         : "text-emerald-700"
+                      }`}>
+                        {aiScores[selectedReportForVerification.id].className} ({(aiScores[selectedReportForVerification.id].probability * 100).toFixed(0)}%)
+                      </span>
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                     aiScores[selectedReportForVerification.id].className.toLowerCase().includes("bukan") || aiScores[selectedReportForVerification.id].className.toLowerCase().includes("tidak")
+                     ? "bg-red-500 text-white"
+                     : "bg-emerald-500 text-white"
+                  }`}>
+                    {aiScores[selectedReportForVerification.id].className.toLowerCase().includes("bukan") || aiScores[selectedReportForVerification.id].className.toLowerCase().includes("tidak") ? "Indikasi Spam" : "Valid"}
+                  </span>
+                </div>
+              )}
+
               {/* Depth Info */}
               <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3 md:gap-4">
                   <div className={`p-2.5 rounded-xl shadow-sm ${getSeverityFromDepth(selectedReportForVerification.severity).colorClass}`}>
-                    <MapPin size={18} />
+                    <Droplets size={18} />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Kedalaman</span>
@@ -414,13 +451,13 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
               </div>
 
               <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
-                <div className="p-2.5 bg-white rounded-xl shadow-sm text-red-500">
+                <div className="p-2.5 bg-white rounded-xl shadow-sm text-[#005a9e]">
                   <MapPin size={18} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Koordinat</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Lokasi Laporan</span>
                   <span className="text-sm font-bold text-[#003B6D]">
-                    {selectedReportForVerification.latitude.toFixed(5)}, {selectedReportForVerification.longitude.toFixed(5)}
+                    {getDistrictFromCoords(selectedReportForVerification.latitude, selectedReportForVerification.longitude)}
                   </span>
                 </div>
               </div>

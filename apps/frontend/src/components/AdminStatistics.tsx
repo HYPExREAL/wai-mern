@@ -1,19 +1,9 @@
 import { useMemo, useState } from "react";
 import { useReports } from "../hooks/useReports";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
+import { getDistrictFromCoords } from "../utils/locationUtils";
 import { BarChart3, CheckCircle, XCircle, AlertTriangle, Layers, MapPin, TrendingUp } from "lucide-react";
 import AdminLayout from "./AdminLayout";
-
-// Simple bounding box logic for mock regional distribution in Bandar Lampung
-const getDistrictMock = (lat: number, lng: number): string => {
-  if (lat < -5.44 && lng > 105.28) return "Panjang";
-  if (lat < -5.42 && lng > 105.25) return "Teluk Betung";
-  if (lat > -5.38 && lng < 105.25) return "Rajabasa";
-  if (lat > -5.39 && lng > 105.26) return "Way Halim";
-  if (lat > -5.40 && lng > 105.28) return "Sukabumi";
-  if (lng < 105.24) return "Kemiling";
-  return "Tanjung Karang";
-};
 
 export default function AdminStatistics() {
   const { allReports } = useReports();
@@ -23,14 +13,14 @@ export default function AdminStatistics() {
 
   const filteredReports = useMemo(() => {
     if (selectedDistrict === "Semua Wilayah") return allReports;
-    return allReports.filter((r) => getDistrictMock(r.latitude, r.longitude) === selectedDistrict);
+    return allReports.filter((r) => getDistrictFromCoords(r.latitude, r.longitude) === selectedDistrict);
   }, [allReports, selectedDistrict]);
 
   // Global district counts (unaffected by filter, to show full distribution map)
   const globalDistricts = useMemo(() => {
     const districtCount: Record<string, number> = {};
     allReports.forEach((r) => {
-      const district = getDistrictMock(r.latitude, r.longitude);
+      const district = getDistrictFromCoords(r.latitude, r.longitude);
       districtCount[district] = (districtCount[district] || 0) + 1;
     });
     return Object.entries(districtCount)

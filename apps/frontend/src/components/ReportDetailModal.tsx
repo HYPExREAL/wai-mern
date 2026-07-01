@@ -4,6 +4,7 @@ import type { FloodReport } from "../context/reportsContextDef";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 import apiClient from "../api/apiClient";
 import { predictImage } from "../utils/aiService";
+import { getDistrictFromCoords } from "../utils/locationUtils";
 
 interface ReportDetailModalProps {
   /** The report to display — images may be missing (list projection). */
@@ -138,7 +139,7 @@ export default function ReportDetailModal({ report, onClose, showStatus = true }
         <div className="p-5 md:p-8 flex flex-col gap-4 md:gap-6 overflow-y-auto custom-scrollbar">
           <div>
             <h3 className="text-lg md:text-2xl font-black text-[#003B6D] mb-1 md:mb-2 leading-tight">
-              {fullReport.title}
+              {fullReport.reporterName || 'Anonim'}
             </h3>
             <p className="text-gray-500 text-xs md:text-sm leading-relaxed italic">
               "{fullReport.description || 'Tidak ada deskripsi tambahan'}"
@@ -228,15 +229,15 @@ export default function ReportDetailModal({ report, onClose, showStatus = true }
             </span>
           </div>
 
-          {/* Coordinates */}
+          {/* Coordinates / Location */}
           <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
-            <div className="p-2.5 bg-white rounded-xl shadow-sm text-red-500">
+            <div className="p-2.5 bg-white rounded-xl shadow-sm text-[#005a9e]">
               <MapPin size={18} />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Koordinat</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Lokasi Laporan</span>
               <span className="text-sm font-bold text-[#003B6D]">
-                {fullReport.latitude.toFixed(5)}, {fullReport.longitude.toFixed(5)}
+                {getDistrictFromCoords(fullReport.latitude, fullReport.longitude)}
               </span>
             </div>
           </div>
