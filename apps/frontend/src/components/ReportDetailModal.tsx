@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { X, User, Clock, MapPin, Droplets, Loader2, Bot } from "lucide-react";
+import { X, User, Clock, MapPin, Droplets, Loader2, Bot, Check, XCircle, Trash2 } from "lucide-react";
 import type { FloodReport } from "../context/reportsContextDef";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 import apiClient from "../api/apiClient";
 import { predictImage } from "../utils/aiService";
 import { getDistrictFromCoords } from "../utils/locationUtils";
+import { useReports } from "../hooks/useReports";
+import { useNotifications } from "../context/notificationContextDef";
 
 interface ReportDetailModalProps {
   /** The report to display — images may be missing (list projection). */
@@ -13,6 +15,8 @@ interface ReportDetailModalProps {
   onClose: () => void;
   /** Whether to show the status badge (default true). */
   showStatus?: boolean;
+  /** Whether to show admin actions (Verify, Reject, Delete). */
+  isAdmin?: boolean;
 }
 
 /**
@@ -20,7 +24,10 @@ interface ReportDetailModalProps {
  * Lazy-loads the full report (with base64 images) from /api/reports/:id
  * so the initial list/map request stays lightweight.
  */
-export default function ReportDetailModal({ report, onClose, showStatus = true }: ReportDetailModalProps) {
+export default function ReportDetailModal({ report, onClose, showStatus = true, isAdmin = false }: ReportDetailModalProps) {
+  const { approveReport, rejectReport, deleteReport } = useReports();
+  const { notify, confirm } = useNotifications();
+
   const [fullReport, setFullReport] = useState<FloodReport>(report);
   const [loadingImages, setLoadingImages] = useState(true);
   
@@ -242,13 +249,87 @@ export default function ReportDetailModal({ report, onClose, showStatus = true }
             </div>
           </div>
 
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="w-full py-3 bg-gray-50 text-gray-400 rounded-xl font-bold hover:bg-gray-100 hover:text-gray-500 transition-all active:scale-[0.98] uppercase text-xs tracking-widest border border-gray-100"
-          >
-            Tutup
-          </button>
+          {/* Action Buttons */}
+          {isAdmin && fullReport.status === 'pending' ? (
+            <div className="flex flex-col gap-3 mt-2 pb-2">
+              <button 
+                onClick={async () => {
+                  try {
+                    await approveReport(fullReport.id);
+                    notify("success", "Laporan berhasil diverifikasi.");
+                    onClose();
+                  } catch {
+                    notify("error", "Gagal memverifikasi laporan.");
+                  }
+                }}
+                className="w-full py-4 bg-[#16A34A] text-white rounded-2xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-[0.98] uppercase text-sm tracking-widest flex items-center justify-center gap-2.5"
+              >
+                <Check size={18} />
+                <span>Konfirmasi Verifikasi</span>
+              </button>
+              
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => {
+                    confirm({
+                      title: "Tolak Laporan?",
+                      message: "Apakah Anda yakin ingin menolak laporan ini?",
+                      confirmText: "Ya, Tolak",
+                      onConfirm: async () => {
+                        try {
+                          await rejectReport(fullReport.id);
+                          notify("success", "Laporan berhasil ditolak.");
+                          onClose();
+                        } catch {
+                          notify("error", "Gagal menolak laporan.");
+                        }
+                      }
+                    });
+                  }}
+                  className="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 shadow-md transition-all active:scale-[0.98] uppercase text-xs tracking-widest flex items-center justify-center gap-1.5"
+                >
+                  <XCircle size={16} />
+                  <span>Tolak Laporan</span>
+                </button>
+                <button 
+                  onClick={() => {
+                    confirm({
+                      title: "Hapus Permanen?",
+                      message: "Hapus laporan ini secara permanen? Tindakan ini tidak dapat dibatalkan.",
+                      confirmText: "Hapus",
+                      onConfirm: async () => {
+                        try {
+                          await deleteReport(fullReport.id);
+                          notify("success", "Laporan berhasil dihapus.");
+                          onClose();
+                        } catch {
+                          notify("error", "Gagal menghapus laporan.");
+                        }
+                      }
+                    });
+                  }}
+                  className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold hover:bg-red-50 hover:text-red-600 shadow-sm transition-all active:scale-[0.98] uppercase text-xs tracking-widest flex items-center justify-center gap-1.5 border border-gray-200 hover:border-red-100"
+                >
+                  <Trash2 size={16} />
+                  <span>Hapus</span>
+                </button>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="w-full mt-2 py-3 bg-transparent text-gray-400 rounded-xl font-bold hover:bg-gray-50 hover:text-gray-500 transition-all uppercase text-xs tracking-widest"
+              >
+                Tutup
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onClose}
+              className="w-full py-3 bg-gray-50 text-gray-400 rounded-xl font-bold hover:bg-gray-100 hover:text-gray-500 transition-all active:scale-[0.98] uppercase text-xs tracking-widest border border-gray-100"
+            >
+              Tutup
+            </button>
+          )}
         </div>
       </div>
     </div>

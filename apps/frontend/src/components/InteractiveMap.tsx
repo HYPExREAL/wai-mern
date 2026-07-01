@@ -266,12 +266,12 @@ export default function InteractiveMap() {
     try {
       await addReport(
         {
-          title: `Banjir: ${name.trim()}`,
+          title: name.trim() || "Anonim",
           description: description.trim() || `Dilaporkan pada ${date}`,
           latitude: finalLat,
           longitude: finalLng,
           severity: Number(depth),
-          reporterName: name.trim(),
+          reporterName: name.trim() || "Anonim",
           imageUrl: base64Images.length > 0 ? base64Images[0] : undefined,
           imageUrls: base64Images.length > 0 ? base64Images : undefined,
           reporterContact: undefined,
@@ -628,8 +628,8 @@ export default function InteractiveMap() {
           >
             <Popup>
               <div className="text-sm min-w-[200px] max-w-[260px]">
-                <strong className="block text-[#003B6D] text-sm mb-1">{report.title}</strong>
-                <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description}</p>
+                <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
+                <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description || "Tidak ada deskripsi"}</p>
 
                 {/* Severity + Date row */}
                 <div className="flex items-center justify-between gap-2 mb-3">

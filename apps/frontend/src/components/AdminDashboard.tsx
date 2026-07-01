@@ -175,7 +175,7 @@ export default function AdminDashboard() {
             >
               <Popup>
                 <div className="text-sm min-w-[200px] max-w-[260px]">
-                  <strong className="block text-[#003B6D] text-sm mb-1">{report.title}</strong>
+                  <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
                   <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description}</p>
 
                   {/* Severity + Date row */}
@@ -428,7 +428,7 @@ export default function AdminDashboard() {
       )}
       {/* Report Detail Modal */}
       {detailReport && (
-        <ReportDetailModal report={detailReport} onClose={() => setDetailReport(null)} />
+        <ReportDetailModal report={detailReport} onClose={() => setDetailReport(null)} isAdmin={true} />
       )}
     </div>
   );
