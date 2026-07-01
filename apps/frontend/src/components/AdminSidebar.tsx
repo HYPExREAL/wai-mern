@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { CheckSquare, History, XCircle, Trash2, Check, Clock, MapPin, User, X, BarChart3, Map as MapIcon, Menu } from "lucide-react";
-import { useState } from "react";
+import { CheckSquare, History, XCircle, Trash2, Check, Clock, MapPin, User, X, BarChart3, Map as MapIcon, Menu, Loader2, Bot } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useReports } from "../hooks/useReports";
 import { useNotifications } from "../context/notificationContextDef";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
+import { predictImage } from "../utils/aiService";
 
 interface AdminSidebarProps {
   onReportClick?: (lat: number, lng: number) => void;
@@ -19,6 +20,77 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
   const isStatsPage = location.pathname === "/admin/statistics";
 
   const [selectedReportForVerification, setSelectedReportForVerification] = useState<typeof pendingReports[0] | null>(null);
+
+  // AI Classification States
+  const [aiScores, setAiScores] = useState<Record<string, { className: string; probability: number }>>({});
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
+
+  // Background AI Processing for Pending Reports
+  useEffect(() => {
+    if (pendingReports.length === 0) return;
+    
+    let isMounted = true;
+    
+    const runAI = async () => {
+      // Only process if there are new reports not yet scored
+      const needsProcessing = pendingReports.some(r => !aiScores[r.id]);
+      if (!needsProcessing) return;
+
+      setIsAiProcessing(true);
+      const newScores: typeof aiScores = { ...aiScores };
+      let changed = false;
+
+      for (const report of pendingReports) {
+        if (!newScores[report.id]) {
+          const mainImage = report.imageUrls?.[0] || report.imageUrl;
+          if (mainImage) {
+            try {
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              img.src = mainImage;
+              
+              await new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve;
+              });
+
+              const predictions = await predictImage(img);
+              if (predictions && predictions.length > 0) {
+                newScores[report.id] = predictions[0];
+                changed = true;
+              }
+            } catch (err) {
+              console.error("Gagal klasifikasi untuk laporan", report.id, err);
+            }
+          }
+        }
+      }
+
+      if (isMounted && changed) {
+        setAiScores(newScores);
+      }
+      if (isMounted) setIsAiProcessing(false);
+    };
+
+    // run async without blocking render
+    runAI();
+
+    return () => { isMounted = false; };
+  }, [pendingReports, aiScores]);
+
+  // Sort pendingReports based on AI score (Banjir first)
+  const sortedPendingReports = [...pendingReports].sort((a, b) => {
+    const scoreA = aiScores[a.id];
+    const scoreB = aiScores[b.id];
+    
+    const isBanjirA = scoreA && !scoreA.className.toLowerCase().includes("bukan") && !scoreA.className.toLowerCase().includes("tidak");
+    const isBanjirB = scoreB && !scoreB.className.toLowerCase().includes("bukan") && !scoreB.className.toLowerCase().includes("tidak");
+    
+    if (isBanjirA && !isBanjirB) return -1;
+    if (!isBanjirA && isBanjirB) return 1;
+    // Keep original chronological order for remaining
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); 
+  });
 
   const handleVerifyClick = (report: typeof pendingReports[0], e: React.MouseEvent) => {
     e.stopPropagation();
@@ -98,21 +170,38 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
         <div className="flex-1 flex flex-col overflow-hidden">
           <h2 className="text-[#005a9e] text-base md:text-lg font-bold text-center mb-4 md:mb-6 shrink-0">Laporan Masuk</h2>
           
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar stagger-children">
-          {pendingReports.length === 0 ? (
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar stagger-children pb-20">
+          {isAiProcessing && (
+            <div className="flex items-center justify-center gap-2 py-3 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-500 shadow-sm animate-pulse">
+               <Loader2 className="w-4 h-4 animate-spin" />
+               <span className="text-xs font-bold uppercase tracking-widest">AI sedang menyortir...</span>
+            </div>
+          )}
+
+          {sortedPendingReports.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 text-gray-400">
               <CheckSquare className="w-10 h-10 mb-3 opacity-20" />
               <p className="text-sm font-medium">Belum ada laporan baru</p>
             </div>
           ) : (
-            pendingReports.map((report, idx) => (
+            sortedPendingReports.map((report, idx) => (
               <div 
                 key={report.id}
                 onClick={() => onReportClick?.(report.latitude, report.longitude)}
-                className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[#005a9e]/20 transition-all cursor-pointer group"
+                className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[#005a9e]/20 transition-all cursor-pointer group flex flex-col"
               >
-                <div className="flex justify-between items-start mb-1">
+                <div className="flex justify-between items-start mb-1 gap-2">
                   <span className="text-xs font-bold text-gray-900 uppercase">Laporan #{idx + 1}</span>
+                  {aiScores[report.id] && (
+                    <div className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md ${
+                      aiScores[report.id].className.toLowerCase().includes("bukan") || aiScores[report.id].className.toLowerCase().includes("tidak")
+                        ? "bg-red-50 text-red-600 border border-red-100"
+                        : "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                    }`}>
+                      <Bot size={10} />
+                      <span>{aiScores[report.id].className}</span>
+                    </div>
+                  )}
                 </div>
                 <h3 className="text-sm font-black text-gray-800 mb-0.5">{report.reporterName || "Anonim"}</h3>
                 <p className="text-xs text-gray-500 leading-relaxed mb-3 line-clamp-2">
