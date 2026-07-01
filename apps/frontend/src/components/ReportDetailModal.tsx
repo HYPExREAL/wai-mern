@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { X, User, Clock, MapPin, Droplets, Loader2 } from "lucide-react";
+import { X, User, Clock, MapPin, Droplets, Loader2, Bot } from "lucide-react";
 import type { FloodReport } from "../context/reportsContextDef";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 import apiClient from "../api/apiClient";
+import { predictImage } from "../utils/aiService";
 
 interface ReportDetailModalProps {
   /** The report to display — images may be missing (list projection). */
@@ -21,6 +22,9 @@ interface ReportDetailModalProps {
 export default function ReportDetailModal({ report, onClose, showStatus = true }: ReportDetailModalProps) {
   const [fullReport, setFullReport] = useState<FloodReport>(report);
   const [loadingImages, setLoadingImages] = useState(true);
+  
+  const [aiPrediction, setAiPrediction] = useState<{className: string, probability: number} | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   // Fetch the full report (with images) on mount
   useEffect(() => {
@@ -34,6 +38,25 @@ export default function ReportDetailModal({ report, onClose, showStatus = true }
           imageUrl: full.imageUrl,
           imageUrls: full.imageUrls,
         });
+
+        // Run AI Prediction
+        const mainImage = full.imageUrls?.[0] || full.imageUrl;
+        if (mainImage) {
+          setIsAiLoading(true);
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = mainImage;
+          img.onload = async () => {
+             if (cancelled) return;
+             const predictions = await predictImage(img);
+             if (predictions && predictions.length > 0) {
+               // Top prediction
+               setAiPrediction(predictions[0]);
+             }
+             setIsAiLoading(false);
+          };
+          img.onerror = () => setIsAiLoading(false);
+        }
       })
       .catch(() => {
         // Keep the partial data if fetch fails
@@ -147,6 +170,47 @@ export default function ReportDetailModal({ report, onClose, showStatus = true }
               </div>
             </div>
           </div>
+
+          {/* AI Prediction Box */}
+          {isAiLoading ? (
+            <div className="bg-indigo-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-indigo-100 flex items-center gap-3">
+              <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
+              <span className="text-xs font-bold text-indigo-700">AI sedang menganalisis gambar...</span>
+            </div>
+          ) : aiPrediction ? (
+            <div className={`p-3 md:p-4 rounded-2xl md:rounded-3xl border flex items-center justify-between ${
+               aiPrediction.className.toLowerCase().includes("bukan") || aiPrediction.className.toLowerCase().includes("tidak")
+                 ? "bg-red-50 border-red-100" 
+                 : "bg-emerald-50 border-emerald-100"
+            }`}>
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className={`p-2.5 bg-white rounded-xl shadow-sm ${
+                   aiPrediction.className.toLowerCase().includes("bukan") || aiPrediction.className.toLowerCase().includes("tidak")
+                     ? "text-red-500"
+                     : "text-emerald-500"
+                }`}>
+                  <Bot size={18} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Rekomendasi AI</span>
+                  <span className={`text-sm font-bold ${
+                     aiPrediction.className.toLowerCase().includes("bukan") || aiPrediction.className.toLowerCase().includes("tidak")
+                     ? "text-red-700"
+                     : "text-emerald-700"
+                  }`}>
+                    {aiPrediction.className} ({(aiPrediction.probability * 100).toFixed(0)}%)
+                  </span>
+                </div>
+              </div>
+              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                 aiPrediction.className.toLowerCase().includes("bukan") || aiPrediction.className.toLowerCase().includes("tidak")
+                 ? "bg-red-500 text-white"
+                 : "bg-emerald-500 text-white"
+              }`}>
+                {aiPrediction.className.toLowerCase().includes("bukan") || aiPrediction.className.toLowerCase().includes("tidak") ? "Indikasi Spam" : "Valid"}
+              </span>
+            </div>
+          ) : null}
 
           {/* Depth Info */}
           <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center justify-between">
