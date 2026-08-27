@@ -14,9 +14,8 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin: process.env.FRONTEND_URL 
     ? [process.env.FRONTEND_URL, "http://localhost:5173"] 
-    : true, // Reflect request origin (safe fallback, works with credentials)
+    : "*",
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  credentials: true
 }));
 
 app.use(express.json({ limit: "50mb" }));
