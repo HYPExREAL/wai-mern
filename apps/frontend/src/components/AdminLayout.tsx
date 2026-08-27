@@ -33,7 +33,7 @@ export default function AdminLayout({ title, subtitle, children, onReportClick }
       <div
         className={`
         fixed inset-y-0 left-0 z-40 h-full transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'w-[85vw] md:w-380px translate-x-0 bg-white' : 'w-[85vw] md:w-72px -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
+        ${sidebarOpen ? 'w-[85vw] md:w-[380px] translate-x-0 bg-white' : 'w-[85vw] md:w-[72px] -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
         md:relative
       `}
       >

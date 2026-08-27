@@ -83,7 +83,7 @@ export default function ReportHistory() {
           {showExportMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-              <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 min-w-160px">
+              <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 min-w-[160px]">
                 <button onClick={() => handleExport("xlsx")} className="w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3 border-b border-gray-50">
                   <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-black">XLSX</span>
                   Excel
@@ -159,7 +159,7 @@ export default function ReportHistory() {
         </div>
       )}
 
-      <div className="flex-1 bg-white rounded-24px md:rounded-32px shadow-2xl border border-gray-100 overflow-hidden flex flex-col">
+      <div className="flex-1 bg-white rounded-[24px] md:rounded-[32px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col">
         
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto flex-1">

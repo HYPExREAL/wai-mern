@@ -336,7 +336,7 @@ export default function InteractiveMap() {
 
       {showReportForm && (
         <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:top-32 md:left-6 z-1000 w-full md:w-auto md:max-w-sm animate-slide-up md:animate-slide-in-left pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-t-24px md:rounded-32px shadow-2xl border border-white/50 p-4 md:p-8 flex flex-col gap-3 md:gap-5 max-h-[60svh] md:max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
+          <div className="bg-white/95 backdrop-blur-md rounded-t-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-8 flex flex-col gap-3 md:gap-5 max-h-[60svh] md:max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between">
               <h2 className="text-[#005a9e] text-base md:text-xl font-bold">Lapor Banjir</h2>
               <button 
@@ -519,7 +519,7 @@ export default function InteractiveMap() {
         <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-1000 pointer-events-auto">
         <button 
           onClick={() => setShowReportForm(!showReportForm)}
-          className="flex items-center gap-3 md:gap-6 bg-white pl-5 pr-4 py-3 md:pl-8 md:pr-6 md:py-4 rounded-2xl md:rounded-32px shadow-2xl border border-gray-100 hover:scale-105 transition-all group"
+          className="flex items-center gap-3 md:gap-6 bg-white pl-5 pr-4 py-3 md:pl-8 md:pr-6 md:py-4 rounded-2xl md:rounded-[32px] shadow-2xl border border-gray-100 hover:scale-105 transition-all group"
         >
           <span className="text-[#005a9e] text-2xl md:text-5xl font-black tracking-tighter uppercase italic">Lapor</span>
           <div className="relative">
@@ -596,7 +596,7 @@ export default function InteractiveMap() {
             icon={getIconFromSeverity(report.severity, report.status)}
           >
             <Popup>
-              <div className="text-sm min-w-200px max-w-260px">
+              <div className="text-sm min-w-[200px] max-w-[260px]">
                 <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
                 <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description || "Tidak ada deskripsi"}</p>
 

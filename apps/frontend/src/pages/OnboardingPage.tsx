@@ -229,7 +229,7 @@ export default function OnboardingPage() {
             ].map((step, i, arr) => (
               <div key={i} className="relative flex flex-col items-center text-center group">
                 {i < arr.length - 1 && (
-                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-2px bg-linear-to-r from-[#005a9e]/30 to-[#005a9e]/10" />
+                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-[2px] bg-linear-to-r from-[#005a9e]/30 to-[#005a9e]/10" />
                 )}
 
                 <div className="relative z-10 w-20 h-20 rounded-2xl bg-linear-to-br from-[#005a9e] to-[#003B6D] text-white flex items-center justify-center text-2xl font-extrabold mb-6 shadow-lg shadow-[#005a9e]/25 group-hover:scale-110 transition-transform duration-300">

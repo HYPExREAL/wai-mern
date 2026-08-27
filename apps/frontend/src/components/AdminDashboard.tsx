@@ -132,7 +132,7 @@ export default function AdminDashboard() {
 
       <div className={`
         fixed inset-y-0 left-0 z-40 h-full transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'w-[85vw] md:w-380px translate-x-0 bg-white' : 'w-[85vw] md:w-72px -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
+        ${sidebarOpen ? 'w-[85vw] md:w-[380px] translate-x-0 bg-white' : 'w-[85vw] md:w-[72px] -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
         md:relative
       `}>
         <AdminSidebar 
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
               icon={getIconFromSeverity(report.severity, report.status)}
             >
               <Popup>
-                <div className="text-sm min-w-200px max-w-260px">
+                <div className="text-sm min-w-[200px] max-w-[260px]">
                   <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
                   <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description}</p>
 
@@ -324,7 +324,7 @@ export default function AdminDashboard() {
       {showLayerPanel && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6">
           <div className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md animate-backdrop-in" onClick={() => setShowLayerPanel(false)} />
-          <div className="relative bg-white w-full max-w-lg rounded-t-32px md:rounded-32px shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[85svh] animate-slide-up md:animate-scale-in">
+          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[85svh] animate-slide-up md:animate-scale-in">
             
             <div className="md:hidden flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 rounded-full" />

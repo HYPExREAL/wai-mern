@@ -304,7 +304,7 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
             onClick={() => setSelectedReportForVerification(null)}
           />
           
-          <div className="relative bg-white w-full max-w-lg rounded-t-32px md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh] animate-slide-up md:animate-scale-in">
+          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh] animate-slide-up md:animate-scale-in">
             <div className="md:hidden flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 rounded-full" />
             </div>

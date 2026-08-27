@@ -50,7 +50,7 @@ export default function LoginPage() {
         Kembali
       </Link>
 
-      <div className="w-full max-w-5xl bg-white rounded-32px overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-600px animate-scale-in">
+      <div className="w-full max-w-5xl bg-white rounded-[32px] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px] animate-scale-in">
         
         <div className="hidden md:block w-1/2 relative bg-[#E6F3FF]">
           <img 

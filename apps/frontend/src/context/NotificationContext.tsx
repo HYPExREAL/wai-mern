@@ -46,7 +46,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         {notifications.map((n) => (
           <div 
             key={n.id}
-            className={`pointer-events-auto flex items-center gap-3 md:gap-4 px-4 py-3 md:px-6 md:py-4 rounded-2xl md:rounded-24px shadow-2xl border backdrop-blur-xl text-sm ${
+            className={`pointer-events-auto flex items-center gap-3 md:gap-4 px-4 py-3 md:px-6 md:py-4 rounded-2xl md:rounded-[24px] shadow-2xl border backdrop-blur-xl text-sm ${
               n.type === "success" 
                 ? "bg-[#16A34A]/90 border-white/20 text-white" 
                 : n.type === "error"
@@ -69,7 +69,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       {confirmOptions && (
         <div className="fixed inset-0 z-10000 flex items-end md:items-center justify-center p-0 md:p-6">
           <div className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md" onClick={handleCancel} />
-          <div className="relative bg-white w-full max-w-sm rounded-t-32px md:rounded-[40px] shadow-2xl p-6 md:p-8 flex flex-col items-center text-center">
+          <div className="relative bg-white w-full max-w-sm rounded-t-[32px] md:rounded-[40px] shadow-2xl p-6 md:p-8 flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-6">
               <AlertTriangle size={32} />
             </div>

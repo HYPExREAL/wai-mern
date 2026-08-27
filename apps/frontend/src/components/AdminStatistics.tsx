@@ -147,7 +147,7 @@ export default function AdminStatistics() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 md:p-8 rounded-32px shadow-sm border border-gray-100 flex flex-col gap-6">
+          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-[#005a9e]/10 text-[#005a9e] rounded-lg">
                 <BarChart3 className="w-5 h-5" />
@@ -168,7 +168,7 @@ export default function AdminStatistics() {
           </div>
 
           {/* Severity Distribution */}
-          <div className="bg-white p-6 md:p-8 rounded-32px shadow-sm border border-gray-100 flex flex-col gap-6">
+          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
                 <AlertTriangle className="w-5 h-5" />
@@ -201,7 +201,7 @@ export default function AdminStatistics() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 md:p-8 rounded-32px shadow-sm border border-gray-100 flex flex-col gap-6">
+          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                 <MapPin className="w-5 h-5" />
@@ -231,7 +231,7 @@ export default function AdminStatistics() {
             </div>
           </div>
 
-          <div className="bg-white p-6 md:p-8 rounded-32px shadow-sm border border-gray-100 flex flex-col gap-6">
+          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                 <TrendingUp className="w-5 h-5" />
@@ -239,7 +239,7 @@ export default function AdminStatistics() {
               <h3 className="text-lg font-black text-[#003B6D]">Tren Laporan (Bulanan)</h3>
             </div>
             
-            <div className="flex flex-col justify-end gap-3 h-full min-h-200px pt-4">
+            <div className="flex flex-col justify-end gap-3 h-full min-h-[200px] pt-4">
               {stats.trends.length > 0 ? (
                 <div className="flex items-end gap-2 h-full mt-auto">
                   {stats.trends.map((item) => {
