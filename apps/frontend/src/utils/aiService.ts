@@ -25,7 +25,6 @@ export async function predictImage(imageElement: HTMLImageElement | HTMLCanvasEl
   if (!model) return null;
   
   try {
-    // Return array of objects: { className: string, probability: number }
     const predictions = await model.predictTopK(imageElement, 2);
     return predictions;
   } catch (error) {

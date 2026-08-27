@@ -1,11 +1,3 @@
-/**
- * geoConverter.ts
- * 
- * Server-side utility to convert various WebGIS file formats into GeoJSON.
- * Supports: GeoJSON, Shapefile (ZIP), KML, KMZ, GPX, CSV (with lat/lng columns).
- * 
- * All outputs are normalized to EPSG:4326 (WGS84) FeatureCollections.
- */
 
 import AdmZip from "adm-zip";
 // @ts-ignore — shapefile has no type declarations
@@ -17,9 +9,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 
-// ── Projection helpers ─────────────────────────────────────────
 
-/** Common projections we can detect from .prj content */
 const KNOWN_PROJECTIONS: Record<string, string> = {
   "EPSG:3857": "+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs",
   "EPSG:32748": "+proj=utm +zone=48 +south +datum=WGS84 +units=m +no_defs",
@@ -29,21 +19,16 @@ const KNOWN_PROJECTIONS: Record<string, string> = {
 
 const WGS84 = "+proj=longlat +datum=WGS84 +no_defs";
 
-/**
- * Try to detect projection from .prj file content.
- * Returns a proj4 string or null if unrecognized.
- */
+
 function detectProjection(prjContent: string): string | null {
   const upper = prjContent.toUpperCase();
 
-  // Check for Web Mercator indicators
   if (upper.includes("WEB_MERCATOR") || upper.includes("PSEUDO_MERCATOR") ||
       upper.includes("3857") || upper.includes("900913") ||
       (upper.includes("MERCATOR") && upper.includes("6378137"))) {
     return KNOWN_PROJECTIONS["EPSG:3857"]!;
   }
 
-  // Check for UTM zone indicators
   const utmMatch = upper.match(/UTM.*ZONE\s*(\d+)/);
   if (utmMatch) {
     const zone = parseInt(utmMatch[1]!);
@@ -51,21 +36,15 @@ function detectProjection(prjContent: string): string | null {
     return `+proj=utm +zone=${zone} ${south ? "+south " : ""}+datum=WGS84 +units=m +no_defs`;
   }
 
-  // If it's already WGS84 / GCS, no reprojection needed
   if (upper.includes("WGS_1984") || upper.includes("WGS 84") || upper.includes("WGS84")) {
     if (!upper.includes("UTM") && !upper.includes("MERCATOR") && !upper.includes("PROJECTED")) {
-      return null; // Already in lat/lng
+      return null;
     }
   }
 
   return null;
 }
 
-/**
- * Check if coordinates look like they need reprojection.
- * WGS84 coords: lng [-180, 180], lat [-90, 90]
- * Projected coords: values in the millions (meters)
- */
 function needsReprojection(geojson: any): boolean {
   const coords = extractSampleCoords(geojson, 5);
   if (coords.length === 0) return false;
@@ -96,7 +75,6 @@ function extractSampleCoords(geojson: any, max: number): number[][] {
   return coords;
 }
 
-/** Reproject all coordinates in a GeoJSON from sourceProj to WGS84 */
 function reprojectGeoJSON(geojson: any, sourceProj: string): any {
   function reprojectCoords(coords: any): any {
     if (Array.isArray(coords) && typeof coords[0] === "number") {
@@ -117,13 +95,10 @@ function reprojectGeoJSON(geojson: any, sourceProj: string): any {
     },
   }));
 
-  // Remove bbox since it's now invalid
   delete result.bbox;
 
   return result;
 }
-
-// ── Format parsers ──────────────────────────────────────────────
 
 async function parseGeoJSON(buffer: Buffer): Promise<any> {
   const text = buffer.toString("utf-8");
@@ -145,7 +120,6 @@ async function parseShapefileZip(buffer: Buffer): Promise<any> {
     const zip = new AdmZip(buffer);
     zip.extractAllTo(tmpDir, true);
 
-    // Recursively find files
     function findFiles(dir: string, ext: string): string[] {
       const results: string[] = [];
       for (const entry of fs.readdirSync(dir)) {
@@ -168,16 +142,13 @@ async function parseShapefileZip(buffer: Buffer): Promise<any> {
       const baseName = path.basename(shpPath, ".shp");
       const baseDir = path.dirname(shpPath);
 
-      // Find matching files
       const dbfPath = findFiles(baseDir, ".dbf")
         .find(f => path.basename(f, ".dbf").toLowerCase() === baseName.toLowerCase());
       const prjPath = findFiles(baseDir, ".prj")
         .find(f => path.basename(f, ".prj").toLowerCase() === baseName.toLowerCase());
 
-      // Parse shapefile
       let geojson = await shapefile.read(shpPath, dbfPath || undefined);
 
-      // Handle projection
       if (prjPath) {
         const prjContent = fs.readFileSync(prjPath, "utf-8");
         const sourceProj = detectProjection(prjContent);
@@ -186,7 +157,6 @@ async function parseShapefileZip(buffer: Buffer): Promise<any> {
           geojson = reprojectGeoJSON(geojson, sourceProj);
         }
       } else if (needsReprojection(geojson)) {
-        // Default assumption: Web Mercator
         geojson = reprojectGeoJSON(geojson, KNOWN_PROJECTIONS["EPSG:3857"]!);
       }
 
@@ -245,7 +215,6 @@ function parseCSV(buffer: Buffer): any {
 
   const headers = lines[0]!.split(",").map(h => h.trim().toLowerCase());
 
-  // Find lat/lng columns
   const latIdx = headers.findIndex(h => 
     ["latitude", "lat", "y", "lintang"].includes(h)
   );
@@ -292,9 +261,6 @@ function parseCSV(buffer: Buffer): any {
   return { type: "FeatureCollection", features };
 }
 
-// ── Main converter ──────────────────────────────────────────────
-
-/** Detect format from filename and parse content into GeoJSON FeatureCollection */
 async function parseByFormat(buffer: Buffer, filename: string): Promise<any> {
   const ext = path.extname(filename).toLowerCase();
 
@@ -326,13 +292,11 @@ async function parseByFormat(buffer: Buffer, filename: string): Promise<any> {
   }
 }
 
-/** Smart ZIP handler — peeks inside to determine if it's a Shapefile, KML, or GeoJSON archive */
 async function parseZipContent(buffer: Buffer): Promise<any> {
   const zip = new AdmZip(buffer);
   const entries = zip.getEntries();
   const names = entries.map(e => e.entryName.toLowerCase());
 
-  // Check what's inside
   const hasShp = names.some(n => n.endsWith(".shp"));
   const hasKml = names.some(n => n.endsWith(".kml"));
   const hasGeoJson = names.some(n => n.endsWith(".geojson") || n.endsWith(".json"));
@@ -356,8 +320,6 @@ async function parseZipContent(buffer: Buffer): Promise<any> {
   );
 }
 
-// ── Validation ──────────────────────────────────────────────────
-
 function validateGeoJSON(geojson: any): void {
   if (!geojson || geojson.type !== "FeatureCollection") {
     throw new Error("Hasil konversi bukan FeatureCollection yang valid.");
@@ -367,7 +329,6 @@ function validateGeoJSON(geojson: any): void {
     throw new Error("File tidak mengandung fitur spasial.");
   }
 
-  // Check sample coords are within valid WGS84 range
   const coords = extractSampleCoords(geojson, 10);
   const invalid = coords.find(([x, y]) => Math.abs(x!) > 180 || Math.abs(y!) > 90);
   if (invalid) {
@@ -378,8 +339,6 @@ function validateGeoJSON(geojson: any): void {
   }
 }
 
-// ── Public API ──────────────────────────────────────────────────
-
 export interface ConversionResult {
   geojson: any;
   featureCount: number;
@@ -387,14 +346,9 @@ export interface ConversionResult {
   detectedFormat: string;
 }
 
-/**
- * Convert any supported WebGIS file buffer into a validated GeoJSON FeatureCollection.
- * Handles format detection, parsing, projection handling, and validation.
- */
 export async function convertToGeoJSON(buffer: Buffer, filename: string): Promise<ConversionResult> {
   const ext = path.extname(filename).toLowerCase();
 
-  // Determine detected format label
   let detectedFormat = "Unknown";
   if ([".geojson", ".json"].includes(ext)) detectedFormat = "GeoJSON";
   else if (ext === ".zip") detectedFormat = "ZIP Archive";
@@ -403,18 +357,14 @@ export async function convertToGeoJSON(buffer: Buffer, filename: string): Promis
   else if (ext === ".gpx") detectedFormat = "GPX";
   else if (ext === ".csv") detectedFormat = "CSV";
 
-  // Parse
   const geojson = await parseByFormat(buffer, filename);
 
-  // Validate
   validateGeoJSON(geojson);
 
-  // Collect stats
   const geometryTypes = [...new Set(
     geojson.features.map((f: any) => f.geometry?.type).filter(Boolean)
   )] as string[];
 
-  // If ZIP contained shapefile, update detected format
   if (ext === ".zip") {
     const zip = new AdmZip(buffer);
     const names = zip.getEntries().map(e => e.entryName.toLowerCase());
@@ -431,7 +381,6 @@ export async function convertToGeoJSON(buffer: Buffer, filename: string): Promis
   };
 }
 
-/** Returns list of supported file extensions */
 export function getSupportedFormats(): string[] {
   return [".geojson", ".json", ".zip", ".kml", ".kmz", ".gpx", ".csv"];
 }

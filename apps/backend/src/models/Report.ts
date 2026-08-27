@@ -3,11 +3,11 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IReport extends Document {
   title: string;
   description: string;
-  severity: number; // depth in centimeters
+  severity: number;
   status: "pending" | "approved" | "rejected";
   location: {
     type: "Point";
-    coordinates: [number, number]; // [longitude, latitude]
+    coordinates: [number, number];
   };
   gps_accuracy: number;
   reporterName: string;
@@ -62,7 +62,6 @@ const ReportSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-// Create a 2dsphere index for geospatial queries
 ReportSchema.index({ location: "2dsphere" });
 
 export default mongoose.model<IReport>("Report", ReportSchema);

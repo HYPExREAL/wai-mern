@@ -10,7 +10,6 @@ import AdminLayout from "./AdminLayout";
 export default function ReportHistory() {
   const { allReports, refreshAll, refreshPending } = useReports();
 
-  // Filter state
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -55,9 +54,7 @@ export default function ReportHistory() {
   return (
     <AdminLayout title="Riwayat Laporan" subtitle="Akses seluruh riwayat laporan masuk">
 
-      {/* ── Filter & Export Bar ─────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
-        {/* Filter Toggle */}
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm border ${
@@ -73,7 +70,6 @@ export default function ReportHistory() {
           )}
         </button>
 
-        {/* Export Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowExportMenu(!showExportMenu)}
@@ -87,7 +83,7 @@ export default function ReportHistory() {
           {showExportMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-              <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 min-w-[160px]">
+              <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 min-w-160px">
                 <button onClick={() => handleExport("xlsx")} className="w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3 border-b border-gray-50">
                   <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-black">XLSX</span>
                   Excel
@@ -105,13 +101,11 @@ export default function ReportHistory() {
           )}
         </div>
 
-        {/* Report count */}
         <span className="text-xs text-gray-400 font-bold ml-auto">
           {allReports.length} laporan
         </span>
       </div>
 
-      {/* ── Filter Panel (collapsible) ──────────────────────── */}
       {showFilters && (
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4 md:p-5 mb-4 flex flex-col sm:flex-row sm:items-end gap-3 md:gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex-1 flex flex-col sm:flex-row gap-3">
@@ -165,8 +159,7 @@ export default function ReportHistory() {
         </div>
       )}
 
-      {/* Data Card — Table on desktop, Cards on mobile */}
-      <div className="flex-1 bg-white rounded-[24px] md:rounded-[32px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col">
+      <div className="flex-1 bg-white rounded-24px md:rounded-32px shadow-2xl border border-gray-100 overflow-hidden flex flex-col">
         
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto flex-1">
@@ -224,7 +217,6 @@ export default function ReportHistory() {
           </table>
         </div>
 
-        {/* Mobile Card List */}
         <div className="md:hidden flex-1 overflow-y-auto p-4 space-y-3 stagger-children">
           {allReports.length === 0 ? (
             <div className="flex items-center justify-center h-40 text-gray-400 font-medium text-sm">
@@ -260,7 +252,6 @@ export default function ReportHistory() {
         </div>
       </div>
 
-      {/* ── Report Detail Modal ──────────────────────────────── */}
       {selectedReport && (
         <ReportDetailModal
           report={selectedReport}

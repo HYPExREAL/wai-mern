@@ -9,21 +9,12 @@ import { useReports } from "../hooks/useReports";
 import { useNotifications } from "../context/notificationContextDef";
 
 interface ReportDetailModalProps {
-  /** The report to display — images may be missing (list projection). */
   report: FloodReport;
-  /** Called when the modal should close. */
   onClose: () => void;
-  /** Whether to show the status badge (default true). */
   showStatus?: boolean;
-  /** Whether to show admin actions (Verify, Reject, Delete). */
   isAdmin?: boolean;
 }
 
-/**
- * Shared Report Detail Modal — used by both ReportHistory and InteractiveMap.
- * Lazy-loads the full report (with base64 images) from /api/reports/:id
- * so the initial list/map request stays lightweight.
- */
 export default function ReportDetailModal({ report, onClose, showStatus = true, isAdmin = false }: ReportDetailModalProps) {
   const { approveReport, rejectReport, deleteReport } = useReports();
   const { notify, confirm } = useNotifications();
@@ -34,7 +25,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
   const [aiPrediction, setAiPrediction] = useState<{className: string, probability: number} | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  // Fetch the full report (with images) on mount
   useEffect(() => {
     let cancelled = false;
     apiClient.get(`/reports/${report.id}`)
@@ -47,7 +37,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
           imageUrls: full.imageUrls,
         });
 
-        // Run AI Prediction
         const mainImage = full.imageUrls?.[0] || full.imageUrl;
         if (mainImage) {
           setIsAiLoading(true);
@@ -58,7 +47,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
              if (cancelled) return;
              const predictions = await predictImage(img);
              if (predictions && predictions.length > 0) {
-               // Top prediction
                setAiPrediction(predictions[0]);
              }
              setIsAiLoading(false);
@@ -67,7 +55,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
         }
       })
       .catch(() => {
-        // Keep the partial data if fetch fails
       })
       .finally(() => {
         if (!cancelled) setLoadingImages(false);
@@ -77,20 +64,16 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
 
   return (
     <div className="fixed inset-0 z-2000 flex items-end md:items-center justify-center p-0 md:p-6">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md animate-backdrop-in"
         onClick={onClose}
       />
 
-      {/* Modal Content */}
-      <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh] animate-slide-up md:animate-scale-in">
-        {/* Mobile drag handle */}
+      <div className="relative bg-white w-full max-w-lg rounded-t-32px md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh] animate-slide-up md:animate-scale-in">
         <div className="md:hidden flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-gray-300 rounded-full" />
         </div>
 
-        {/* Header / Image Area */}
         <div className="relative w-full aspect-video bg-gray-100 shrink-0 overflow-x-auto flex snap-x snap-mandatory custom-scrollbar">
           {loadingImages ? (
             <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-3 shrink-0 snap-center">
@@ -121,7 +104,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
             </div>
           )}
 
-          {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute top-3 right-3 md:top-6 md:right-6 p-2 md:p-3 bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-xl text-gray-500 hover:text-red-500 transition-all hover:scale-110"
@@ -129,7 +111,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
             <X size={18} />
           </button>
 
-          {/* Status Badge */}
           {showStatus && (
             <div className={`absolute bottom-3 left-3 md:bottom-6 md:left-6 px-3 py-1.5 md:px-4 md:py-2 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-widest shadow-lg ${
               fullReport.status === 'approved' ? 'bg-[#16A34A]' :
@@ -142,7 +123,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
           )}
         </div>
 
-        {/* Content Area */}
         <div className="p-5 md:p-8 flex flex-col gap-4 md:gap-6 overflow-y-auto custom-scrollbar">
           <div>
             <h3 className="text-lg md:text-2xl font-black text-[#003B6D] mb-1 md:mb-2 leading-tight">
@@ -154,7 +134,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-            {/* Reporter */}
             <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
               <div className="p-2.5 bg-white rounded-xl shadow-sm text-[#005a9e]">
                 <User size={18} />
@@ -165,7 +144,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
               </div>
             </div>
 
-            {/* Time */}
             <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
               <div className="p-2.5 bg-white rounded-xl shadow-sm text-amber-500">
                 <Clock size={18} />
@@ -179,7 +157,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
             </div>
           </div>
 
-          {/* AI Prediction Box */}
           {isAiLoading ? (
             <div className="bg-indigo-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-indigo-100 flex items-center gap-3">
               <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
@@ -220,7 +197,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
             </div>
           ) : null}
 
-          {/* Depth Info */}
           <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-3 md:gap-4">
               <div className={`p-2.5 rounded-xl shadow-sm ${getSeverityFromDepth(fullReport.severity).colorClass}`}>
@@ -236,7 +212,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
             </span>
           </div>
 
-          {/* Coordinates / Location */}
           <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center gap-3 md:gap-4">
             <div className="p-2.5 bg-white rounded-xl shadow-sm text-[#005a9e]">
               <MapPin size={18} />
@@ -249,7 +224,6 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
             </div>
           </div>
 
-          {/* Action Buttons */}
           {isAdmin && fullReport.status === 'pending' ? (
             <div className="flex flex-col gap-3 mt-2 pb-2">
               <button 

@@ -1,10 +1,8 @@
 import type { Request, Response } from "express";
 import Report from "../models/Report";
 
-// Fields to exclude from list queries (base64 images are huge)
 const LIST_PROJECTION = "-imageUrl -imageUrls";
 
-// POST /api/reports (Public)
 export const submitReport = async (req: Request, res: Response) => {
   try {
     const {
@@ -19,7 +17,6 @@ export const submitReport = async (req: Request, res: Response) => {
       imageUrls,
     } = req.body;
 
-    // Validate location is a valid GeoJSON Point format
     if (
       !location ||
       location.type !== "Point" ||
@@ -32,7 +29,6 @@ export const submitReport = async (req: Request, res: Response) => {
       });
     }
 
-    // Validate GPS Accuracy (Relaxed to 2000m for better UX and testing)
     if (typeof gps_accuracy !== "number" || gps_accuracy > 2000) {
       return res.status(400).json({
         message: "Akurasi GPS tidak memadai (harus <= 2000 meter).",
@@ -66,7 +62,6 @@ export const submitReport = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/reports/published (Public) — list without image data
 export const getPublishedReports = async (req: Request, res: Response) => {
   try {
     const reports = await Report.find({ status: "approved" })
@@ -81,7 +76,6 @@ export const getPublishedReports = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/reports/pending (Protected) — includes image data for admin verification
 export const getPendingReports = async (req: Request, res: Response) => {
   try {
     const reports = await Report.find({ status: "pending" })
@@ -94,26 +88,21 @@ export const getPendingReports = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/reports/all (Protected) — all reports for admin history, without image data
-// Supports query params: ?from=YYYY-MM-DD&to=YYYY-MM-DD&status=approved|pending|rejected
 export const getAllReports = async (req: Request, res: Response) => {
   try {
     const { from, to, status } = req.query;
     const filter: Record<string, any> = {};
 
-    // Date range filter on createdAt
     if (from || to) {
       filter.createdAt = {};
       if (typeof from === "string") filter.createdAt.$gte = new Date(from);
       if (typeof to === "string") {
-        // End of the "to" day (23:59:59.999)
         const endDate = new Date(to);
         endDate.setHours(23, 59, 59, 999);
         filter.createdAt.$lte = endDate;
       }
     }
 
-    // Status filter
     if (typeof status === "string" && ["approved", "pending", "rejected"].includes(status)) {
       filter.status = status;
     }
@@ -129,7 +118,6 @@ export const getAllReports = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/reports/:id (Public) — single report WITH image data
 export const getReportById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -146,7 +134,6 @@ export const getReportById = async (req: Request, res: Response) => {
   }
 };
 
-// PATCH /api/reports/:id/status (Protected)
 export const updateReportStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -178,7 +165,6 @@ export const updateReportStatus = async (req: Request, res: Response) => {
   }
 };
 
-// DELETE /api/reports/:id (Protected)
 export const deleteReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

@@ -29,7 +29,6 @@ export default function GeoJSONLayer({ url, data: rawData, style }: GeoJSONLayer
 
   const iconColor = style?.color || "#3B82F6";
 
-  // Render Point features as pin markers matching the layer's color
   const pointToLayer = useMemo(() => {
     const icon = makeSvgIcon(iconColor);
     return (_feature: GeoJSON.Feature, latlng: L.LatLng) => {
@@ -39,8 +38,6 @@ export default function GeoJSONLayer({ url, data: rawData, style }: GeoJSONLayer
 
   if (!geoData) return null;
 
-  // Extremely robust key that forces Leaflet to completely rebuild the GeoJSON layer
-  // whenever the data, style, or color changes.
   const geoDataString = JSON.stringify(geoData);
   const key = `${url || "rawData"}-${geoDataString.length}-${iconColor}-${geoDataString.slice(0, 100)}`;
 

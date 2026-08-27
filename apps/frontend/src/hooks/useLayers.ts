@@ -22,7 +22,6 @@ export interface LayerFull extends LayerMeta {
   geoData: object;
 }
 
-/** Manages layer list + per-layer GeoJSON data loading */
 export function useLayers(publicOnly = false) {
   const [layers, setLayers] = useState<LayerMeta[]>([]);
   const [enabledIds, setEnabledIds] = useState<Set<string>>(new Set());
@@ -42,7 +41,6 @@ export function useLayers(publicOnly = false) {
     }
   }, [publicOnly]);
 
-  // Initial fetch — inline so all setState happens in async callbacks (React 19)
   useEffect(() => {
     let cancelled = false;
     const url = publicOnly ? "/layers?publicOnly=true" : "/layers";
@@ -53,7 +51,6 @@ export function useLayers(publicOnly = false) {
     return () => { cancelled = true; };
   }, [publicOnly]);
 
-  // Toggle a layer on/off
   const geoDataCacheRef = useRef(geoDataCache);
   useEffect(() => { geoDataCacheRef.current = geoDataCache; }, [geoDataCache]);
 
@@ -64,7 +61,6 @@ export function useLayers(publicOnly = false) {
         next.delete(id);
       } else {
         next.add(id);
-        // Fetch geoData if not cached — use ref to avoid stale closure
         if (!geoDataCacheRef.current[id]) {
           apiClient.get(`/layers/${id}`)
             .then(res => {
@@ -77,7 +73,6 @@ export function useLayers(publicOnly = false) {
     });
   }, []);
 
-  // CRUD operations (admin)
   const createLayer = useCallback(async (data: {
     name: string;
     description?: string;
@@ -91,7 +86,6 @@ export function useLayers(publicOnly = false) {
     return res.data;
   }, [fetchLayers]);
 
-  /** Upload a spatial file (Shapefile ZIP, KML, KMZ, GPX, CSV, GeoJSON) for server-side conversion */
   const uploadLayer = useCallback(async (data: {
     file: File;
     name: string;

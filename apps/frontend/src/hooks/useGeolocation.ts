@@ -20,7 +20,6 @@ export function useGeolocation() {
     };
   });
 
-  // Track the best accuracy we've seen so far
   const bestAccuracy = useRef<number>(Infinity);
 
   useEffect(() => {
@@ -32,8 +31,6 @@ export function useGeolocation() {
       (position) => {
         const { latitude, longitude, accuracy } = position.coords;
 
-        // Update state if the reading is good enough (<= 2000m), which allows continuous tracking.
-        // If the reading is poor (> 2000m), only update if it's our first fix or an improvement.
         if (accuracy <= 2000 || bestAccuracy.current === Infinity || accuracy < bestAccuracy.current) {
           bestAccuracy.current = Math.min(accuracy, bestAccuracy.current);
           setState({
@@ -59,8 +56,8 @@ export function useGeolocation() {
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 0,   // Never use cached positions — always request a fresh GPS fix
-        timeout: 30000,  // Allow up to 30s for the GPS to lock (important on cold starts)
+        maximumAge: 0,
+        timeout: 30000,
       }
     );
 

@@ -8,7 +8,6 @@ interface TimeSliderProps {
 }
 
 export default function TimeSlider({ reports, onFilterChange }: TimeSliderProps) {
-  // Generate a continuous array of all months between the earliest and latest report
   const months = useMemo(() => {
     if (!reports || reports.length === 0) return [];
 
@@ -35,9 +34,8 @@ export default function TimeSlider({ reports, onFilterChange }: TimeSliderProps)
     return result;
   }, [reports]);
 
-  const [sliderIndex, setSliderIndex] = useState<number>(-1); // -1 means "Show All"
+  const [sliderIndex, setSliderIndex] = useState<number>(-1);
 
-  // Whenever the slider changes, filter the reports
   useEffect(() => {
     if (sliderIndex === -1 || months.length === 0) {
       onFilterChange(reports);
@@ -63,7 +61,7 @@ export default function TimeSlider({ reports, onFilterChange }: TimeSliderProps)
   if (months.length === 0) return null;
 
   return (
-    <div className="absolute top-24 md:top-auto md:bottom-8 left-1/2 -translate-x-1/2 z-1000 w-[90%] max-w-[340px] pointer-events-auto">
+    <div className="absolute top-24 md:top-auto md:bottom-8 left-1/2 -translate-x-1/2 z-1000 w-[90%] max-w-340px pointer-events-auto">
       <div className="bg-white/95 backdrop-blur-md border border-white/20 p-3 rounded-2xl shadow-xl transition-all">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5 text-[#005a9e]">

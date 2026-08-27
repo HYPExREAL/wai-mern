@@ -19,4 +19,6 @@ services:
         sync: false  # Set manually in Render dashboard
       - key: ADMIN_PASSWORD_HASH
         sync: false  # Set manually in Render dashboard
+      - key: FRONTEND_URL
+        sync: false  # Set manually in Render dashboard (e.g. https://wai-flood.vercel.app)
     healthCheckPath: /api/health

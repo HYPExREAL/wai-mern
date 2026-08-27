@@ -25,7 +25,6 @@ export default function LoginPage() {
     try {
       const res = await apiClient.post("/auth/login", { email, password });
       
-      // Store token and admin status
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("isAdmin", "true");
       
@@ -43,7 +42,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-svh flex items-center justify-center p-6 bg-linear-to-b from-[#003B6D] to-[#0072B5]">
-      {/* Back button */}
       <Link 
         to="/" 
         className="absolute top-6 left-6 flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm font-medium z-10"
@@ -52,10 +50,8 @@ export default function LoginPage() {
         Kembali
       </Link>
 
-      {/* Main Split Card */}
-      <div className="w-full max-w-5xl bg-white rounded-[32px] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px] animate-scale-in">
+      <div className="w-full max-w-5xl bg-white rounded-32px overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-600px animate-scale-in">
         
-        {/* Left Side: Illustration */}
         <div className="hidden md:block w-1/2 relative bg-[#E6F3FF]">
           <img 
             src={FloodHero} 
@@ -64,9 +60,7 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Right Side: Form */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col items-center justify-center">
-          {/* Logo Section */}
           <div className="text-center mb-10 w-full flex flex-col items-center">
             <img 
               src="/WAIBlue.png" 
@@ -78,16 +72,13 @@ export default function LoginPage() {
             </h2>
           </div>
 
-          {/* Login Form */}
           <form onSubmit={handleLogin} className="w-full space-y-6">
-            {/* Error Message */}
             {error && (
               <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center animate-pulse">
                 {error}
               </div>
             )}
 
-            {/* Email / Username */}
             <div className="space-y-1.5">
               <label className="text-[#005a9e] text-sm font-bold pl-1 block uppercase tracking-wider">
                 Username
@@ -101,7 +92,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password */}
             <div className="space-y-1.5">
               <label className="text-[#005a9e] text-sm font-bold pl-1 block uppercase tracking-wider">
                 Password
@@ -115,7 +105,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -134,7 +123,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Footer info */}
           <div className="mt-8 text-center text-[11px] text-[#005a9e]/60 font-medium">
             <p>Hanya untuk petugas berwenang Pemerintah Kota Bandar Lampung.</p>
           </div>

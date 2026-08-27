@@ -24,7 +24,6 @@ function MapUpdater({ center, sidebarOpen }: { center: [number, number] | null; 
     if (center) map.flyTo(center, 16, { duration: 1.5 });
   }, [center, map]);
   useEffect(() => {
-    // Wait for the CSS transition to finish (300ms), then tell Leaflet to recalculate
     const timer = setTimeout(() => map.invalidateSize(), 350);
     return () => clearTimeout(timer);
   }, [sidebarOpen, map]);
@@ -51,7 +50,6 @@ export default function AdminDashboard() {
   const [layerDAS, setLayerDAS] = useState(false);
   const [layerBorder, setLayerBorder] = useState(false);
 
-  // Layer management panel
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [detailReport, setDetailReport] = useState<FloodReport | null>(null);
   const [uploadName, setUploadName] = useState("");
@@ -134,7 +132,7 @@ export default function AdminDashboard() {
 
       <div className={`
         fixed inset-y-0 left-0 z-40 h-full transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'w-[85vw] md:w-[380px] translate-x-0 bg-white' : 'w-[85vw] md:w-[72px] -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
+        ${sidebarOpen ? 'w-[85vw] md:w-380px translate-x-0 bg-white' : 'w-[85vw] md:w-72px -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
         md:relative
       `}>
         <AdminSidebar 
@@ -155,7 +153,6 @@ export default function AdminDashboard() {
           />
           <MapUpdater center={selectedLocation} sidebarOpen={sidebarOpen} />
 
-          {/* Static GeoJSON Layers */}
           {layerBorder && (
             <GeoJSONLayer url="/layers/batas_kota.json" style={{ color: '#EF4444', weight: 3, opacity: 0.8, fillOpacity: 0.05, dashArray: '8 4' }} />
           )}
@@ -163,22 +160,19 @@ export default function AdminDashboard() {
             <GeoJSONLayer url="/layers/das.geojson" style={{ color: '#EAB308', weight: 2.5, opacity: 0.8, fillOpacity: 0 }} />
           )}
 
-          {/* Dynamic DB Layers */}
           {layers.map(layer => enabledIds.has(layer._id) && geoDataCache[layer._id] && (
             <GeoJSONLayer key={layer._id} data={geoDataCache[layer._id]} style={layer.style} />
           ))}
 
-          {/* Report Markers */}
           {filteredReports.map((report) => (
             <Marker key={report.id} position={[report.latitude, report.longitude]}
               icon={getIconFromSeverity(report.severity, report.status)}
             >
               <Popup>
-                <div className="text-sm min-w-[200px] max-w-[260px]">
+                <div className="text-sm min-w-200px max-w-260px">
                   <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
                   <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description}</p>
 
-                  {/* Severity + Date row */}
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
                       {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
@@ -188,7 +182,6 @@ export default function AdminDashboard() {
                     </span>
                   </div>
 
-                  {/* View Detail Button */}
                   <button
                     onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
                     className="w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
@@ -201,10 +194,8 @@ export default function AdminDashboard() {
             </Marker>
           ))}
 
-          {/* Floating Controls */}
           <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
             
-            {/* Legend */}
             <div className="relative">
               {showLegend && (
               <div className="absolute bottom-full right-0 mb-2 w-56 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex flex-col gap-2.5">
@@ -248,7 +239,6 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {/* Layers Toggle */}
             <div className="relative">
               {showLayers && (
                 <div className="absolute bottom-full right-0 mb-2 w-56 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-3 flex flex-col gap-1">
@@ -313,9 +303,7 @@ export default function AdminDashboard() {
 
         <TimeSlider reports={allReports} onFilterChange={setFilteredReports} />
 
-        {/* Top bar */}
         <div className="absolute top-3 left-3 right-3 md:top-6 md:left-6 md:right-6 z-1000 pointer-events-auto flex justify-between items-center gap-3">
-          {/* Mobile hamburger (only visible on mobile when sidebar closed) */}
           <button 
             onClick={() => setSidebarOpen(true)} 
             className="md:hidden p-3 bg-white rounded-xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
@@ -333,11 +321,10 @@ export default function AdminDashboard() {
         </div>
       </main>
 
-      {/* ── Layer Management Modal ─────────────────────────────── */}
       {showLayerPanel && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6">
           <div className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md animate-backdrop-in" onClick={() => setShowLayerPanel(false)} />
-          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[85svh] animate-slide-up md:animate-scale-in">
+          <div className="relative bg-white w-full max-w-lg rounded-t-32px md:rounded-32px shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[85svh] animate-slide-up md:animate-scale-in">
             
             <div className="md:hidden flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 rounded-full" />
@@ -345,7 +332,6 @@ export default function AdminDashboard() {
 
             <div className="p-5 md:p-8 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
               
-              {/* Header */}
               <div className="flex justify-between items-center">
                 <h2 className="text-xl md:text-2xl font-black text-[#003B6D]">Kelola Layer</h2>
                 <button onClick={() => setShowLayerPanel(false)} className="p-2 bg-gray-100 rounded-xl text-gray-400 hover:text-red-500 transition-all">
@@ -353,7 +339,6 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              {/* Upload Section */}
               <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 space-y-3">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tambah Layer Baru</span>
                 
@@ -397,7 +382,6 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              {/* Existing Layers List */}
               <div className="space-y-2">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Layer Tersimpan ({layers.length})</span>
                 {layers.length === 0 ? (
@@ -426,7 +410,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-      {/* Report Detail Modal */}
       {detailReport && (
         <ReportDetailModal report={detailReport} onClose={() => setDetailReport(null)} isAdmin={true} />
       )}

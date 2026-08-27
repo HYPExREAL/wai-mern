@@ -8,7 +8,6 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ReportHistoryPage from "./pages/ReportHistoryPage";
 import AdminStatisticsPage from "./pages/AdminStatisticsPage";
 
-// Component to protect admin routes
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   const token = localStorage.getItem("token");
@@ -30,7 +29,6 @@ function App() {
             <Route path="/map" element={<MapPage />} />
             <Route path="/login" element={<LoginPage />} />
             
-            {/* Protected Admin Routes */}
             <Route 
               path="/admin/dashboard" 
               element={

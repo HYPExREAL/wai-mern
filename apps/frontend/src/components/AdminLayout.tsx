@@ -4,20 +4,12 @@ import { LogOut } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 
 interface AdminLayoutProps {
-  /** Page title displayed in the header */
   title: string;
-  /** Subtitle displayed below the title */
   subtitle: string;
-  /** Main page content */
   children: ReactNode;
-  /** Optional: pass onReportClick down to sidebar (used by Dashboard) */
   onReportClick?: (lat: number, lng: number) => void;
 }
 
-/**
- * Shared layout shell for all admin pages (except the full-bleed map dashboard).
- * Provides: sidebar (with rail mode), mobile overlay, header with hamburger & logout.
- */
 export default function AdminLayout({ title, subtitle, children, onReportClick }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const navigate = useNavigate();
@@ -31,7 +23,6 @@ export default function AdminLayout({ title, subtitle, children, onReportClick }
   return (
     <div className="flex h-svh w-full bg-gray-100 overflow-hidden relative">
 
-      {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-30 md:hidden animate-backdrop-in"
@@ -39,11 +30,10 @@ export default function AdminLayout({ title, subtitle, children, onReportClick }
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`
         fixed inset-y-0 left-0 z-40 h-full transition-all duration-300 ease-in-out overflow-hidden shadow-2xl md:shadow-none
-        ${sidebarOpen ? 'w-[85vw] md:w-[380px] translate-x-0 bg-white' : 'w-[85vw] md:w-[72px] -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
+        ${sidebarOpen ? 'w-[85vw] md:w-380px translate-x-0 bg-white' : 'w-[85vw] md:w-72px -translate-x-full md:translate-x-0 bg-white md:border-r border-gray-200'}
         md:relative
       `}
       >
@@ -54,12 +44,9 @@ export default function AdminLayout({ title, subtitle, children, onReportClick }
         />
       </div>
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col p-4 md:p-10 z-10 overflow-y-auto custom-scrollbar">
-        {/* Header Area */}
         <div className="flex justify-between items-start md:items-center mb-6 md:mb-8 max-w-6xl w-full mx-auto">
           <div className="flex items-start md:items-center gap-3 md:gap-4">
-            {/* Mobile hamburger */}
             <button
               onClick={() => setSidebarOpen(true)}
               className="md:hidden p-3 bg-white rounded-xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all shrink-0 mt-0.5"
@@ -81,7 +68,6 @@ export default function AdminLayout({ title, subtitle, children, onReportClick }
           </button>
         </div>
 
-        {/* Page Content */}
         {children}
       </main>
     </div>

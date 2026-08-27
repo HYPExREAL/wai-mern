@@ -22,18 +22,15 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
 
   const [selectedReportForVerification, setSelectedReportForVerification] = useState<typeof pendingReports[0] | null>(null);
 
-  // AI Classification States
   const [aiScores, setAiScores] = useState<Record<string, { className: string; probability: number }>>({});
   const [isAiProcessing, setIsAiProcessing] = useState(false);
 
-  // Background AI Processing for Pending Reports
   useEffect(() => {
     if (pendingReports.length === 0) return;
     
     let isMounted = true;
     
     const runAI = async () => {
-      // Only process if there are new reports not yet scored
       const needsProcessing = pendingReports.some(r => !aiScores[r.id]);
       if (!needsProcessing) return;
 
@@ -73,13 +70,11 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
       if (isMounted) setIsAiProcessing(false);
     };
 
-    // run async without blocking render
     runAI();
 
     return () => { isMounted = false; };
   }, [pendingReports, aiScores]);
 
-  // Sort pendingReports based on AI score (Banjir first)
   const sortedPendingReports = [...pendingReports].sort((a, b) => {
     const scoreA = aiScores[a.id];
     const scoreB = aiScores[b.id];
@@ -89,7 +84,6 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
     
     if (isBanjirA && !isBanjirB) return -1;
     if (!isBanjirA && isBanjirB) return 1;
-    // Keep original chronological order for remaining
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); 
   });
 
@@ -146,7 +140,6 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
   return (
     <aside className={`w-full h-full flex flex-col z-20 pointer-events-none transition-all duration-300 ${isOpen ? 'p-4 md:p-6' : 'p-2'}`}>
       
-      {/* Toggle Button */}
       <div className={`pointer-events-auto flex items-center transition-all duration-300 shrink-0 ${isOpen ? 'p-3 md:p-4 mb-4 md:mb-6 justify-between' : 'justify-center mb-3'}`}>
         <Link to="/" className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${isOpen ? 'w-auto opacity-100' : 'w-0 opacity-0 pointer-events-none absolute'}`}>
           <img src="/WAI.png" alt="WAI Logo" className="h-8 md:h-10 w-auto object-contain shrink-0" />
@@ -163,10 +156,8 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
         </button>
       </div>
 
-      {/* Main Container */}
       <div className="flex-1 flex flex-col overflow-hidden pointer-events-auto gap-3">
         
-        {/* Reports List Card (Only visible if open) */}
         {isOpen && (
         <div className="flex-1 flex flex-col overflow-hidden">
           <h2 className="text-[#005a9e] text-base md:text-lg font-bold text-center mb-4 md:mb-6 shrink-0">Laporan Masuk</h2>
@@ -251,7 +242,6 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
           )}
         </div>
 
-          {/* Footer Navigation (inside card when open) */}
           <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-2 shrink-0">
             <Link to="/admin/dashboard" className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition-all text-sm ${!isHistoryPage && !isStatsPage ? "bg-[#005a9e] text-white shadow-md" : "text-gray-500 hover:bg-gray-50 border border-gray-100 hover:text-[#005a9e]"}`}>
               <MapIcon className="w-5 h-5 shrink-0" />
@@ -269,7 +259,6 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
         </div>
         )}
 
-        {/* Collapsed Navigation Rail */}
         {!isOpen && (
           <div className="flex flex-col items-center gap-2">
             <Link 
@@ -308,22 +297,17 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
           </div>
         )}
       </div>
-      {/* ── Verification Modal ─────────────────────────────────── */}
       {selectedReportForVerification && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6 pointer-events-auto">
-          {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-[#003B6D]/40 backdrop-blur-md animate-backdrop-in"
             onClick={() => setSelectedReportForVerification(null)}
           />
           
-          {/* Modal Content */}
-          <div className="relative bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh] animate-slide-up md:animate-scale-in">
-            {/* Mobile drag handle */}
+          <div className="relative bg-white w-full max-w-lg rounded-t-32px md:rounded-[40px] shadow-2xl border border-white/50 overflow-hidden flex flex-col max-h-[90svh] md:max-h-[85vh] animate-slide-up md:animate-scale-in">
             <div className="md:hidden flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 rounded-full" />
             </div>
-            {/* Header / Image Area */}
             <div className="relative w-full aspect-video bg-gray-100 shrink-0 overflow-x-auto flex snap-x snap-mandatory custom-scrollbar">
               {selectedReportForVerification.imageUrls && selectedReportForVerification.imageUrls.length > 0 ? (
                 selectedReportForVerification.imageUrls.map((url, idx) => (
@@ -349,7 +333,6 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
                 </div>
               )}
               
-              {/* Close Button */}
               <button 
                 onClick={() => setSelectedReportForVerification(null)}
                 className="absolute top-3 right-3 md:top-6 md:right-6 p-2 md:p-3 bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-xl text-gray-500 hover:text-red-500 transition-all hover:scale-110"
@@ -357,13 +340,11 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
                 <X size={18} />
               </button>
 
-              {/* Status Badge */}
               <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 px-3 py-1.5 md:px-4 md:py-2 bg-amber-500 text-white rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-widest shadow-lg">
                 Menunggu Verifikasi
               </div>
             </div>
 
-            {/* Content Area */}
             <div className="p-5 md:p-8 flex flex-col gap-4 md:gap-6 overflow-y-auto">
               <div>
                 <h3 className="text-lg md:text-2xl font-black text-[#003B6D] mb-1 md:mb-2 leading-tight">
@@ -398,7 +379,6 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
                 </div>
               </div>
 
-              {/* AI Prediction Box */}
               {aiScores[selectedReportForVerification.id] && (
                 <div className={`p-3 md:p-4 rounded-2xl md:rounded-3xl border flex items-center justify-between ${
                    aiScores[selectedReportForVerification.id].className.toLowerCase().includes("bukan") || aiScores[selectedReportForVerification.id].className.toLowerCase().includes("tidak")
@@ -434,7 +414,6 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
                 </div>
               )}
 
-              {/* Depth Info */}
               <div className="bg-gray-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3 md:gap-4">
                   <div className={`p-2.5 rounded-xl shadow-sm ${getSeverityFromDepth(selectedReportForVerification.severity).colorClass}`}>
@@ -462,9 +441,7 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex flex-col gap-3 mt-2 pb-2">
-                {/* Verify — always prominent and on top on mobile */}
                 <button 
                   onClick={handleConfirmApprove}
                   className="w-full py-4 bg-[#16A34A] text-white rounded-2xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-[0.98] uppercase text-sm tracking-widest flex items-center justify-center gap-2.5"
@@ -472,7 +449,6 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
                   <Check size={18} />
                   <span>Konfirmasi Verifikasi</span>
                 </button>
-                {/* Back — subtle secondary */}
                 <button 
                   onClick={() => setSelectedReportForVerification(null)}
                   className="w-full py-3 bg-gray-50 text-gray-400 rounded-xl font-bold hover:bg-gray-100 hover:text-gray-500 transition-all active:scale-[0.98] uppercase text-xs tracking-widest border border-gray-100"

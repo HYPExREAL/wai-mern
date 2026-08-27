@@ -22,6 +22,9 @@ export default defineConfig({
             if (id.includes('lucide-react')) {
               return 'ui';
             }
+            if (id.includes('@tensorflow') || id.includes('@teachablemachine')) {
+              return 'ai';
+            }
             if (id.includes('axios')) {
               return 'utils';
             }

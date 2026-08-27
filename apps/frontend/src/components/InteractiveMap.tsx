@@ -35,7 +35,6 @@ import ReportDetailModal from "./ReportDetailModal";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 import TimeSlider from "./TimeSlider";
 
-// ── Bandar Lampung center ──────────────────────────────────────
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
 
 interface NominatimResult {
@@ -44,11 +43,9 @@ interface NominatimResult {
   display_name: string;
 }
 
-// ── Map sub-component: click handler ─────────────────────────
 function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
   useMapEvents({
     click(e) {
-      // Don't fire if the click was on a UI control (buttons, inputs, labels, etc.)
       const target = e.originalEvent?.target as HTMLElement | null;
       if (target && target.closest('button, input, label, a, [role="button"], .leaflet-popup, .leaflet-control')) return;
       onMapClick(e.latlng.lat, e.latlng.lng);
@@ -57,12 +54,10 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
   return null;
 }
 
-// ── Map sub-component: fly to logic ────────────────────────────
 function RecenterButton({ center, trigger, zoom = 16 }: { center: [number, number], trigger: number, zoom?: number }) {
   const map = useMap();
   const centerRef = useRef(center);
 
-  // Keep ref in sync with latest center — must be in an effect (React 19)
   useEffect(() => {
     centerRef.current = center;
   }, [center]);
@@ -75,7 +70,6 @@ function RecenterButton({ center, trigger, zoom = 16 }: { center: [number, numbe
   return null;
 }
 
-// ── Main component ─────────────────────────────────────────────
 export default function InteractiveMap() {
   const navigate = useNavigate();
   const geo = useGeolocation();
@@ -83,7 +77,6 @@ export default function InteractiveMap() {
   const { notify } = useNotifications();
   const { layers: publicLayers, enabledIds, geoDataCache, toggleLayer } = useLayers(true);
 
-  // UI State
   const [showReportForm, setShowReportForm] = useState(false);
   const [recenterTrigger, setRecenterTrigger] = useState(0);
   const [showLayers, setShowLayers] = useState(false);
@@ -93,7 +86,6 @@ export default function InteractiveMap() {
   const [detailReport, setDetailReport] = useState<FloodReport | null>(null);
   const [filteredReports, setFilteredReports] = useState<FloodReport[]>(reports);
 
-  // Form state
   const [name, setName] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [depth, setDepth] = useState("");
@@ -106,13 +98,12 @@ export default function InteractiveMap() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [base64Images, setBase64Images] = useState<string[]>([]);
   
-  // Search Suggestions State
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [flyToCoords, setFlyToCoords] = useState<[number, number]>(BANDAR_LAMPUNG);
   const [flyTrigger, setFlyTrigger] = useState(0);
 
-  const accuracyOk = geo.accuracy !== null && geo.accuracy <= 2000; // Allow up to 2000m for testing and poor signals
+  const accuracyOk = geo.accuracy !== null && geo.accuracy <= 2000;
   const hasValidLocation = manualLocation !== null || (!geo.loading && !geo.error && accuracyOk);
   const canSubmit =
     hasValidLocation &&
@@ -122,7 +113,6 @@ export default function InteractiveMap() {
   const finalLat = manualLocation ? manualLocation[0] : geo.latitude;
   const finalLng = manualLocation ? manualLocation[1] : geo.longitude;
 
-  // Fetch suggestions as user types (Debounced)
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (searchQuery.length < 3) {
@@ -183,7 +173,6 @@ export default function InteractiveMap() {
     setShowSuggestions(false);
   };
 
-  // Client-side image compression
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -225,7 +214,6 @@ export default function InteractiveMap() {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    // Filter out oversized files, keep valid ones
     const validFiles: File[] = [];
     const skippedNames: string[] = [];
     for (const file of files) {
@@ -249,7 +237,6 @@ export default function InteractiveMap() {
       notify("error", "Gagal memproses gambar.");
     }
 
-    // Reset input so the same file can be re-selected after removal
     e.target.value = '';
   };
 
@@ -318,10 +305,8 @@ export default function InteractiveMap() {
   return (
     <div id="map-page" className="relative h-svh w-full overflow-hidden bg-gray-100">
       
-      {/* ── TOP BAR: Logo + Search + Exit ────────────────────── */}
       <div className="absolute top-3 left-3 right-3 md:top-6 md:left-6 md:right-6 z-1000 flex items-center justify-between pointer-events-auto">
         
-        {/* Logo */}
         <Link to="/" className="shrink-0 flex items-center gap-2 md:gap-3 bg-white px-2.5 py-2 md:px-3 md:py-2.5 rounded-xl md:rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all">
           <img src="/WAI.png" alt="WAI Logo" className="h-7 md:h-10 w-auto object-contain" />
           <div className="hidden sm:flex flex-col border-l border-gray-200 pl-2 md:pl-3">
@@ -331,7 +316,6 @@ export default function InteractiveMap() {
         </Link>
 
 
-        {/* Exit / Logout Button */}
         <button 
           onClick={handleTopRightAction}
           className="shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider"
@@ -350,10 +334,9 @@ export default function InteractiveMap() {
         </button>
       </div>
 
-      {/* ── LEFT: Report Form Card ─────────────────────────────── */}
       {showReportForm && (
         <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:top-32 md:left-6 z-1000 w-full md:w-auto md:max-w-sm animate-slide-up md:animate-slide-in-left pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-t-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-8 flex flex-col gap-3 md:gap-5 max-h-[60svh] md:max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
+          <div className="bg-white/95 backdrop-blur-md rounded-t-24px md:rounded-32px shadow-2xl border border-white/50 p-4 md:p-8 flex flex-col gap-3 md:gap-5 max-h-[60svh] md:max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between">
               <h2 className="text-[#005a9e] text-base md:text-xl font-bold">Lapor Banjir</h2>
               <button 
@@ -366,7 +349,6 @@ export default function InteractiveMap() {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 md:gap-4">
-              {/* Nama Pelapor */}
               <div className="space-y-1">
                 <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Nama Pelapor</label>
                 <input 
@@ -378,7 +360,6 @@ export default function InteractiveMap() {
                 />
               </div>
 
-              {/* Tanggal & Kedalaman */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Tanggal Pelapor</label>
@@ -405,7 +386,6 @@ export default function InteractiveMap() {
                 </div>
               </div>
 
-              {/* Lokasi — Search + Coordinates */}
               <div className="space-y-1.5">
                 <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Cari Lokasi</label>
                 <div className="relative">
@@ -445,7 +425,6 @@ export default function InteractiveMap() {
                     </button>
                   </div>
 
-                  {/* Inline Suggestions */}
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute top-full mt-1 left-0 right-0 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden py-1 z-50 max-h-40 overflow-y-auto">
                       {suggestions.map((s, idx) => (
@@ -465,7 +444,6 @@ export default function InteractiveMap() {
                   )}
                 </div>
 
-                {/* Coordinate display */}
                 {finalLat !== null && finalLng !== null && (
                   <p className="text-[10px] text-gray-400 font-mono pl-1">
                     📍 {finalLat.toFixed(5)}, {finalLng.toFixed(5)}
@@ -473,11 +451,9 @@ export default function InteractiveMap() {
                 )}
               </div>
 
-              {/* Dokumentasi */}
               <div className="space-y-1 md:space-y-4 md:mb-8">
                 <label className="block text-[#003B6D]/60 text-xs font-black uppercase tracking-widest mb-2">Unggah Foto</label>
                 
-                {/* Previews Grid */}
                 {imagePreviews.length > 0 && (
                   <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
                     {imagePreviews.map((preview, idx) => (
@@ -494,7 +470,6 @@ export default function InteractiveMap() {
                   </div>
                 )}
 
-                {/* Upload Button */}
                 <div className="relative group mt-2">
                   <input 
                     type="file" 
@@ -516,7 +491,6 @@ export default function InteractiveMap() {
                 </div>
               </div>
 
-              {/* Deskripsi */}
               <div className="space-y-1">
                 <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Deskripsi Kejadian</label>
                 <textarea 
@@ -528,7 +502,6 @@ export default function InteractiveMap() {
                 />
               </div>
 
-              {/* Submit Button */}
               <button 
                 type="submit"
                 disabled={!canSubmit || submitting}
@@ -542,12 +515,11 @@ export default function InteractiveMap() {
         </div>
       )}
 
-      {/* ── BOTTOM LEFT: Large Lapor Button ────────────────────── */}
       {!showReportForm && (
         <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-1000 pointer-events-auto">
         <button 
           onClick={() => setShowReportForm(!showReportForm)}
-          className="flex items-center gap-3 md:gap-6 bg-white pl-5 pr-4 py-3 md:pl-8 md:pr-6 md:py-4 rounded-2xl md:rounded-[32px] shadow-2xl border border-gray-100 hover:scale-105 transition-all group"
+          className="flex items-center gap-3 md:gap-6 bg-white pl-5 pr-4 py-3 md:pl-8 md:pr-6 md:py-4 rounded-2xl md:rounded-32px shadow-2xl border border-gray-100 hover:scale-105 transition-all group"
         >
           <span className="text-[#005a9e] text-2xl md:text-5xl font-black tracking-tighter uppercase italic">Lapor</span>
           <div className="relative">
@@ -561,7 +533,6 @@ export default function InteractiveMap() {
       )}
 
 
-      {/* ── MAP CONTAINER ─────────────────────────────────────── */}
       <MapContainer
         center={mapCenter}
         zoom={13}
@@ -581,7 +552,6 @@ export default function InteractiveMap() {
         <RecenterButton center={mapCenter} trigger={recenterTrigger} />
         <RecenterButton center={flyToCoords} trigger={flyTrigger} zoom={18} />
 
-        {/* GeoJSON Overlay Layers */}
         {layerBorder && (
           <GeoJSONLayer
             url="/layers/batas_kota.json"
@@ -595,7 +565,6 @@ export default function InteractiveMap() {
           />
         )}
 
-        {/* Dynamic DB Layers (public only) */}
         {publicLayers.map(layer => enabledIds.has(layer._id) && geoDataCache[layer._id] && (
           <GeoJSONLayer key={layer._id} data={geoDataCache[layer._id]} style={layer.style} />
         ))}
@@ -627,11 +596,10 @@ export default function InteractiveMap() {
             icon={getIconFromSeverity(report.severity, report.status)}
           >
             <Popup>
-              <div className="text-sm min-w-[200px] max-w-[260px]">
+              <div className="text-sm min-w-200px max-w-260px">
                 <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
                 <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description || "Tidak ada deskripsi"}</p>
 
-                {/* Severity + Date row */}
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
                     {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
@@ -641,7 +609,6 @@ export default function InteractiveMap() {
                   </span>
                 </div>
 
-                {/* View Detail Button */}
                 <button
                   onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
                   className="w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
@@ -660,10 +627,8 @@ export default function InteractiveMap() {
           </Marker>
         )}
 
-        {/* ── BOTTOM RIGHT: Controls ────────────────────────────── */}
         <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
           
-          {/* Legend Toggle */}
           <div className="relative">
             {showLegend && (
               <div className="absolute bottom-full right-0 mb-2 w-56 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-4 flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -712,7 +677,6 @@ export default function InteractiveMap() {
             </button>
           </div>
 
-          {/* Layers Toggle */}
             <div className="relative">
               {showLayers && (
                 <div className="absolute bottom-full right-0 mb-2 w-56 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 p-3 flex flex-col gap-1 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -761,7 +725,6 @@ export default function InteractiveMap() {
               </button>
             </div>
 
-            {/* Geo Control */}
             <button 
               onClick={() => setRecenterTrigger(prev => prev + 1)}
               className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
@@ -769,15 +732,12 @@ export default function InteractiveMap() {
               <Navigation className="w-6 h-6 md:w-8 md:h-8" />
             </button>
 
-            {/* Zoom Control */}
             <ZoomControls />
         </div>
       </MapContainer>
       
-      {/* Time Slider */}
       <TimeSlider reports={reports} onFilterChange={setFilteredReports} />
 
-      {/* ── Report Detail Modal ─────────────────────────────────── */}
       {detailReport && (
         <ReportDetailModal
           report={detailReport}

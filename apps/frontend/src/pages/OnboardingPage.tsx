@@ -26,7 +26,6 @@ export default function OnboardingPage() {
   const { ref: panduanRef, visible: panduanVisible } = useReveal();
   const { ref: aboutRef, visible: aboutVisible } = useReveal();
 
-  /* Scroll-aware navbar */
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -39,7 +38,6 @@ export default function OnboardingPage() {
   return (
     <div id="homepage" className="min-h-svh w-full bg-white overflow-x-hidden">
 
-      {/* ═══════════════════════ NAVBAR ═══════════════════════ */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 animate-fade-in-down ${
         scrolled || mobileMenuOpen
           ? "bg-white/95 backdrop-blur-md shadow-lg shadow-black/5"
@@ -47,7 +45,6 @@ export default function OnboardingPage() {
       }`}>
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo */}
             <a href="#homepage" className="flex items-center gap-3 group">
               <img
                 src="/RIF Logo Blue.png"
@@ -58,7 +55,6 @@ export default function OnboardingPage() {
               />
             </a>
 
-            {/* Desktop Nav Links */}
             <div className="hidden sm:flex items-center gap-6 md:gap-8">
               <a href="#panduan" className={`text-sm font-medium transition-colors ${
                 scrolled ? "text-slate-600 hover:text-[#005a9e]" : "text-white/80 hover:text-white"
@@ -82,7 +78,6 @@ export default function OnboardingPage() {
               </Link>
             </div>
 
-            {/* Mobile Burger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className={`sm:hidden p-2 rounded-xl transition-all ${
@@ -99,7 +94,6 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
         <div className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
           mobileMenuOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
         }`}>
@@ -129,16 +123,13 @@ export default function OnboardingPage() {
         </div>
       </nav>
 
-      {/* ═══════════════════════ HERO SECTION ═══════════════════════ */}
       <section className="relative min-h-svh flex items-center justify-center bg-linear-to-b from-[#001d3d] via-[#003566] to-[#005a9e]">
-        {/* Bottom globe-like curve separator */}
         <div className="absolute bottom-0 left-0 right-0 translate-y-px">
           <svg viewBox="0 0 1440 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto block">
             <path d="M0,160 C480,0 960,0 1440,160 L1440,160 L0,160 Z" fill="white"/>
           </svg>
         </div>
 
-        {/* Hero Content */}
         <div className="relative z-10 max-w-5xl mx-auto px-5 md:px-8 text-center pt-24 pb-32 md:pb-40">
           <div className="animate-fade-in-up">
             <img
@@ -168,7 +159,6 @@ export default function OnboardingPage() {
             Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu dalam pendataan bencana secara cepat dan akurat.
           </p>
 
-          {/* CTA Buttons */}
           <div
             className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up"
             style={{ animationDelay: "0.45s" }}
@@ -187,7 +177,6 @@ export default function OnboardingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════ PANDUAN SECTION ═══════════════════════ */}
       <section id="panduan" className="py-20 md:py-32 bg-white">
         <div
           ref={panduanRef}
@@ -195,7 +184,6 @@ export default function OnboardingPage() {
             panduanVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          {/* Section Header */}
           <div className="text-center mb-16">
             <span className="inline-block text-[#005a9e] font-semibold text-sm tracking-wider uppercase bg-[#005a9e]/10 px-4 py-1.5 rounded-full mb-4">
               Panduan Penggunaan
@@ -205,7 +193,6 @@ export default function OnboardingPage() {
             </h2>
           </div>
 
-          {/* Guide Video */}
           <div className="mb-16 mx-auto max-w-4xl bg-slate-900 rounded-2xl overflow-hidden shadow-2xl shadow-[#005a9e]/20 border border-slate-200 group relative">
             <video 
               src="/WAI%20Vid.mp4" 
@@ -222,7 +209,6 @@ export default function OnboardingPage() {
             </video>
           </div>
 
-          {/* Steps */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
             {[
               {
@@ -242,12 +228,10 @@ export default function OnboardingPage() {
               }
             ].map((step, i, arr) => (
               <div key={i} className="relative flex flex-col items-center text-center group">
-                {/* Connector line (hidden on mobile & last item) */}
                 {i < arr.length - 1 && (
-                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-[2px] bg-linear-to-r from-[#005a9e]/30 to-[#005a9e]/10" />
+                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-2px bg-linear-to-r from-[#005a9e]/30 to-[#005a9e]/10" />
                 )}
 
-                {/* Number Badge */}
                 <div className="relative z-10 w-20 h-20 rounded-2xl bg-linear-to-br from-[#005a9e] to-[#003B6D] text-white flex items-center justify-center text-2xl font-extrabold mb-6 shadow-lg shadow-[#005a9e]/25 group-hover:scale-110 transition-transform duration-300">
                   {step.number}
                 </div>
@@ -261,7 +245,6 @@ export default function OnboardingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════ ABOUT SECTION ═══════════════════════ */}
       <section id="tentang" className="py-20 md:py-32 bg-white">
         <div
           ref={aboutRef}
@@ -270,7 +253,6 @@ export default function OnboardingPage() {
           }`}
         >
           <div className="bg-linear-to-br from-[#001d3d] via-[#003566] to-[#005a9e] rounded-3xl p-8 md:p-16 text-center relative overflow-hidden shadow-2xl shadow-[#005a9e]/20">
-            {/* Decorative circles */}
             <div className="absolute -top-20 -right-20 w-60 h-60 bg-white/5 rounded-full" />
             <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-white/5 rounded-full" />
 
@@ -296,7 +278,6 @@ export default function OnboardingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════ FOOTER ═══════════════════════ */}
       <footer className="bg-slate-950 text-white/60 py-8">
         <div className="max-w-6xl mx-auto px-5 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">

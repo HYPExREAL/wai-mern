@@ -1,48 +1,36 @@
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import cors from "cors";
 import authRoutes from "./src/routes/authRoutes";
 import reportRoutes from "./src/routes/reportRoutes";
 import layerRoutes from "./src/routes/layerRoutes";
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
-app.use((_req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
-
-// Handle preflight requests immediately — never touch DB
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return;
-  }
-  next();
-});
+app.use(cors({
+  origin: process.env.FRONTEND_URL 
+    ? [process.env.FRONTEND_URL, "http://localhost:5173"] 
+    : "*",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  credentials: true
+}));
 
 app.use(express.json({ limit: "50mb" }));
 
-// Connect to MongoDB (cached for serverless)
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/wai-flood";
 
 let isConnected = false;
 async function connectDB() {
   if (isConnected) return;
-  // 5-second timeout to prevent Vercel 10s serverless timeout crash
   await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
   isConnected = true;
   console.log("✅ Connected to MongoDB");
 }
 
-// Ensure DB is connected before handling routes (skip health + preflight)
 app.use(async (req, res, next) => {
   if (req.method === "OPTIONS" || req.path === "/api/health") return next();
   try {
@@ -54,19 +42,15 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/layers", layerRoutes);
 
-// Basic health check route
 app.get("/api/health", (_req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
 
-// ── Local dev: start the server with app.listen ────────────────
-// In Vercel serverless, this block is skipped because there's no persistent process
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
   connectDB()
     .then(() => {
@@ -80,5 +64,4 @@ if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
     });
 }
 
-// ── Vercel serverless export ───────────────────────────────────
 export default app;

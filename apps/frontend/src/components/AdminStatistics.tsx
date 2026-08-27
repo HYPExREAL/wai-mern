@@ -16,7 +16,6 @@ export default function AdminStatistics() {
     return allReports.filter((r) => getDistrictFromCoords(r.latitude, r.longitude) === selectedDistrict);
   }, [allReports, selectedDistrict]);
 
-  // Global district counts (unaffected by filter, to show full distribution map)
   const globalDistricts = useMemo(() => {
     const districtCount: Record<string, number> = {};
     allReports.forEach((r) => {
@@ -28,7 +27,6 @@ export default function AdminStatistics() {
       .map(([label, count]) => ({ label, count }));
   }, [allReports]);
 
-  // ── Calculate Statistics (affected by filter) ────────────────────────────────────
   const stats = useMemo(() => {
     const total = filteredReports.length;
     const approved = filteredReports.filter((r) => r.status === "approved").length;
@@ -47,17 +45,14 @@ export default function AdminStatistics() {
     const trendMap: Record<string, { label: string; count: number; ts: number }> = {};
 
     filteredReports.forEach((r) => {
-      // Depth
       const depth = r.severity || 0;
       totalDepth += depth;
       if (depth > maxDepth) maxDepth = depth;
       
-      // Severity
       const sev = getSeverityFromDepth(depth);
       if (sev.label in severityCount)
         severityCount[sev.label as keyof typeof severityCount]++;
 
-      // Trend (Monthly)
       const date = new Date(r.createdAt);
       const monthYear = date.toLocaleString('id-ID', { month: 'short', year: 'numeric' });
       if (!trendMap[monthYear]) {
@@ -92,9 +87,7 @@ export default function AdminStatistics() {
 
   return (
     <AdminLayout title="Statistik Laporan" subtitle="Akses informasi statistik dari data yang masuk">
-      {/* Content Area */}
       <div className="flex flex-col gap-6 max-w-6xl w-full mx-auto pb-8">
-        {/* Header Actions */}
         <div className="flex justify-end items-center mb-2">
           <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
             <MapPin className="w-4 h-4 text-gray-400" />
@@ -111,7 +104,6 @@ export default function AdminStatistics() {
           </div>
         </div>
 
-        {/* Quick Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-2">
             <div className="flex items-center gap-3 text-[#005a9e]">
@@ -155,8 +147,7 @@ export default function AdminStatistics() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Depth Analytics */}
-          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
+          <div className="bg-white p-6 md:p-8 rounded-32px shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-[#005a9e]/10 text-[#005a9e] rounded-lg">
                 <BarChart3 className="w-5 h-5" />
@@ -177,7 +168,7 @@ export default function AdminStatistics() {
           </div>
 
           {/* Severity Distribution */}
-          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
+          <div className="bg-white p-6 md:p-8 rounded-32px shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
                 <AlertTriangle className="w-5 h-5" />
@@ -210,8 +201,7 @@ export default function AdminStatistics() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Location Distribution */}
-          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
+          <div className="bg-white p-6 md:p-8 rounded-32px shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                 <MapPin className="w-5 h-5" />
@@ -241,8 +231,7 @@ export default function AdminStatistics() {
             </div>
           </div>
 
-          {/* Time Trend */}
-          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
+          <div className="bg-white p-6 md:p-8 rounded-32px shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                 <TrendingUp className="w-5 h-5" />
@@ -250,12 +239,12 @@ export default function AdminStatistics() {
               <h3 className="text-lg font-black text-[#003B6D]">Tren Laporan (Bulanan)</h3>
             </div>
             
-            <div className="flex flex-col justify-end gap-3 h-full min-h-[200px] pt-4">
+            <div className="flex flex-col justify-end gap-3 h-full min-h-200px pt-4">
               {stats.trends.length > 0 ? (
                 <div className="flex items-end gap-2 h-full mt-auto">
                   {stats.trends.map((item) => {
                     const maxTrend = Math.max(...stats.trends.map((t) => t.count));
-                    const heightPct = Math.max((item.count / maxTrend) * 100, 5); // at least 5% so it's visible
+                    const heightPct = Math.max((item.count / maxTrend) * 100, 5);
                     return (
                       <div key={item.label} className="flex flex-col items-center gap-2 flex-1 group">
                         <span className="text-xs font-bold text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">{item.count}</span>

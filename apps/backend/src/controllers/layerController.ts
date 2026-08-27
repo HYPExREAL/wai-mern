@@ -2,10 +2,8 @@ import type { Request, Response } from "express";
 import SpatialLayer from "../models/SpatialLayer";
 import { convertToGeoJSON, getSupportedFormats } from "../utils/geoConverter";
 
-// List projection — exclude geoData from list queries (it can be huge)
 const LIST_PROJECTION = "-geoData";
 
-// GET /api/layers (Public) — list all layers (metadata only, no geoData)
 export const getLayers = async (req: Request, res: Response) => {
   try {
     const { publicOnly } = req.query;
@@ -21,7 +19,6 @@ export const getLayers = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/layers/:id (Public) — single layer WITH full geoData
 export const getLayerById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -36,7 +33,6 @@ export const getLayerById = async (req: Request, res: Response) => {
   }
 };
 
-// POST /api/layers (Admin) — create a new layer (raw JSON body, backward compat)
 export const createLayer = async (req: Request, res: Response) => {
   try {
     const { name, description, fileName, geoData, style, isPublic } = req.body;
@@ -56,7 +52,6 @@ export const createLayer = async (req: Request, res: Response) => {
 
     await layer.save();
     
-    // Return without geoData to keep response small
     const saved = layer.toObject();
     const { geoData: _, ...withoutGeo } = saved;
     return res.status(201).json({
@@ -69,7 +64,6 @@ export const createLayer = async (req: Request, res: Response) => {
   }
 };
 
-// POST /api/layers/upload (Admin) — upload a spatial file (multipart/form-data)
 export const uploadLayer = async (req: Request, res: Response) => {
   try {
     const file = (req as any).file as Express.Multer.File | undefined;
@@ -86,10 +80,8 @@ export const uploadLayer = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Nama layer wajib diisi." });
     }
 
-    // Convert file to GeoJSON
     const result = await convertToGeoJSON(file.buffer, file.originalname);
 
-    // Build style
     const style = {
       color: color || "#3B82F6",
       weight: 2,
@@ -97,7 +89,6 @@ export const uploadLayer = async (req: Request, res: Response) => {
       fillOpacity: 0.1,
     };
 
-    // Save to DB
     const layer = new SpatialLayer({
       name: name.trim(),
       description: `Diimpor dari ${result.detectedFormat} (${result.featureCount} fitur)`,
@@ -128,7 +119,6 @@ export const uploadLayer = async (req: Request, res: Response) => {
   }
 };
 
-// PATCH /api/layers/:id (Admin) — update layer metadata/style
 export const updateLayer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -155,7 +145,6 @@ export const updateLayer = async (req: Request, res: Response) => {
   }
 };
 
-// DELETE /api/layers/:id (Admin)
 export const deleteLayer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

@@ -21,7 +21,6 @@ interface BackendReport {
   createdAt: string;
 }
 
-// Helper to transform backend GeoJSON to frontend flat structure
 const transformReport = (data: BackendReport): FloodReport => ({
   id: data._id,
   title: data.title,
@@ -142,8 +141,6 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     }
   }, [refreshReports, refreshPending]);
 
-  // Initial fetch — inline the API call so all setState happens in async callbacks,
-  // avoiding the React 19 "synchronous setState in effect" warning.
   useEffect(() => {
     let cancelled = false;
     apiClient.get("/reports/published")

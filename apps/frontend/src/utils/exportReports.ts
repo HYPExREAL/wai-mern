@@ -1,8 +1,6 @@
 import * as XLSX from "xlsx";
 import type { FloodReport } from "../context/reportsContextDef";
 
-// ── Shared helpers ──────────────────────────────────────────────
-
 function triggerDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -37,8 +35,6 @@ function reportToRow(report: FloodReport) {
   };
 }
 
-// ── CSV Export ──────────────────────────────────────────────────
-
 export function exportToCSV(reports: FloodReport[], filename = "laporan-banjir") {
   if (reports.length === 0) return;
 
@@ -49,7 +45,6 @@ export function exportToCSV(reports: FloodReport[], filename = "laporan-banjir")
     ...rows.map(row =>
       headers.map(h => {
         const val = String(row[h as keyof typeof row] ?? "");
-        // Escape commas and quotes
         return val.includes(",") || val.includes('"')
           ? `"${val.replace(/"/g, '""')}"`
           : val;
@@ -61,15 +56,12 @@ export function exportToCSV(reports: FloodReport[], filename = "laporan-banjir")
   triggerDownload(blob, `${filename}.csv`);
 }
 
-// ── XLSX Export ─────────────────────────────────────────────────
-
 export function exportToXLSX(reports: FloodReport[], filename = "laporan-banjir") {
   if (reports.length === 0) return;
 
   const rows = reports.map(reportToRow);
   const ws = XLSX.utils.json_to_sheet(rows);
 
-  // Auto-size columns
   const colWidths = Object.keys(rows[0]!).map(key => ({
     wch: Math.max(
       key.length,
@@ -82,8 +74,6 @@ export function exportToXLSX(reports: FloodReport[], filename = "laporan-banjir"
   XLSX.utils.book_append_sheet(wb, ws, "Laporan Banjir");
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
-
-// ── GeoJSON Export ──────────────────────────────────────────────
 
 export function exportToGeoJSON(reports: FloodReport[], filename = "laporan-banjir") {
   if (reports.length === 0) return;

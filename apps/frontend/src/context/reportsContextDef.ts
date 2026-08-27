@@ -6,7 +6,7 @@ export interface FloodReport {
   description: string;
   latitude: number;
   longitude: number;
-  severity: number; // depth in cm
+  severity: number;
   status: "pending" | "approved" | "rejected";
   imageUrl?: string;
   imageUrls?: string[];
