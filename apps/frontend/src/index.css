@@ -2,7 +2,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* Branding Proyek Banjir */
   --color-flood-50: #eff6ff;
   --color-flood-100: #dbeafe;
   --color-flood-200: #bfdbfe;
@@ -22,7 +21,6 @@
   --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
-/* Base style untuk Leaflet agar tidak konflik dengan Tailwind Reset */
 .leaflet-container {
   @apply h-full w-full z-10;
 }

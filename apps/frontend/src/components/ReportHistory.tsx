@@ -57,7 +57,7 @@ export default function ReportHistory() {
       <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm border ${
+          className={`cursor-pointer flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm border ${
             showFilters || hasActiveFilters
               ? "bg-[#005a9e] text-white border-[#005a9e]"
               : "bg-white text-[#005a9e] border-gray-100 hover:bg-gray-50"
@@ -74,7 +74,7 @@ export default function ReportHistory() {
           <button
             onClick={() => setShowExportMenu(!showExportMenu)}
             disabled={allReports.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-white text-[#005a9e] border border-gray-100 hover:bg-gray-50 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            className="cursor-pointer flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-white text-[#005a9e] border border-gray-100 hover:bg-gray-50 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
@@ -84,15 +84,15 @@ export default function ReportHistory() {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
               <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 min-w-[160px]">
-                <button onClick={() => handleExport("xlsx")} className="w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3 border-b border-gray-50">
+                <button onClick={() => handleExport("xlsx")} className="cursor-pointer w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3 border-b border-gray-50">
                   <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-black">XLSX</span>
                   Excel
                 </button>
-                <button onClick={() => handleExport("csv")} className="w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3 border-b border-gray-50">
+                <button onClick={() => handleExport("csv")} className="cursor-pointer w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3 border-b border-gray-50">
                   <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black">CSV</span>
                   Comma Separated
                 </button>
-                <button onClick={() => handleExport("geojson")} className="w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3">
+                <button onClick={() => handleExport("geojson")} className="cursor-pointer w-full text-left px-4 py-3 text-sm font-bold text-[#003B6D] hover:bg-[#005a9e]/5 transition-colors flex items-center gap-3">
                   <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-black">GEO</span>
                   GeoJSON
                 </button>
@@ -150,7 +150,7 @@ export default function ReportHistory() {
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 border border-red-100 transition-all"
+              className="cursor-pointer shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 border border-red-100 transition-all"
             >
               <X className="w-3.5 h-3.5" />
               Reset

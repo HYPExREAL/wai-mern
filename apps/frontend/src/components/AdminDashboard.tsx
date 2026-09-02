@@ -233,7 +233,7 @@ export default function AdminDashboard() {
               )}
               <button 
                 onClick={() => { setShowLegend(!showLegend); if (!showLegend) setShowLayers(false); }}
-                className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${showLegend ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'}`}
+                className={`cursor-pointer p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${showLegend ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'}`}
                 title="Legenda Peta"
               >
                 <Info className="w-6 h-6 md:w-8 md:h-8" />
@@ -279,7 +279,7 @@ export default function AdminDashboard() {
                   <div className="w-full h-px bg-gray-100 my-1" />
                   <button
                     onClick={() => { setShowLayerPanel(true); setShowLayers(false); }}
-                    className="flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-[#005a9e]/5 transition-colors text-[#005a9e]"
+                    className="cursor-pointer flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-[#005a9e]/5 transition-colors text-[#005a9e]"
                   >
                     <Plus className="w-4 h-4" />
                     <span className="text-xs font-bold">Kelola Layer</span>
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
               )}
               <button 
                 onClick={() => { setShowLayers(!showLayers); if (!showLayers) setShowLegend(false); }}
-                className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${showLayers ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'}`}
+                className={`cursor-pointer p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${showLayers ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'}`}
               >
                 <Layers className="w-6 h-6 md:w-8 md:h-8" />
               </button>
@@ -296,14 +296,14 @@ export default function AdminDashboard() {
 
             <button 
               onClick={() => setUniformMarker(!uniformMarker)}
-              className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${uniformMarker ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'}`}
+              className={`cursor-pointer p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${uniformMarker ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'}`}
               title={uniformMarker ? "Tampilkan Warna Kedalaman" : "Tampilkan Warna Seragam"}
             >
               <Palette className="w-6 h-6 md:w-8 md:h-8" />
             </button>
 
             <button onClick={() => setSelectedLocation(BANDAR_LAMPUNG)}
-              className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all">
+              className="cursor-pointer p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all">
               <Navigation className="w-6 h-6 md:w-8 md:h-8" />
             </button>
             <ZoomControls />
@@ -323,7 +323,7 @@ export default function AdminDashboard() {
           <div className="hidden md:block" />
 
           <button onClick={handleLogout}
-            className="group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider">
+            className="cursor-pointer group flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider">
             <span className="hidden sm:inline">Logout</span>
             <LogOut className="w-4 h-4 md:w-5 md:h-5" />
           </button>
@@ -343,7 +343,7 @@ export default function AdminDashboard() {
               
               <div className="flex justify-between items-center">
                 <h2 className="text-xl md:text-2xl font-black text-[#003B6D]">Kelola Layer</h2>
-                <button onClick={() => setShowLayerPanel(false)} className="p-2 bg-gray-100 rounded-xl text-gray-400 hover:text-red-500 transition-all">
+                <button onClick={() => setShowLayerPanel(false)} className="cursor-pointer p-2 bg-gray-100 rounded-xl text-gray-400 hover:text-red-500 transition-all">
                   <X size={18} />
                 </button>
               </div>
@@ -362,7 +362,7 @@ export default function AdminDashboard() {
                   <div className="flex gap-1.5 flex-wrap">
                     {COLOR_PRESETS.map(c => (
                       <button key={c} onClick={() => setUploadColor(c)}
-                        className={`w-6 h-6 rounded-full border-2 transition-all ${uploadColor === c ? 'border-[#003B6D] scale-110' : 'border-transparent'}`}
+                        className={`cursor-pointer w-6 h-6 rounded-full border-2 transition-all ${uploadColor === c ? 'border-[#003B6D] scale-110' : 'border-transparent'}`}
                         style={{ backgroundColor: c }} />
                     ))}
                   </div>
@@ -375,7 +375,7 @@ export default function AdminDashboard() {
 
                 <div className="flex gap-2">
                   <button onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-sm font-bold text-gray-400 hover:border-[#005a9e] hover:text-[#005a9e] transition-all">
+                    className="cursor-pointer flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-sm font-bold text-gray-400 hover:border-[#005a9e] hover:text-[#005a9e] transition-all">
                     <Upload className="w-4 h-4" />
                     {uploadFile ? uploadFile.name : "Pilih file spasial"}
                   </button>
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
                 <p className="text-[10px] text-gray-400 font-medium leading-relaxed">Format: GeoJSON, Shapefile (.zip), KML, KMZ, GPX, CSV</p>
 
                 <button onClick={handleUploadLayer} disabled={uploading || !uploadFile || !uploadName.trim()}
-                  className="w-full py-3 bg-[#005a9e] text-white rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-[#004a8e] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  className="cursor-pointer w-full py-3 bg-[#005a9e] text-white rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-[#004a8e] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {uploading ? "Mengkonversi & Upload..." : <><Plus className="w-4 h-4" /> Tambah Layer</>}
                 </button>
               </div>
@@ -404,11 +404,11 @@ export default function AdminDashboard() {
                         <p className="text-[10px] text-gray-400">{layer.fileName}</p>
                       </div>
                       <button onClick={() => handleTogglePublic(layer._id, layer.isPublic)} title={layer.isPublic ? "Publik" : "Admin only"}
-                        className={`p-1.5 rounded-lg transition-all ${layer.isPublic ? 'text-[#16A34A] bg-green-50' : 'text-gray-300 bg-gray-50'}`}>
+                        className={`cursor-pointer p-1.5 rounded-lg transition-all ${layer.isPublic ? 'text-[#16A34A] bg-green-50' : 'text-gray-300 bg-gray-50'}`}>
                         {layer.isPublic ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                       </button>
                       <button onClick={() => handleDeleteLayer(layer._id, layer.name)}
-                        className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                        className="cursor-pointer p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

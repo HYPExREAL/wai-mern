@@ -106,7 +106,7 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
 
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 md:top-6 md:right-6 p-2 md:p-3 bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-xl text-gray-500 hover:text-red-500 transition-all hover:scale-110"
+            className="cursor-pointer absolute top-3 right-3 md:top-6 md:right-6 p-2 md:p-3 bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-xl text-gray-500 hover:text-red-500 transition-all hover:scale-110"
           >
             <X size={18} />
           </button>
@@ -236,7 +236,7 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
                     notify("error", "Gagal memverifikasi laporan.");
                   }
                 }}
-                className="w-full py-4 bg-[#16A34A] text-white rounded-2xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-[0.98] uppercase text-sm tracking-widest flex items-center justify-center gap-2.5"
+                className="cursor-pointer w-full py-4 bg-[#16A34A] text-white rounded-2xl font-bold hover:bg-[#15803d] shadow-xl shadow-[#16A34A]/30 transition-all active:scale-[0.98] uppercase text-sm tracking-widest flex items-center justify-center gap-2.5"
               >
                 <Check size={18} />
                 <span>Konfirmasi Verifikasi</span>
@@ -260,7 +260,7 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
                       }
                     });
                   }}
-                  className="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 shadow-md transition-all active:scale-[0.98] uppercase text-xs tracking-widest flex items-center justify-center gap-1.5"
+                  className="cursor-pointer flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 shadow-md transition-all active:scale-[0.98] uppercase text-xs tracking-widest flex items-center justify-center gap-1.5"
                 >
                   <XCircle size={16} />
                   <span>Tolak Laporan</span>
@@ -282,7 +282,7 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
                       }
                     });
                   }}
-                  className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold hover:bg-red-50 hover:text-red-600 shadow-sm transition-all active:scale-[0.98] uppercase text-xs tracking-widest flex items-center justify-center gap-1.5 border border-gray-200 hover:border-red-100"
+                  className="cursor-pointer flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold hover:bg-red-50 hover:text-red-600 shadow-sm transition-all active:scale-[0.98] uppercase text-xs tracking-widest flex items-center justify-center gap-1.5 border border-gray-200 hover:border-red-100"
                 >
                   <Trash2 size={16} />
                   <span>Hapus</span>
@@ -291,7 +291,7 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
 
               <button
                 onClick={onClose}
-                className="w-full mt-2 py-3 bg-transparent text-gray-400 rounded-xl font-bold hover:bg-gray-50 hover:text-gray-500 transition-all uppercase text-xs tracking-widest"
+                className="cursor-pointer w-full mt-2 py-3 bg-transparent text-gray-400 rounded-xl font-bold hover:bg-gray-50 hover:text-gray-500 transition-all uppercase text-xs tracking-widest"
               >
                 Tutup
               </button>
@@ -299,7 +299,7 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
           ) : (
             <button
               onClick={onClose}
-              className="w-full py-3 bg-gray-50 text-gray-400 rounded-xl font-bold hover:bg-gray-100 hover:text-gray-500 transition-all active:scale-[0.98] uppercase text-xs tracking-widest border border-gray-100"
+              className="cursor-pointer w-full py-3 bg-gray-50 text-gray-400 rounded-xl font-bold hover:bg-gray-100 hover:text-gray-500 transition-all active:scale-[0.98] uppercase text-xs tracking-widest border border-gray-100"
             >
               Tutup
             </button>

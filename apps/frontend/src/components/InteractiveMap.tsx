@@ -318,7 +318,7 @@ export default function InteractiveMap() {
 
         <button 
           onClick={handleTopRightAction}
-          className="shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider"
+          className="cursor-pointer shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider"
         >
           {isAdmin ? (
             <>
@@ -505,7 +505,7 @@ export default function InteractiveMap() {
               <button 
                 type="submit"
                 disabled={!canSubmit || submitting}
-                className="w-full bg-[#005a9e] text-white py-3 md:py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#004a82] transition-all disabled:opacity-50 mt-1 md:mt-2 shadow-lg shadow-[#005a9e]/20 text-sm md:text-base"
+                className="w-full bg-[#005a9e] cursor-pointer text-white py-3 md:py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#004a82] transition-all disabled:opacity-50 mt-1 md:mt-2 shadow-lg shadow-[#005a9e]/20 text-sm md:text-base"
               >
                 {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 {submitted ? "Berhasil Dikirim!" : "Kirim Laporan"}
@@ -519,7 +519,7 @@ export default function InteractiveMap() {
         <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-1000 pointer-events-auto">
         <button 
           onClick={() => setShowReportForm(!showReportForm)}
-          className="flex items-center gap-3 md:gap-6 bg-white pl-5 pr-4 py-3 md:pl-8 md:pr-6 md:py-4 rounded-2xl md:rounded-[32px] shadow-2xl border border-gray-100 hover:scale-105 transition-all group"
+          className="cursor-pointer flex items-center gap-3 md:gap-6 bg-white pl-5 pr-4 py-3 md:pl-8 md:pr-6 md:py-4 rounded-2xl md:rounded-[32px] shadow-2xl border border-gray-100 hover:scale-105 transition-all group"
         >
           <span className="text-[#005a9e] text-2xl md:text-5xl font-black tracking-tighter uppercase italic">Lapor</span>
           <div className="relative">
@@ -668,7 +668,7 @@ export default function InteractiveMap() {
                 setShowLegend(!showLegend);
                 if (!showLegend) setShowLayers(false);
               }}
-              className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${
+              className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all cursor-pointer ${
                 showLegend ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
               }`}
               title="Legenda Peta"
@@ -717,7 +717,7 @@ export default function InteractiveMap() {
                   setShowLayers(!showLayers);
                   if (!showLayers) setShowLegend(false);
                 }}
-                className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${
+                className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all cursor-pointer ${
                   showLayers ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'
                 }`}
               >
@@ -727,7 +727,7 @@ export default function InteractiveMap() {
 
             <button 
               onClick={() => setRecenterTrigger(prev => prev + 1)}
-              className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all"
+              className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all cursor-pointer"
             >
               <Navigation className="w-6 h-6 md:w-8 md:h-8" />
             </button>
