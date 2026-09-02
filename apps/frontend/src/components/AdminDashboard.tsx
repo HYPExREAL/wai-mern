@@ -4,13 +4,13 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { 
   Navigation, LogOut, Layers, Info,
-  Plus, Trash2, Eye, EyeOff, Upload, X,
+  Plus, Trash2, Eye, EyeOff, Upload, X, Palette
 } from "lucide-react";
 import { useReports } from "../hooks/useReports";
 import { useLayers } from "../hooks/useLayers";
 import { useNotifications } from "../context/notificationContextDef";
 import AdminSidebar from "./AdminSidebar";
-import { getIconFromSeverity } from "./map/icons";
+import { getIconFromSeverity, ICONS } from "./map/icons";
 import ZoomControls from "./map/ZoomControls";
 import GeoJSONLayer from "./map/GeoJSONLayer";
 import type { FloodReport } from "../context/reportsContextDef";
@@ -49,6 +49,7 @@ export default function AdminDashboard() {
   const [showLegend, setShowLegend] = useState(false);
   const [layerDAS, setLayerDAS] = useState(false);
   const [layerBorder, setLayerBorder] = useState(false);
+  const [uniformMarker, setUniformMarker] = useState(false);
 
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [detailReport, setDetailReport] = useState<FloodReport | null>(null);
@@ -166,7 +167,7 @@ export default function AdminDashboard() {
 
           {filteredReports.map((report) => (
             <Marker key={report.id} position={[report.latitude, report.longitude]}
-              icon={getIconFromSeverity(report.severity, report.status)}
+              icon={uniformMarker ? ICONS.user : getIconFromSeverity(report.severity, report.status)}
             >
               <Popup>
                 <div className="text-sm min-w-[200px] max-w-[260px]">
@@ -292,6 +293,14 @@ export default function AdminDashboard() {
                 <Layers className="w-6 h-6 md:w-8 md:h-8" />
               </button>
             </div>
+
+            <button 
+              onClick={() => setUniformMarker(!uniformMarker)}
+              className={`p-3 md:p-4 rounded-full shadow-2xl border border-gray-100 transition-all ${uniformMarker ? 'bg-[#005a9e] text-white' : 'bg-white text-[#005a9e] hover:bg-gray-50'}`}
+              title={uniformMarker ? "Tampilkan Warna Kedalaman" : "Tampilkan Warna Seragam"}
+            >
+              <Palette className="w-6 h-6 md:w-8 md:h-8" />
+            </button>
 
             <button onClick={() => setSelectedLocation(BANDAR_LAMPUNG)}
               className="p-3 md:p-4 bg-white rounded-full shadow-2xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all">

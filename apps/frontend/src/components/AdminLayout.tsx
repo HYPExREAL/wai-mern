@@ -45,7 +45,7 @@ export default function AdminLayout({ title, subtitle, children, onReportClick }
       </div>
 
       <main className="flex-1 flex flex-col p-4 md:p-10 z-10 overflow-y-auto custom-scrollbar">
-        <div className="flex justify-between items-start md:items-center mb-6 md:mb-8 max-w-6xl w-full mx-auto">
+        <div className="flex justify-between items-start md:items-center mb-6 md:mb-8 w-full">
           <div className="flex items-start md:items-center gap-3 md:gap-4">
             <button
               onClick={() => setSidebarOpen(true)}

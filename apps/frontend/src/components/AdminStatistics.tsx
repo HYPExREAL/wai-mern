@@ -87,7 +87,7 @@ export default function AdminStatistics() {
 
   return (
     <AdminLayout title="Statistik Laporan" subtitle="Akses informasi statistik dari data yang masuk">
-      <div className="flex flex-col gap-6 max-w-6xl w-full mx-auto pb-8">
+      <div className="flex flex-col gap-6 w-full pb-8">
         <div className="flex justify-end items-center mb-2">
           <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
             <MapPin className="w-4 h-4 text-gray-400" />

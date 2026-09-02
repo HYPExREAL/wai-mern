@@ -38,7 +38,7 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
         });
 
         const mainImage = full.imageUrls?.[0] || full.imageUrl;
-        if (mainImage) {
+        if (isAdmin && mainImage) {
           setIsAiLoading(true);
           const img = new Image();
           img.crossOrigin = "anonymous";
@@ -60,7 +60,7 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
         if (!cancelled) setLoadingImages(false);
       });
     return () => { cancelled = true; };
-  }, [report]);
+  }, [report, isAdmin]);
 
   return (
     <div className="fixed inset-0 z-2000 flex items-end md:items-center justify-center p-0 md:p-6">
@@ -157,12 +157,12 @@ export default function ReportDetailModal({ report, onClose, showStatus = true, 
             </div>
           </div>
 
-          {isAiLoading ? (
+          {isAdmin && isAiLoading ? (
             <div className="bg-indigo-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-indigo-100 flex items-center gap-3">
               <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
               <span className="text-xs font-bold text-indigo-700">AI sedang menganalisis gambar...</span>
             </div>
-          ) : aiPrediction ? (
+          ) : isAdmin && aiPrediction ? (
             <div className={`p-3 md:p-4 rounded-2xl md:rounded-3xl border flex items-center justify-between ${
                aiPrediction.className.toLowerCase().includes("bukan") || aiPrediction.className.toLowerCase().includes("tidak")
                  ? "bg-red-50 border-red-100" 
