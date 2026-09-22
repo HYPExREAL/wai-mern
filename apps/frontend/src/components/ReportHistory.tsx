@@ -21,6 +21,25 @@ export default function ReportHistory() {
   
   const [page, setPage] = useState(1);
 
+  const getPageNumbers = () => {
+    const total = allReportsPagination.totalPages;
+    const current = page;
+    let start = Math.max(1, current - 2);
+    let end = Math.min(total, current + 2);
+
+    if (current <= 3) {
+      end = Math.min(total, 5);
+    } else if (current >= total - 2) {
+      start = Math.max(1, total - 4);
+    }
+
+    const pages = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
   const fetchFiltered = useCallback(() => {
     const filters: Record<string, string> = {};
     if (filterFrom) filters.from = filterFrom;
@@ -290,25 +309,35 @@ export default function ReportHistory() {
         </div>
         
         {allReportsPagination.totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-gray-50">
+          <div className="flex items-center justify-center md:justify-start gap-1 p-6 border-t border-gray-100 bg-white rounded-b-[32px]">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="cursor-pointer p-2 flex items-center gap-1 bg-white border border-gray-200 rounded-lg text-sm font-bold text-[#005a9e] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 bg-white rounded-md text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed transition-colors"
             >
-              <ChevronLeft className="w-4 h-4" />
-              Sebelumnya
+              <ChevronLeft className="w-4 h-4" /> Back
             </button>
-            <span className="text-xs font-bold text-gray-500">
-              Halaman {allReportsPagination.page} dari {allReportsPagination.totalPages}
-            </span>
+            
+            {getPageNumbers().map(p => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-3.5 py-1.5 border rounded-md text-sm font-medium cursor-pointer transition-colors ${
+                  page === p 
+                    ? "bg-black text-white border-black" 
+                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+
             <button
               onClick={() => setPage(p => Math.min(allReportsPagination.totalPages, p + 1))}
               disabled={page === allReportsPagination.totalPages}
-              className="cursor-pointer p-2 flex items-center gap-1 bg-white border border-gray-200 rounded-lg text-sm font-bold text-[#005a9e] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 bg-white rounded-md text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed transition-colors"
             >
-              Selanjutnya
-              <ChevronRight className="w-4 h-4" />
+              Next <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         )}

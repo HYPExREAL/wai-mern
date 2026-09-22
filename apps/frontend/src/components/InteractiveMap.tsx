@@ -8,7 +8,6 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
 import "leaflet/dist/leaflet.css";
 import {
   Crosshair,
@@ -623,39 +622,37 @@ export default function InteractiveMap() {
           </Marker>
         )}
 
-        <MarkerClusterGroup chunkedLoading maxClusterRadius={60}>
-          {filteredReports.map((report) => (
-            <Marker
-              key={report.id}
-              position={[report.latitude, report.longitude]}
-              icon={getIconFromSeverity(report.severity, report.status)}
-            >
-              <Popup>
-                <div className="text-sm min-w-[200px] max-w-[260px]">
-                  <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
-                  <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description || "Tidak ada deskripsi"}</p>
+        {filteredReports.map((report) => (
+          <Marker
+            key={report.id}
+            position={[report.latitude, report.longitude]}
+            icon={getIconFromSeverity(report.severity, report.status)}
+          >
+            <Popup>
+              <div className="text-sm min-w-[200px] max-w-[260px]">
+                <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
+                <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description || "Tidak ada deskripsi"}</p>
 
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
-                      {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
-                    </span>
-                    <span className="text-[10px] font-bold text-gray-400">
-                      {new Date(report.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
-                    className="cursor-pointer w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    Lihat Detail
-                  </button>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
+                    {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
+                  </span>
+                  <span className="text-[10px] font-bold text-gray-400">
+                    {new Date(report.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </span>
                 </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MarkerClusterGroup>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
+                  className="cursor-pointer w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  Lihat Detail
+                </button>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
 
         {geo.latitude && geo.longitude && (
           <Marker position={[geo.latitude, geo.longitude]} icon={ICONS.user}>
