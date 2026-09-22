@@ -26,14 +26,19 @@ export interface ReportsContextType {
   reports: FloodReport[];
   pendingReports: FloodReport[];
   allReports: FloodReport[];
+  allReportsPagination: {
+    total: number;
+    page: number;
+    totalPages: number;
+  };
   loading: boolean;
   addReport: (report: Omit<FloodReport, "id" | "status" | "createdAt">, accuracy: number) => Promise<void>;
   approveReport: (id: string) => Promise<void>;
   rejectReport: (id: string) => Promise<void>;
   deleteReport: (id: string) => Promise<void>;
-  refreshReports: () => Promise<void>;
+  refreshReports: (bounds?: { minLng: number; minLat: number; maxLng: number; maxLat: number }) => Promise<void>;
   refreshPending: () => Promise<void>;
-  refreshAll: (filters?: ReportFilters) => Promise<void>;
+  refreshAll: (filters?: ReportFilters, page?: number, limit?: number) => Promise<void>;
 }
 
 export const ReportsContext = createContext<ReportsContextType | undefined>(undefined);

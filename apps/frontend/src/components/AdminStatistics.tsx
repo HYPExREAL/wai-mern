@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useReports } from "../hooks/useReports";
-import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
+import { getSeverityFromDepth } from "../utils/depthUtils";
 import { getDistrictFromCoords } from "../utils/locationUtils";
-import { BarChart3, CheckCircle, XCircle, AlertTriangle, Layers, MapPin, TrendingUp } from "lucide-react";
+import { CheckCircle, XCircle, AlertTriangle, Layers, MapPin, TrendingUp, Clock } from "lucide-react";
 import AdminLayout from "./AdminLayout";
 
 export default function AdminStatistics() {
@@ -42,6 +42,13 @@ export default function AdminStatistics() {
       Kritis: 0,
     };
 
+    const timeOfDayCount = {
+      Pagi: 0,
+      Siang: 0,
+      Sore: 0,
+      Malam: 0,
+    };
+
     const trendMap: Record<string, { label: string; count: number; ts: number }> = {};
 
     filteredReports.forEach((r) => {
@@ -54,6 +61,12 @@ export default function AdminStatistics() {
         severityCount[sev.label as keyof typeof severityCount]++;
 
       const date = new Date(r.createdAt);
+      const hour = date.getHours();
+      
+      if (hour >= 6 && hour < 12) timeOfDayCount.Pagi++;
+      else if (hour >= 12 && hour < 15) timeOfDayCount.Siang++;
+      else if (hour >= 15 && hour < 18) timeOfDayCount.Sore++;
+      else timeOfDayCount.Malam++;
       const monthYear = date.toLocaleString('id-ID', { month: 'short', year: 'numeric' });
       if (!trendMap[monthYear]) {
         trendMap[monthYear] = { label: monthYear, count: 0, ts: date.getTime() };
@@ -71,6 +84,7 @@ export default function AdminStatistics() {
       avgDepth: total > 0 ? totalDepth / total : 0,
       maxDepth,
       severityCount,
+      timeOfDayCount,
       trends: sortedTrends,
     };
   }, [filteredReports]);
@@ -146,27 +160,7 @@ export default function AdminStatistics() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
-            <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-              <div className="p-2 bg-[#005a9e]/10 text-[#005a9e] rounded-lg">
-                <BarChart3 className="w-5 h-5" />
-              </div>
-              <h3 className="text-lg font-black text-[#003B6D]">Analisis Kedalaman</h3>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center gap-2">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Rata-rata</span>
-                <span className="text-3xl font-black text-[#005a9e]">{formatDepth(Math.round(stats.avgDepth))}</span>
-              </div>
-              <div className="bg-red-50 p-5 rounded-2xl border border-red-100 flex flex-col items-center justify-center text-center gap-2">
-                <span className="text-xs font-bold text-red-400 uppercase tracking-widest">Maksimal</span>
-                <span className="text-3xl font-black text-red-600">{formatDepth(stats.maxDepth)}</span>
-              </div>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Severity Distribution */}
           <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
@@ -198,9 +192,7 @@ export default function AdminStatistics() {
               ))}
             </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -230,7 +222,9 @@ export default function AdminStatistics() {
               )}
             </div>
           </div>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
@@ -261,6 +255,46 @@ export default function AdminStatistics() {
               ) : (
                 <div className="text-center text-gray-400 py-6 text-sm font-semibold m-auto">Belum ada data tren</div>
               )}
+            </div>
+          </div>
+
+          <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
+            <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
+              <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                <Clock className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-black text-[#003B6D]">Distribusi Waktu Laporan</h3>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              {[
+                { label: "Pagi (06:00 - 11:59)", count: stats.timeOfDayCount.Pagi, color: "bg-amber-300", text: "text-amber-600" },
+                { label: "Siang (12:00 - 14:59)", count: stats.timeOfDayCount.Siang, color: "bg-orange-400", text: "text-orange-600" },
+                { label: "Sore (15:00 - 17:59)", count: stats.timeOfDayCount.Sore, color: "bg-rose-400", text: "text-rose-600" },
+                { label: "Malam (18:00 - 05:59)", count: stats.timeOfDayCount.Malam, color: "bg-indigo-500", text: "text-indigo-600" },
+              ].map((item) => {
+                const maxCount = Math.max(
+                  stats.timeOfDayCount.Pagi,
+                  stats.timeOfDayCount.Siang,
+                  stats.timeOfDayCount.Sore,
+                  stats.timeOfDayCount.Malam,
+                  1
+                );
+                return (
+                  <div key={item.label} className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-end">
+                      <span className={`text-xs font-bold uppercase tracking-wider ${item.text}`}>{item.label}</span>
+                      <span className="text-sm font-black text-gray-700">{item.count} Laporan</span>
+                    </div>
+                    <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${item.color} transition-all duration-1000 ease-out`}
+                        style={{ width: `${(item.count / maxCount) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -191,7 +191,7 @@ export default function AdminSidebar({ onReportClick, isOpen, setIsOpen }: Admin
                         : "bg-emerald-50 text-emerald-600 border border-emerald-100"
                     }`}>
                       <Bot size={10} />
-                      <span>{aiScores[report.id].className}</span>
+                      <span>{aiScores[report.id].className} - {(aiScores[report.id].probability * 100).toFixed(0)}%</span>
                     </div>
                   )}
                 </div>

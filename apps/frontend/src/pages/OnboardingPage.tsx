@@ -156,7 +156,7 @@ export default function OnboardingPage() {
             className="text-white/80 text-base md:text-xl max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-in-up"
             style={{ animationDelay: "0.3s" }}
           >
-            Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu dalam pendataan bencana secara cepat dan akurat.
+            Pantau kondisi banjir, laporkan kejadian banjir di sekitar Anda, dan bantu dalam pendataan bencana banjir secara cepat dan akurat.
           </p>
 
           <div
@@ -214,7 +214,7 @@ export default function OnboardingPage() {
               {
                 number: "01",
                 title: "Buka Peta Banjir",
-                description: "Akses peta interaktif langsung dari browser Anda — tidak perlu menginstal aplikasi."
+                description: "Akses peta interaktif langsung dari browser tanpa perlu menginstal aplikasi."
               },
               {
                 number: "02",
@@ -271,8 +271,23 @@ export default function OnboardingPage() {
                 yang dikembangkan oleh Tim <strong className="text-white">Research in Flood (RIF) ITERA</strong>.
               </p>
               <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                Pantau kondisi banjir secara real-time, laporkan kejadian banjir di sekitar Anda, dan bantu dalam pendataan bencana secara cepat dan akurat.
+                Pantau kondisi banjir, laporkan kejadian banjir di sekitar Anda, dan bantu dalam pendataan bencana secara cepat dan akurat.
               </p>
+
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 text-white/90 text-sm md:text-base">
+                <a href="mailto:rif@itera.ac.id" className="flex items-center gap-2.5 group hover:text-white transition-colors">
+                  <div className="p-2 rounded-full bg-white/10 group-hover:bg-sky-500/20 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-300"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  </div>
+                  <span className="font-medium tracking-wide">rif@itera.ac.id</span>
+                </a>
+                <a href="tel:+6281234567890" className="flex items-center gap-2.5 group hover:text-white transition-colors">
+                  <div className="p-2 rounded-full bg-white/10 group-hover:bg-sky-500/20 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-300"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  </div>
+                  <span className="font-medium tracking-wide">+62 812-3456-7890</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>

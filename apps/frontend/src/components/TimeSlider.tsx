@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState } from "react";
-import { History } from "lucide-react";
+import { History, X } from "lucide-react";
 import type { FloodReport } from "../context/reportsContextDef";
 
 interface TimeSliderProps {
@@ -58,20 +58,49 @@ export default function TimeSlider({ reports, onFilterChange }: TimeSliderProps)
     return date.toLocaleDateString("id-ID", { month: "short", year: "numeric" });
   };
 
+  const [isExpanded, setIsExpanded] = useState(window.innerWidth >= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsExpanded(true);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   if (months.length === 0) return null;
 
   return (
-    <div className="absolute top-24 md:top-auto md:bottom-8 left-1/2 -translate-x-1/2 z-1000 w-[90%] max-w-[340px] pointer-events-auto">
-      <div className="bg-white/95 backdrop-blur-md border border-white/20 p-3 rounded-2xl shadow-xl transition-all">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5 text-[#005a9e]">
-            <History className="w-4 h-4" />
-            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">Histori Waktu</span>
+    <div className="absolute top-[100px] md:top-auto md:bottom-8 left-1/2 -translate-x-1/2 z-1000 w-full max-w-[340px] pointer-events-auto flex justify-center">
+      {!isExpanded ? (
+        <button 
+          onClick={() => setIsExpanded(true)}
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-white/95 backdrop-blur-md border border-gray-100 shadow-xl rounded-full text-[#005a9e] font-bold text-xs hover:bg-gray-50 transition-all"
+        >
+          <History className="w-4 h-4" />
+          Histori Waktu {sliderIndex !== -1 ? `(${formatMonth(months[sliderIndex]!)})` : ""}
+        </button>
+      ) : (
+        <div className="bg-white/95 backdrop-blur-md border border-white/20 p-3 rounded-2xl shadow-xl transition-all w-[90%] md:w-full animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 text-[#005a9e]">
+              <History className="w-4 h-4" />
+              <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">Histori Waktu</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-[#005a9e] bg-[#005a9e]/10 px-2.5 py-1 rounded-full">
+                {sliderIndex === -1 ? "Semua Waktu" : formatMonth(months[sliderIndex]!)}
+              </span>
+              <button 
+                onClick={() => setIsExpanded(false)}
+                className="md:hidden cursor-pointer p-1 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full transition-all"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
           </div>
-          <span className="text-[10px] font-bold text-[#005a9e] bg-[#005a9e]/10 px-2.5 py-1 rounded-full">
-            {sliderIndex === -1 ? "Semua Waktu" : formatMonth(months[sliderIndex]!)}
-          </span>
-        </div>
 
         <div className="flex items-center gap-3">
           <button
@@ -102,7 +131,8 @@ export default function TimeSlider({ reports, onFilterChange }: TimeSliderProps)
             <span className="text-[8px] text-gray-400 font-medium">{formatMonth(months[months.length - 1]!)}</span>
           )}
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

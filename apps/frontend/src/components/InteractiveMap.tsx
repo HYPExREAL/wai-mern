@@ -8,6 +8,7 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import "leaflet/dist/leaflet.css";
 import {
   Crosshair,
@@ -70,10 +71,41 @@ function RecenterButton({ center, trigger, zoom = 16 }: { center: [number, numbe
   return null;
 }
 
+function MapBoundsListener({ onBoundsChange }: { onBoundsChange: (bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number }) => void }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const handleBoundsChange = () => {
+      const bounds = map.getBounds();
+      onBoundsChange({
+        minLat: bounds.getSouth(),
+        maxLat: bounds.getNorth(),
+        minLng: bounds.getWest(),
+        maxLng: bounds.getEast(),
+      });
+    };
+    
+    handleBoundsChange();
+  }, [map, onBoundsChange]);
+
+  useMapEvents({
+    moveend() {
+      const bounds = map.getBounds();
+      onBoundsChange({
+        minLat: bounds.getSouth(),
+        maxLat: bounds.getNorth(),
+        minLng: bounds.getWest(),
+        maxLng: bounds.getEast(),
+      });
+    }
+  });
+  return null;
+}
+
 export default function InteractiveMap() {
   const navigate = useNavigate();
   const geo = useGeolocation();
-  const { reports, addReport } = useReports();
+  const { reports, addReport, refreshReports } = useReports();
   const { notify } = useNotifications();
   const { layers: publicLayers, enabledIds, geoDataCache, toggleLayer } = useLayers(true);
 
@@ -543,6 +575,8 @@ export default function InteractiveMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        
+        <MapBoundsListener onBoundsChange={refreshReports} />
 
         <ClickHandler onMapClick={(lat, lng) => {
           setManualLocation([lat, lng]);
@@ -580,7 +614,7 @@ export default function InteractiveMap() {
                     setManualLocation(null);
                     setSearchQuery("");
                   }}
-                  className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors w-full border border-red-100 mt-1"
+                  className="cursor-pointer px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors w-full border border-red-100 mt-1"
                 >
                   Hapus Pin
                 </button>
@@ -589,37 +623,39 @@ export default function InteractiveMap() {
           </Marker>
         )}
 
-        {filteredReports.map((report) => (
-          <Marker
-            key={report.id}
-            position={[report.latitude, report.longitude]}
-            icon={getIconFromSeverity(report.severity, report.status)}
-          >
-            <Popup>
-              <div className="text-sm min-w-[200px] max-w-[260px]">
-                <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
-                <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description || "Tidak ada deskripsi"}</p>
+        <MarkerClusterGroup chunkedLoading maxClusterRadius={60}>
+          {filteredReports.map((report) => (
+            <Marker
+              key={report.id}
+              position={[report.latitude, report.longitude]}
+              icon={getIconFromSeverity(report.severity, report.status)}
+            >
+              <Popup>
+                <div className="text-sm min-w-[200px] max-w-[260px]">
+                  <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
+                  <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description || "Tidak ada deskripsi"}</p>
 
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
-                    {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
-                  </span>
-                  <span className="text-[10px] font-bold text-gray-400">
-                    {new Date(report.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </span>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
+                      {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-400">
+                      {new Date(report.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
+                    className="cursor-pointer w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    Lihat Detail
+                  </button>
                 </div>
-
-                <button
-                  onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
-                  className="w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  Lihat Detail
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
 
         {geo.latitude && geo.longitude && (
           <Marker position={[geo.latitude, geo.longitude]} icon={ICONS.user}>

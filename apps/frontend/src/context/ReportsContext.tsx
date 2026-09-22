@@ -41,12 +41,21 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
   const [reports, setReports] = useState<FloodReport[]>([]);
   const [pendingReports, setPendingReports] = useState<FloodReport[]>([]);
   const [allReports, setAllReports] = useState<FloodReport[]>([]);
+  const [allReportsPagination, setAllReportsPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [loading, setLoading] = useState(true);
 
-  const refreshReports = useCallback(async () => {
+  const refreshReports = useCallback(async (bounds?: { minLng: number; minLat: number; maxLng: number; maxLat: number }) => {
     try {
       setLoading(true);
-      const res = await apiClient.get("/reports/published");
+      const params = new URLSearchParams();
+      if (bounds) {
+        params.set("minLng", bounds.minLng.toString());
+        params.set("minLat", bounds.minLat.toString());
+        params.set("maxLng", bounds.maxLng.toString());
+        params.set("maxLat", bounds.maxLat.toString());
+      }
+      const query = params.toString();
+      const res = await apiClient.get(`/reports/published${query ? `?${query}` : ""}`);
       setReports(res.data.map(transformReport));
     } catch (err: unknown) {
       console.error("Gagal mengambil laporan publik:", err);
@@ -67,16 +76,24 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const refreshAll = useCallback(async (filters?: ReportFilters) => {
+  const refreshAll = useCallback(async (filters?: ReportFilters, page = 1, limit = 10) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
       if (filters?.from) params.set("from", filters.from);
       if (filters?.to) params.set("to", filters.to);
       if (filters?.status) params.set("status", filters.status);
+      params.set("page", page.toString());
+      params.set("limit", limit.toString());
+      
       const query = params.toString();
       const res = await apiClient.get(`/reports/all${query ? `?${query}` : ""}`);
-      setAllReports(res.data.map(transformReport));
+      setAllReports(res.data.data.map(transformReport));
+      setAllReportsPagination({
+        total: res.data.total,
+        page: res.data.page,
+        totalPages: res.data.totalPages,
+      });
     } catch (err: unknown) {
       console.error("Gagal mengambil semua laporan:", err);
     } finally {
@@ -154,6 +171,7 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     reports,
     pendingReports,
     allReports,
+    allReportsPagination,
     loading,
     addReport,
     approveReport,
@@ -166,6 +184,7 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     reports,
     pendingReports,
     allReports,
+    allReportsPagination,
     loading,
     addReport,
     approveReport,

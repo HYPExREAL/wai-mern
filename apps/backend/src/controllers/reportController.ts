@@ -64,9 +64,24 @@ export const submitReport = async (req: Request, res: Response) => {
 
 export const getPublishedReports = async (req: Request, res: Response) => {
   try {
-    const reports = await Report.find({ status: "approved" })
+    const { minLng, minLat, maxLng, maxLat } = req.query;
+    const filter: Record<string, any> = { status: "approved" };
+
+    if (minLng && minLat && maxLng && maxLat) {
+      filter.location = {
+        $geoWithin: {
+          $box: [
+            [parseFloat(minLng as string), parseFloat(minLat as string)],
+            [parseFloat(maxLng as string), parseFloat(maxLat as string)],
+          ],
+        },
+      };
+    }
+
+    const reports = await Report.find(filter)
       .select(LIST_PROJECTION)
       .sort({ createdAt: -1 })
+      .limit(filter.location ? 0 : 500) // limit if no bounds provided
       .lean();
 
     return res.json(reports);
@@ -90,7 +105,7 @@ export const getPendingReports = async (req: Request, res: Response) => {
 
 export const getAllReports = async (req: Request, res: Response) => {
   try {
-    const { from, to, status } = req.query;
+    const { from, to, status, page = "1", limit = "10" } = req.query;
     const filter: Record<string, any> = {};
 
     if (from || to) {
@@ -107,11 +122,26 @@ export const getAllReports = async (req: Request, res: Response) => {
       filter.status = status;
     }
 
-    const reports = await Report.find(filter)
-      .select(LIST_PROJECTION)
-      .sort({ createdAt: -1 })
-      .lean();
-    return res.json(reports);
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [reports, total] = await Promise.all([
+      Report.find(filter)
+        .select(LIST_PROJECTION)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      Report.countDocuments(filter),
+    ]);
+
+    return res.json({
+      data: reports,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+    });
   } catch (error: any) {
     console.error("Error fetching all reports:", error);
     return res.status(500).json({ message: "Gagal mengambil semua laporan." });

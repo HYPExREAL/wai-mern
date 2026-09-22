@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import "leaflet/dist/leaflet.css";
 import { 
   Navigation, LogOut, Layers, Info,
@@ -30,6 +31,37 @@ function MapUpdater({ center, sidebarOpen }: { center: [number, number] | null; 
   return null;
 }
 
+function MapBoundsListener({ onBoundsChange }: { onBoundsChange: (bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number }) => void }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const handleBoundsChange = () => {
+      const bounds = map.getBounds();
+      onBoundsChange({
+        minLat: bounds.getSouth(),
+        maxLat: bounds.getNorth(),
+        minLng: bounds.getWest(),
+        maxLng: bounds.getEast(),
+      });
+    };
+    
+    handleBoundsChange();
+  }, [map, onBoundsChange]);
+
+  useMapEvents({
+    moveend() {
+      const bounds = map.getBounds();
+      onBoundsChange({
+        minLat: bounds.getSouth(),
+        maxLat: bounds.getNorth(),
+        minLng: bounds.getWest(),
+        maxLng: bounds.getEast(),
+      });
+    }
+  });
+  return null;
+}
+
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
 
 const COLOR_PRESETS = [
@@ -38,7 +70,7 @@ const COLOR_PRESETS = [
 ];
 
 export default function AdminDashboard() {
-  const { reports, pendingReports, refreshPending } = useReports();
+  const { reports, pendingReports, refreshPending, refreshReports } = useReports();
   const allReports = useMemo(() => [...reports, ...pendingReports], [reports, pendingReports]);
   const [filteredReports, setFilteredReports] = useState<FloodReport[]>(allReports);
   const { layers, enabledIds, geoDataCache, toggleLayer, uploadLayer, deleteLayer, updateLayer } = useLayers();
@@ -153,6 +185,7 @@ export default function AdminDashboard() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <MapUpdater center={selectedLocation} sidebarOpen={sidebarOpen} />
+          <MapBoundsListener onBoundsChange={refreshReports} />
 
           {layerBorder && (
             <GeoJSONLayer url="/layers/batas_kota.json" style={{ color: '#EF4444', weight: 3, opacity: 0.8, fillOpacity: 0.05, dashArray: '8 4' }} />
@@ -165,35 +198,37 @@ export default function AdminDashboard() {
             <GeoJSONLayer key={layer._id} data={geoDataCache[layer._id]} style={layer.style} />
           ))}
 
-          {filteredReports.map((report) => (
-            <Marker key={report.id} position={[report.latitude, report.longitude]}
-              icon={uniformMarker ? ICONS.user : getIconFromSeverity(report.severity, report.status)}
-            >
-              <Popup>
-                <div className="text-sm min-w-[200px] max-w-[260px]">
-                  <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
-                  <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description}</p>
+          <MarkerClusterGroup chunkedLoading maxClusterRadius={60}>
+            {filteredReports.map((report) => (
+              <Marker key={report.id} position={[report.latitude, report.longitude]}
+                icon={uniformMarker ? ICONS.user : getIconFromSeverity(report.severity, report.status)}
+              >
+                <Popup>
+                  <div className="text-sm min-w-[200px] max-w-[260px]">
+                    <strong className="block text-[#003B6D] text-sm mb-1">{report.reporterName || "Anonim"}</strong>
+                    <p className="text-gray-500 text-xs leading-snug line-clamp-2 mb-2">{report.description}</p>
 
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
-                      {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
-                    </span>
-                    <span className="text-[10px] font-bold text-gray-400">
-                      {new Date(report.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </span>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
+                        {formatDepth(report.severity)} — {getSeverityFromDepth(report.severity).label}
+                      </span>
+                      <span className="text-[10px] font-bold text-gray-400">
+                        {new Date(report.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
+                      className="cursor-pointer w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      Lihat Detail
+                    </button>
                   </div>
-
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDetailReport(report); }}
-                    className="w-full flex items-center justify-center gap-2 py-2 bg-[#005a9e] text-white rounded-xl text-xs font-bold hover:bg-[#004a82] transition-all active:scale-[0.97]"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    Lihat Detail
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+                </Popup>
+              </Marker>
+            ))}
+          </MarkerClusterGroup>
 
           <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-1000 flex flex-col items-end gap-2 md:gap-4 pointer-events-auto">
             

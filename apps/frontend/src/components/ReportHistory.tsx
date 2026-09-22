@@ -1,14 +1,16 @@
-import { Filter, Download, ChevronDown, Calendar, Eye, X } from "lucide-react";
+import { Filter, Download, ChevronDown, Calendar, Eye, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import type { FloodReport } from "../context/reportsContextDef";
 import { useReports } from "../hooks/useReports";
 import { useEffect, useState, useCallback } from "react";
 import { exportToCSV, exportToXLSX, exportToGeoJSON } from "../utils/exportReports";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
+import { useNotifications } from "../context/notificationContextDef";
 import ReportDetailModal from "./ReportDetailModal";
 import AdminLayout from "./AdminLayout";
 
 export default function ReportHistory() {
-  const { allReports, refreshAll, refreshPending } = useReports();
+  const { allReports, allReportsPagination, refreshAll, refreshPending, deleteReport } = useReports();
+  const { confirm, notify } = useNotifications();
 
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
@@ -16,14 +18,16 @@ export default function ReportHistory() {
   const [showFilters, setShowFilters] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [selectedReport, setSelectedReport] = useState<FloodReport | null>(null);
+  
+  const [page, setPage] = useState(1);
 
   const fetchFiltered = useCallback(() => {
     const filters: Record<string, string> = {};
     if (filterFrom) filters.from = filterFrom;
     if (filterTo) filters.to = filterTo;
     if (filterStatus) filters.status = filterStatus;
-    refreshAll(Object.keys(filters).length > 0 ? filters : undefined);
-  }, [filterFrom, filterTo, filterStatus, refreshAll]);
+    refreshAll(Object.keys(filters).length > 0 ? filters : undefined, page);
+  }, [filterFrom, filterTo, filterStatus, page, refreshAll]);
 
   useEffect(() => {
     fetchFiltered();
@@ -34,6 +38,7 @@ export default function ReportHistory() {
     setFilterFrom("");
     setFilterTo("");
     setFilterStatus("");
+    setPage(1);
   };
 
   const hasActiveFilters = filterFrom || filterTo || filterStatus;
@@ -49,6 +54,24 @@ export default function ReportHistory() {
     else exportToGeoJSON(allReports, filename);
 
     setShowExportMenu(false);
+  };
+
+  const handleDelete = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    confirm({
+      title: "Hapus Laporan",
+      message: `Apakah Anda yakin ingin menghapus laporan dari ${name || "Anonim"}? Tindakan ini tidak dapat dibatalkan.`,
+      confirmText: "Ya, Hapus",
+      onConfirm: async () => {
+        try {
+          await deleteReport(id);
+          notify("success", "Laporan berhasil dihapus.");
+          fetchFiltered();
+        } catch {
+          notify("error", "Gagal menghapus laporan.");
+        }
+      }
+    });
   };
 
   return (
@@ -116,7 +139,7 @@ export default function ReportHistory() {
               <input
                 type="date"
                 value={filterFrom}
-                onChange={(e) => setFilterFrom(e.target.value)}
+                onChange={(e) => { setFilterFrom(e.target.value); setPage(1); }}
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold text-[#003B6D] focus:border-[#005a9e] focus:ring-2 focus:ring-[#005a9e]/10 outline-none transition-all"
               />
             </div>
@@ -127,7 +150,7 @@ export default function ReportHistory() {
               <input
                 type="date"
                 value={filterTo}
-                onChange={(e) => setFilterTo(e.target.value)}
+                onChange={(e) => { setFilterTo(e.target.value); setPage(1); }}
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold text-[#003B6D] focus:border-[#005a9e] focus:ring-2 focus:ring-[#005a9e]/10 outline-none transition-all"
               />
             </div>
@@ -137,7 +160,7 @@ export default function ReportHistory() {
               </label>
               <select
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold text-[#003B6D] focus:border-[#005a9e] outline-none transition-all appearance-none bg-white"
               >
                 <option value="">Semua</option>
@@ -172,6 +195,7 @@ export default function ReportHistory() {
                 <th className="px-8 py-6 text-[#005a9e] font-black uppercase tracking-wider text-xs">Kedalaman</th>
                 <th className="px-8 py-6 text-[#005a9e] font-black uppercase tracking-wider text-xs">Status</th>
                 <th className="px-8 py-6 text-[#005a9e] font-black uppercase tracking-wider text-xs">Tanggal</th>
+                <th className="px-8 py-6 text-[#005a9e] font-black uppercase tracking-wider text-xs text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -184,7 +208,7 @@ export default function ReportHistory() {
               ) : (
                 allReports.map((report, idx) => (
                   <tr key={report.id} onClick={() => setSelectedReport(report)} className="hover:bg-gray-50 transition-colors cursor-pointer group">
-                    <td className="px-8 py-5 text-sm font-bold text-gray-900">{idx + 1}</td>
+                    <td className="px-8 py-5 text-sm font-bold text-gray-900">{(allReportsPagination.page - 1) * 10 + idx + 1}</td>
                     <td className="px-8 py-5 text-sm font-black text-gray-800">{report.reporterName || "Anonim"}</td>
                     <td className="px-8 py-5 text-sm text-gray-500 max-w-xs truncate">{report.description}</td>
                     <td className="px-8 py-5">
@@ -203,11 +227,18 @@ export default function ReportHistory() {
                       </span>
                     </td>
                     <td className="px-8 py-5">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
-                          {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
-                        </span>
-                        <Eye className="w-4 h-4 text-gray-300 group-hover:text-[#005a9e] transition-colors" />
+                      <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                        {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5">
+                      <div className="flex items-center justify-end gap-3">
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedReport(report); }} className="p-2 text-gray-400 hover:text-[#005a9e] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer" title="Lihat Detail">
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button onClick={(e) => handleDelete(e, report.id, report.reporterName)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Hapus Laporan">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -242,14 +273,45 @@ export default function ReportHistory() {
                   <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${getSeverityFromDepth(report.severity).colorClass}`}>
                     {formatDepth(report.severity)}
                   </span>
+                </div>
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
                   <span className="text-[10px] text-gray-400 font-medium">
                     {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
                   </span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={(e) => handleDelete(e, report.id, report.reporterName)} className="cursor-pointer p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
           )}
         </div>
+        
+        {allReportsPagination.totalPages > 1 && (
+          <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-gray-50">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="cursor-pointer p-2 flex items-center gap-1 bg-white border border-gray-200 rounded-lg text-sm font-bold text-[#005a9e] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Sebelumnya
+            </button>
+            <span className="text-xs font-bold text-gray-500">
+              Halaman {allReportsPagination.page} dari {allReportsPagination.totalPages}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.min(allReportsPagination.totalPages, p + 1))}
+              disabled={page === allReportsPagination.totalPages}
+              className="cursor-pointer p-2 flex items-center gap-1 bg-white border border-gray-200 rounded-lg text-sm font-bold text-[#005a9e] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all"
+            >
+              Selanjutnya
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {selectedReport && (
