@@ -1,31 +1,45 @@
-import { useMemo, useState } from "react";
-import { useReports } from "../hooks/useReports";
+import { useMemo, useState, useEffect } from "react";
 import { getSeverityFromDepth } from "../utils/depthUtils";
 import { getDistrictFromCoords } from "../utils/locationUtils";
 import { CheckCircle, XCircle, AlertTriangle, Layers, MapPin, TrendingUp, Clock } from "lucide-react";
 import AdminLayout from "./AdminLayout";
+import apiClient from "../api/apiClient";
+import type { FloodReport } from "../context/reportsContextDef";
+import { transformReport } from "../utils/transformReport.ts";
 
 export default function AdminStatistics() {
-  const { allReports } = useReports();
+  const [statsReports, setStatsReports] = useState<FloodReport[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState<string>("Semua Wilayah");
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await apiClient.get("/reports/all?limit=10000");
+        setStatsReports(res.data.data.map(transformReport));
+      } catch (err) {
+        console.error("Gagal mengambil data statistik:", err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const availableDistricts = ["Semua Wilayah", "Panjang", "Teluk Betung", "Rajabasa", "Way Halim", "Sukabumi", "Kemiling", "Tanjung Karang"];
 
   const filteredReports = useMemo(() => {
-    if (selectedDistrict === "Semua Wilayah") return allReports;
-    return allReports.filter((r) => getDistrictFromCoords(r.latitude, r.longitude) === selectedDistrict);
-  }, [allReports, selectedDistrict]);
+    if (selectedDistrict === "Semua Wilayah") return statsReports;
+    return statsReports.filter((r) => getDistrictFromCoords(r.latitude, r.longitude) === selectedDistrict);
+  }, [statsReports, selectedDistrict]);
 
   const globalDistricts = useMemo(() => {
     const districtCount: Record<string, number> = {};
-    allReports.forEach((r) => {
+    statsReports.forEach((r) => {
       const district = getDistrictFromCoords(r.latitude, r.longitude);
       districtCount[district] = (districtCount[district] || 0) + 1;
     });
     return Object.entries(districtCount)
       .sort((a, b) => b[1] - a[1])
       .map(([label, count]) => ({ label, count }));
-  }, [allReports]);
+  }, [statsReports]);
 
   const stats = useMemo(() => {
     const total = filteredReports.length;
@@ -161,7 +175,6 @@ export default function AdminStatistics() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Severity Distribution */}
           <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6">
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">

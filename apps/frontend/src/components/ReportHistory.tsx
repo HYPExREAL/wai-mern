@@ -309,7 +309,7 @@ export default function ReportHistory() {
         </div>
         
         {allReportsPagination.totalPages > 1 && (
-          <div className="flex items-center justify-center md:justify-start gap-1 p-6 border-t border-gray-100 bg-white rounded-b-[32px]">
+          <div className="flex items-center justify-center gap-1 p-6 border-t border-gray-100 bg-white rounded-b-[32px]">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
@@ -324,8 +324,8 @@ export default function ReportHistory() {
                 onClick={() => setPage(p)}
                 className={`px-3.5 py-1.5 border rounded-md text-sm font-medium cursor-pointer transition-colors ${
                   page === p 
-                    ? "bg-black text-white border-black" 
-                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                    ? "bg-[#005a9e] text-white border-[#005a9e]" 
+                    : "bg-white border-gray-200 text-[#005a9e] hover:bg-gray-50"
                 }`}
               >
                 {p}
