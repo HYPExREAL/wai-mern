@@ -169,7 +169,7 @@ export const getAllReports = async (req: Request, res: Response) => {
     }
 
     const pageNum = Math.max(parseInt(page as string, 10) || 1, 1);
-    const limitNum = Math.min(Math.max(parseInt(limit as string, 10) || 10, 1), 100);
+    const limitNum = Math.min(Math.max(parseInt(limit as string, 10) || 10, 1), 50000);
     const skip = (pageNum - 1) * limitNum;
 
     const [reports, total] = await Promise.all([
