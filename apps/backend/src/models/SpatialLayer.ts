@@ -4,7 +4,7 @@ export interface ISpatialLayer extends Document {
   name: string;
   description: string;
   fileName: string;
-  geoData: object; // GeoJSON FeatureCollection or similar
+  geoData: object;
   style: {
     color: string;
     weight: number;

@@ -20,6 +20,7 @@ export default function ReportHistory() {
   const [selectedReport, setSelectedReport] = useState<FloodReport | null>(null);
   
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const getPageNumbers = () => {
     const total = allReportsPagination.totalPages;
@@ -45,8 +46,8 @@ export default function ReportHistory() {
     if (filterFrom) filters.from = filterFrom;
     if (filterTo) filters.to = filterTo;
     if (filterStatus) filters.status = filterStatus;
-    refreshAll(Object.keys(filters).length > 0 ? filters : undefined, page);
-  }, [filterFrom, filterTo, filterStatus, page, refreshAll]);
+    refreshAll(Object.keys(filters).length > 0 ? filters : undefined, page, limit);
+  }, [filterFrom, filterTo, filterStatus, page, limit, refreshAll]);
 
   useEffect(() => {
     fetchFiltered();
@@ -143,9 +144,28 @@ export default function ReportHistory() {
           )}
         </div>
 
-        <span className="text-xs text-gray-400 font-bold ml-auto">
-          {allReports.length} laporan
-        </span>
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-xs text-gray-400 font-bold hidden sm:inline">Tampilkan:</span>
+            <select
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
+              className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-[#003B6D] focus:border-[#005a9e] outline-none cursor-pointer bg-white"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={10000}>Semua</option>
+            </select>
+          </div>
+          <span className="text-xs text-gray-400 font-bold whitespace-nowrap">
+            Total {allReportsPagination.total || 0}
+          </span>
+        </div>
       </div>
 
       {showFilters && (
@@ -203,7 +223,6 @@ export default function ReportHistory() {
 
       <div className="flex-1 bg-white rounded-[24px] md:rounded-[32px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col">
         
-        {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto flex-1">
           <table className="w-full text-left">
             <thead>
@@ -227,7 +246,7 @@ export default function ReportHistory() {
               ) : (
                 allReports.map((report, idx) => (
                   <tr key={report.id} onClick={() => setSelectedReport(report)} className="hover:bg-gray-50 transition-colors cursor-pointer group">
-                    <td className="px-8 py-5 text-sm font-bold text-gray-900">{(allReportsPagination.page - 1) * 10 + idx + 1}</td>
+                    <td className="px-8 py-5 text-sm font-bold text-gray-900">{(allReportsPagination.page - 1) * limit + idx + 1}</td>
                     <td className="px-8 py-5 text-sm font-black text-gray-800">{report.reporterName || "Anonim"}</td>
                     <td className="px-8 py-5 text-sm text-gray-500 max-w-xs truncate">{report.description}</td>
                     <td className="px-8 py-5">
@@ -276,7 +295,7 @@ export default function ReportHistory() {
             allReports.map((report, idx) => (
               <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 cursor-pointer hover:border-[#005a9e]/20 hover:shadow-md transition-all active:scale-[0.98]">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase">#{idx + 1}</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">#{(allReportsPagination.page - 1) * limit + idx + 1}</span>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                     report.status === 'approved' ? 'bg-[#16A34A]/10 text-[#16A34A]' :
                     report.status === 'rejected' ? 'bg-[#DC2626]/10 text-[#DC2626]' :
