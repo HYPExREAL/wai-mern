@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import mongoose from "mongoose";
 import Report from "../models/Report";
 
 const LIST_PROJECTION = "-imageUrl -imageUrls";
@@ -17,6 +18,46 @@ export const submitReport = async (req: Request, res: Response) => {
       imageUrls,
     } = req.body;
 
+    if (!title || typeof title !== "string" || title.trim().length === 0 || title.length > 200) {
+      return res.status(400).json({ message: "Judul wajib diisi dan maksimal 200 karakter." });
+    }
+
+    if (!description || typeof description !== "string" || description.trim().length === 0 || description.length > 5000) {
+      return res.status(400).json({ message: "Deskripsi wajib diisi dan maksimal 5000 karakter." });
+    }
+
+    if (typeof severity !== "number" || severity < 0 || severity > 1000) {
+      return res.status(400).json({ message: "Kedalaman banjir harus berupa angka antara 0–1000 cm." });
+    }
+
+    if (!reporterName || typeof reporterName !== "string" || reporterName.trim().length === 0 || reporterName.length > 100) {
+      return res.status(400).json({ message: "Nama pelapor wajib diisi dan maksimal 100 karakter." });
+    }
+
+    if (reporterContact !== undefined && reporterContact !== null) {
+      if (typeof reporterContact !== "string" || reporterContact.length > 200) {
+        return res.status(400).json({ message: "Kontak pelapor harus berupa teks maksimal 200 karakter." });
+      }
+    }
+
+    const urlPattern = /^https?:\/\/.+/;
+    if (imageUrl !== undefined && imageUrl !== null && imageUrl !== "") {
+      if (typeof imageUrl !== "string" || !urlPattern.test(imageUrl)) {
+        return res.status(400).json({ message: "Format URL gambar tidak valid." });
+      }
+    }
+
+    if (imageUrls !== undefined && imageUrls !== null) {
+      if (!Array.isArray(imageUrls) || imageUrls.length > 10) {
+        return res.status(400).json({ message: "Daftar gambar harus berupa array dengan maksimal 10 URL." });
+      }
+      for (const url of imageUrls) {
+        if (typeof url !== "string" || (url !== "" && !urlPattern.test(url))) {
+          return res.status(400).json({ message: "Salah satu URL gambar tidak valid." });
+        }
+      }
+    }
+
     if (
       !location ||
       location.type !== "Point" ||
@@ -29,6 +70,12 @@ export const submitReport = async (req: Request, res: Response) => {
       });
     }
 
+    const [lng, lat] = location.coordinates;
+    if (typeof lng !== "number" || typeof lat !== "number" ||
+        lng < -180 || lng > 180 || lat < -90 || lat > 90) {
+      return res.status(400).json({ message: "Koordinat di luar jangkauan valid." });
+    }
+
     if (typeof gps_accuracy !== "number" || gps_accuracy > 2000) {
       return res.status(400).json({
         message: "Akurasi GPS tidak memadai (harus <= 2000 meter).",
@@ -36,14 +83,14 @@ export const submitReport = async (req: Request, res: Response) => {
     }
 
     const newReport = new Report({
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       severity,
       status: "pending",
       location,
       gps_accuracy,
-      reporterName,
-      reporterContact,
+      reporterName: reporterName.trim(),
+      reporterContact: reporterContact?.trim(),
       imageUrl,
       imageUrls,
     });
@@ -57,7 +104,6 @@ export const submitReport = async (req: Request, res: Response) => {
     console.error("Error submitting report:", error);
     return res.status(500).json({
       message: "Gagal mengirim laporan.",
-      error: error.message,
     });
   }
 };
@@ -81,7 +127,7 @@ export const getPublishedReports = async (req: Request, res: Response) => {
     const reports = await Report.find(filter)
       .select(LIST_PROJECTION)
       .sort({ createdAt: -1 })
-      .limit(filter.location ? 0 : 500) // limit if no bounds provided
+      .limit(filter.location ? 0 : 500)
       .lean();
 
     return res.json(reports);
@@ -122,8 +168,8 @@ export const getAllReports = async (req: Request, res: Response) => {
       filter.status = status;
     }
 
-    const pageNum = parseInt(page as string, 10);
-    const limitNum = parseInt(limit as string, 10);
+    const pageNum = Math.max(parseInt(page as string, 10) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit as string, 10) || 10, 1), 100);
     const skip = (pageNum - 1) * limitNum;
 
     const [reports, total] = await Promise.all([
@@ -151,6 +197,9 @@ export const getAllReports = async (req: Request, res: Response) => {
 export const getReportById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "ID tidak valid." });
+    }
     const report = await Report.findById(id).lean();
 
     if (!report) {
@@ -167,6 +216,9 @@ export const getReportById = async (req: Request, res: Response) => {
 export const updateReportStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "ID tidak valid." });
+    }
     const { status } = req.body;
 
     if (!["approved", "rejected"].includes(status)) {
@@ -198,6 +250,9 @@ export const updateReportStatus = async (req: Request, res: Response) => {
 export const deleteReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "ID tidak valid." });
+    }
     const report = await Report.findByIdAndDelete(id);
 
     if (!report) {

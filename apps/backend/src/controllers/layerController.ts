@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import mongoose from "mongoose";
 import SpatialLayer from "../models/SpatialLayer";
 import { convertToGeoJSON, getSupportedFormats } from "../utils/geoConverter";
 
@@ -22,6 +23,9 @@ export const getLayers = async (req: Request, res: Response) => {
 export const getLayerById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "ID tidak valid." });
+    }
     const layer = await SpatialLayer.findById(id).lean();
     if (!layer) {
       return res.status(404).json({ message: "Layer tidak ditemukan." });
@@ -37,8 +41,12 @@ export const createLayer = async (req: Request, res: Response) => {
   try {
     const { name, description, fileName, geoData, style, isPublic } = req.body;
 
-    if (!name || !geoData) {
-      return res.status(400).json({ message: "Nama dan data GeoJSON wajib diisi." });
+    if (!name || typeof name !== "string" || name.trim().length === 0 || name.length > 200) {
+      return res.status(400).json({ message: "Nama layer wajib diisi dan maksimal 200 karakter." });
+    }
+
+    if (!geoData || typeof geoData !== "object" || Array.isArray(geoData)) {
+      return res.status(400).json({ message: "Data GeoJSON wajib diisi dan harus berupa objek." });
     }
 
     const layer = new SpatialLayer({
@@ -122,6 +130,9 @@ export const uploadLayer = async (req: Request, res: Response) => {
 export const updateLayer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "ID tidak valid." });
+    }
     const { name, description, style, isPublic } = req.body;
 
     const update: Record<string, any> = {};
@@ -148,6 +159,9 @@ export const updateLayer = async (req: Request, res: Response) => {
 export const deleteLayer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "ID tidak valid." });
+    }
     const layer = await SpatialLayer.findByIdAndDelete(id);
     if (!layer) {
       return res.status(404).json({ message: "Layer tidak ditemukan." });

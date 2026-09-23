@@ -208,12 +208,45 @@ function parseGPX(buffer: Buffer): any {
   return geojson;
 }
 
+function parseCSVLine(line: string): string[] {
+  const fields: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]!;
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < line.length && line[i + 1] === '"') {
+          current += '"';
+          i++; // skip escaped quote
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        fields.push(current.trim());
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+  }
+  fields.push(current.trim());
+  return fields;
+}
+
 function parseCSV(buffer: Buffer): any {
   const text = buffer.toString("utf-8");
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if (lines.length < 2) throw new Error("File CSV kosong atau hanya memiliki header.");
 
-  const headers = lines[0]!.split(",").map(h => h.trim().toLowerCase());
+  const headers = parseCSVLine(lines[0]!).map(h => h.toLowerCase());
 
   const latIdx = headers.findIndex(h => 
     ["latitude", "lat", "y", "lintang"].includes(h)
@@ -231,7 +264,7 @@ function parseCSV(buffer: Buffer): any {
 
   const features = [];
   for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i]!.split(",").map(c => c.trim());
+    const cols = parseCSVLine(lines[i]!);
     const lat = parseFloat(cols[latIdx] || "");
     const lng = parseFloat(cols[lngIdx] || "");
 
