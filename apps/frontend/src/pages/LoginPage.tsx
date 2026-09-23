@@ -124,7 +124,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-8 text-center text-[11px] text-[#005a9e]/60 font-medium">
-            <p>Hanya untuk petugas berwenang Pemerintah Kota Bandar Lampung.</p>
+            <p>Hanya untuk admin Tim RIF ITERA.</p>
           </div>
         </div>
       </div>

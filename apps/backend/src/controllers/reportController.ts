@@ -40,7 +40,7 @@ export const submitReport = async (req: Request, res: Response) => {
       }
     }
 
-    const urlPattern = /^https?:\/\/.+/;
+    const urlPattern = /^(https?:\/\/.+|data:image\/.+;base64,.+)$/;
     if (imageUrl !== undefined && imageUrl !== null && imageUrl !== "") {
       if (typeof imageUrl !== "string" || !urlPattern.test(imageUrl)) {
         return res.status(400).json({ message: "Format URL gambar tidak valid." });
