@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
 import authRoutes from "./src/routes/authRoutes";
 import reportRoutes from "./src/routes/reportRoutes";
 import layerRoutes from "./src/routes/layerRoutes";
@@ -24,7 +23,23 @@ app.use(cors({
 
 app.use(express.json({ limit: "50mb" }));
 
-app.use(mongoSanitize());
+function stripDollarKeys(obj: any): any {
+  if (obj === null || typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map(stripDollarKeys);
+  const clean: Record<string, any> = {};
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith("$")) continue;
+    clean[key] = stripDollarKeys(obj[key]);
+  }
+  return clean;
+}
+
+app.use((req, _res, next) => {
+  if (req.body && typeof req.body === "object") {
+    req.body = stripDollarKeys(req.body);
+  }
+  next();
+});
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/wai-flood";
 
