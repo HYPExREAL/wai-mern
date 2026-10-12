@@ -11,11 +11,10 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
-    "@teachablemachine/image": "^0.8.5",
-    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.15.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.9.0",
+    "onnxruntime-web": "^1.30.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-leaflet": "^5.0.0",
