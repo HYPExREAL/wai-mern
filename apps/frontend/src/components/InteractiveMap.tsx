@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   MapContainer,
   TileLayer,
@@ -22,6 +23,8 @@ import {
   Layers,
   Info,
   Eye,
+  AlertTriangle,
+  HelpCircle,
 } from "lucide-react";
 import type { FloodReport } from "../context/reportsContextDef";
 import { useGeolocation } from "../hooks/useGeolocation";
@@ -32,8 +35,10 @@ import ZoomControls from "./map/ZoomControls";
 import GeoJSONLayer from "./map/GeoJSONLayer";
 import { useLayers } from "../hooks/useLayers";
 import ReportDetailModal from "./ReportDetailModal";
+import UserGuideModal from "./UserGuideModal";
 import { formatDepth, getSeverityFromDepth } from "../utils/depthUtils";
 import TimeSlider from "./TimeSlider";
+import { isInsideBandarLampung, isInsideIteraArea, initBandarLampungGeofence } from "../utils/geofence";
 
 const BANDAR_LAMPUNG: [number, number] = [-5.4294, 105.2617];
 
@@ -133,16 +138,28 @@ export default function InteractiveMap() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [flyToCoords, setFlyToCoords] = useState<[number, number]>(BANDAR_LAMPUNG);
   const [flyTrigger, setFlyTrigger] = useState(0);
+  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [dismissGpsBanner, setDismissGpsBanner] = useState(false);
+
+  useEffect(() => {
+    initBandarLampungGeofence();
+  }, []);
+
+  const finalLat = manualLocation ? manualLocation[0] : geo.latitude;
+  const finalLng = manualLocation ? manualLocation[1] : geo.longitude;
+
+  const isLocationInside = useMemo(() => {
+    if (finalLat === null || finalLng === null) return false;
+    return isInsideBandarLampung(finalLng, finalLat);
+  }, [finalLat, finalLng]);
 
   const accuracyOk = geo.accuracy !== null && geo.accuracy <= 2000;
   const hasValidLocation = manualLocation !== null || (!geo.loading && !geo.error && accuracyOk);
   const canSubmit =
     hasValidLocation &&
+    isLocationInside &&
     name.trim() !== "" &&
     depth !== "";
-
-  const finalLat = manualLocation ? manualLocation[0] : geo.latitude;
-  const finalLng = manualLocation ? manualLocation[1] : geo.longitude;
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -152,7 +169,7 @@ export default function InteractiveMap() {
       }
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&viewbox=105.178,-5.326,105.351,-5.518&limit=5`
         );
         const data = await response.json();
         setSuggestions(data);
@@ -173,15 +190,19 @@ export default function InteractiveMap() {
     setShowSuggestions(false);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&viewbox=105.178,-5.326,105.351,-5.518`
       );
       const data = await response.json();
       if (data && data.length > 0) {
         const lat = parseFloat(data[0].lat);
         const lon = parseFloat(data[0].lon);
+        const inside = isInsideBandarLampung(lon, lat);
         setManualLocation([lat, lon]);
         setFlyToCoords([lat, lon]);
         setFlyTrigger((prev) => prev + 1);
+        if (!inside) {
+          notify("error", "Peringatan: Lokasi berada di luar wilayah operasional (Bandar Lampung / ITERA).");
+        }
       } else {
         notify("error", "Lokasi tidak ditemukan. Silakan cari lebih spesifik.");
       }
@@ -196,12 +217,16 @@ export default function InteractiveMap() {
   const handleSelectSuggestion = (s: NominatimResult) => {
     const lat = parseFloat(s.lat);
     const lon = parseFloat(s.lon);
+    const inside = isInsideBandarLampung(lon, lat);
     setSearchQuery(s.display_name);
     setManualLocation([lat, lon]);
     setFlyToCoords([lat, lon]);
     setFlyTrigger((prev) => prev + 1);
     setSuggestions([]);
     setShowSuggestions(false);
+    if (!inside) {
+      notify("error", "Peringatan: Lokasi berada di luar wilayah operasional (Bandar Lampung / ITERA).");
+    }
   };
 
   const compressImage = (file: File): Promise<string> => {
@@ -278,7 +303,12 @@ export default function InteractiveMap() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit || finalLat === null || finalLng === null) return;
+    if (!canSubmit || finalLat === null || finalLng === null) {
+      if (!isLocationInside && finalLat !== null && finalLng !== null) {
+        notify("error", "Laporan ditolak: Lokasi pelaporan berada di luar wilayah operasional (Bandar Lampung / ITERA).");
+      }
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -309,8 +339,12 @@ export default function InteractiveMap() {
         setSubmitted(false);
         setShowReportForm(false);
       }, 2000);
-    } catch {
-      notify("error", "Gagal mengirim laporan. Silakan coba lagi.");
+    } catch (err) {
+      let msg = "Gagal mengirim laporan. Silakan coba lagi.";
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        msg = err.response.data.message;
+      }
+      notify("error", msg);
     } finally {
       setSubmitting(false);
     }
@@ -347,29 +381,86 @@ export default function InteractiveMap() {
         </Link>
 
 
-        <button 
-          onClick={handleTopRightAction}
-          className="cursor-pointer shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 transition-all font-bold text-xs md:text-sm uppercase tracking-wider"
-        >
-          {isAdmin ? (
-            <>
-              <span className="hidden sm:inline">Logout</span>
-              <LogOut className="w-4 h-4 md:w-5 md:h-5" />
-            </>
-          ) : (
-            <>
-              <span className="hidden sm:inline">Exit</span>
-              <X className="w-4 h-4 md:w-5 md:h-5" />
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowGuideModal(true)}
+            className="cursor-pointer shrink-0 flex items-center gap-1.5 px-3 py-2 md:px-3.5 md:py-2.5 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 hover:shadow-2xl transition-all font-bold text-xs md:text-sm active:scale-[0.98]"
+            title="Panduan Penggunaan untuk Warga"
+          >
+            <HelpCircle className="w-4 h-4 text-[#005a9e]" />
+            <span className="hidden sm:inline">Panduan Warga</span>
+          </button>
+
+          <button 
+            onClick={handleTopRightAction}
+            className="cursor-pointer shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-100 text-[#005a9e] hover:bg-gray-50 hover:shadow-2xl transition-all font-bold text-xs md:text-sm uppercase tracking-wider active:scale-[0.98]"
+          >
+            {isAdmin ? (
+              <>
+                <span className="hidden sm:inline">Logout</span>
+                <LogOut className="w-4 h-4 md:w-5 md:h-5" />
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:inline">Exit</span>
+                <X className="w-4 h-4 md:w-5 md:h-5" />
+              </>
+            )}
+          </button>
+        </div>
       </div>
+
+      {geo.error && !manualLocation && !dismissGpsBanner && (
+        <div className="absolute top-16 md:top-24 left-3 right-3 md:left-auto md:right-6 md:max-w-md z-1000 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-amber-200 p-3.5 flex items-start gap-3 pointer-events-auto animate-slide-up">
+          <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5 border border-amber-100">
+            <Navigation className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-1">
+              <span className="font-bold text-xs text-[#003B6D]">Izin GPS Tidak Aktif</span>
+              <button
+                type="button"
+                onClick={() => setDismissGpsBanner(true)}
+                className="text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer"
+                title="Tutup pemberitahuan"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-500 leading-snug mt-0.5">
+              Anda tetap bisa melapor! Cukup <strong>ketuk titik banjir di peta</strong> atau cari alamat untuk menandai lokasi manual.
+            </p>
+            <div className="flex items-center gap-3 mt-2">
+              <button
+                type="button"
+                onClick={() => setShowGuideModal(true)}
+                className="text-[11px] font-bold text-[#005a9e] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                Baca Panduan Warga
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showReportForm && (
         <div className="fixed inset-x-0 bottom-0 md:absolute md:inset-auto md:top-32 md:left-6 z-1000 w-full md:w-auto md:max-w-sm animate-slide-up md:animate-slide-in-left pointer-events-auto">
           <div className="bg-white/95 backdrop-blur-md rounded-t-[24px] md:rounded-[32px] shadow-2xl border border-white/50 p-4 md:p-8 flex flex-col gap-3 md:gap-5 max-h-[60svh] md:max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between">
-              <h2 className="text-[#005a9e] text-base md:text-xl font-bold">Lapor Banjir</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-[#005a9e] text-base md:text-xl font-bold">Lapor Banjir</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowGuideModal(true)}
+                  className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-[#005a9e] rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold cursor-pointer border border-blue-100"
+                  title="Buka panduan bantuan warga"
+                >
+                  <HelpCircle className="w-3 h-3" />
+                  <span>Panduan</span>
+                </button>
+              </div>
               <button 
                 type="button"
                 onClick={() => setShowReportForm(false)}
@@ -418,7 +509,55 @@ export default function InteractiveMap() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[#005a9e] text-xs font-bold pl-1 uppercase tracking-wider">Cari Lokasi</label>
+                <div className="flex items-center justify-between pl-1">
+                  <label className="text-[#005a9e] text-xs font-bold uppercase tracking-wider">Titik Lokasi Banjir</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowGuideModal(true)}
+                    className="text-[11px] font-bold text-[#005a9e] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    Panduan Lokasi
+                  </button>
+                </div>
+
+                {manualLocation ? (
+                  <div className="flex items-center justify-between p-2.5 bg-blue-50/80 border border-blue-200/80 rounded-xl text-xs text-[#003B6D]">
+                    <div className="flex items-center gap-1.5 font-bold">
+                      <MapPin className="w-4 h-4 text-[#005a9e] shrink-0" />
+                      <span>Titik Dipilih Manual di Peta</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setManualLocation(null);
+                        setSearchQuery("");
+                        setRecenterTrigger(prev => prev + 1);
+                      }}
+                      className="text-[10px] text-red-600 hover:underline font-bold cursor-pointer"
+                    >
+                      Reset / Gunakan GPS
+                    </button>
+                  </div>
+                ) : geo.latitude && geo.longitude ? (
+                  <div className="flex items-center justify-between p-2.5 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-xs text-emerald-800">
+                    <div className="flex items-center gap-1.5 font-bold">
+                      <Navigation className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Otomatis via GPS Perangkat</span>
+                    </div>
+                    <span className="text-[10px] text-emerald-700 font-bold">Akurasi ±{Math.round(geo.accuracy || 0)}m</span>
+                  </div>
+                ) : (
+                  <div className="p-2.5 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-amber-800 space-y-1">
+                    <div className="font-bold flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Lokasi Belum Ditentukan</span>
+                    </div>
+                    <p className="text-[11px] text-amber-700 leading-tight">
+                      Ketuk langsung pada titik banjir di peta atau cari alamat di bawah.
+                    </p>
+                  </div>
+                )}
                 <div className="relative">
                   <div className="flex gap-1.5">
                     <div className="flex-1 flex items-center bg-white border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#005a9e] focus-within:ring-2 focus-within:ring-[#005a9e]/10 transition-all">
@@ -476,9 +615,33 @@ export default function InteractiveMap() {
                 </div>
 
                 {finalLat !== null && finalLng !== null && (
-                  <p className="text-[10px] text-gray-400 font-mono pl-1">
-                    📍 {finalLat.toFixed(5)}, {finalLng.toFixed(5)}
-                  </p>
+                  <div className="flex flex-col gap-1.5 pl-1 pt-0.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-mono text-gray-500">
+                        📍 {finalLat.toFixed(5)}, {finalLng.toFixed(5)}
+                      </span>
+                      {isLocationInside ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          {isInsideIteraArea(finalLng, finalLat) ? "✓ Kawasan ITERA (Lamsel)" : "✓ Kota Bandar Lampung"}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+                          ✕ Luar Wilayah
+                        </span>
+                      )}
+                    </div>
+                    {!isLocationInside && (
+                      <div className="flex items-start gap-2 p-2.5 bg-red-50/90 border border-red-200 rounded-xl text-red-700 text-xs leading-snug">
+                        <AlertTriangle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
+                        <div>
+                          <span className="font-bold block">Di Luar Wilayah Operasional</span>
+                          <span className="text-[11px] text-red-600 block mt-0.5">
+                            Lokus pelaporan terkunci khusus wilayah Kota Bandar Lampung dan Kawasan Kampus ITERA sekitarnya untuk mencegah laporan spam.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -536,10 +699,18 @@ export default function InteractiveMap() {
               <button 
                 type="submit"
                 disabled={!canSubmit || submitting}
-                className="w-full bg-[#005a9e] cursor-pointer text-white py-3 md:py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#004a82] transition-all disabled:opacity-50 mt-1 md:mt-2 shadow-lg shadow-[#005a9e]/20 text-sm md:text-base"
+                className="w-full bg-[#005a9e] cursor-pointer text-white py-3 md:py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#004a82] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-1 md:mt-2 shadow-lg shadow-[#005a9e]/20 text-sm md:text-base"
               >
-                {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                {submitted ? "Berhasil Dikirim!" : "Kirim Laporan"}
+                {submitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+                {submitted
+                  ? "Berhasil Dikirim!"
+                  : !isLocationInside && finalLat !== null && finalLng !== null
+                  ? "Lokasi di Luar Wilayah (Bdl/ITERA)"
+                  : "Kirim Laporan"}
               </button>
             </form>
           </div>
@@ -578,8 +749,12 @@ export default function InteractiveMap() {
         <MapBoundsListener onBoundsChange={refreshReports} />
 
         <ClickHandler onMapClick={(lat, lng) => {
+          const inside = isInsideBandarLampung(lng, lat);
           setManualLocation([lat, lng]);
           setShowReportForm(true);
+          if (!inside) {
+            notify("error", "Peringatan: Titik yang Anda pilih berada di luar wilayah Kota Bandar Lampung dan Kawasan ITERA.");
+          }
         }} />
 
         <RecenterButton center={mapCenter} trigger={recenterTrigger} />
@@ -778,6 +953,15 @@ export default function InteractiveMap() {
           showStatus={false}
         />
       )}
+
+      <UserGuideModal
+        isOpen={showGuideModal}
+        onClose={() => setShowGuideModal(false)}
+        onStartManualPick={() => {
+          setShowReportForm(true);
+          notify("info", "Silakan klik/ketuk titik banjir langsung di peta.");
+        }}
+      />
     </div>
   );
 }

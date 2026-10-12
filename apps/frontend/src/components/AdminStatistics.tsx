@@ -23,7 +23,7 @@ export default function AdminStatistics() {
     fetchStats();
   }, []);
 
-  const availableDistricts = ["Semua Wilayah", "Panjang", "Teluk Betung", "Rajabasa", "Way Halim", "Sukabumi", "Kemiling", "Tanjung Karang"];
+  const availableDistricts = ["Semua Wilayah", "Panjang", "Teluk Betung", "Rajabasa", "Way Halim", "Sukabumi", "Kemiling", "Tanjung Karang", "ITERA / Jati Agung"];
 
   const filteredReports = useMemo(() => {
     if (selectedDistrict === "Semua Wilayah") return statsReports;

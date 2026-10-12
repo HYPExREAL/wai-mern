@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import mongoose from "mongoose";
 import Report from "../models/Report";
+import { isInsideBandarLampung } from "../utils/geofence";
 
 const LIST_PROJECTION = "-imageUrl -imageUrls";
 
@@ -74,6 +75,13 @@ export const submitReport = async (req: Request, res: Response) => {
     if (typeof lng !== "number" || typeof lat !== "number" ||
         lng < -180 || lng > 180 || lat < -90 || lat > 90) {
       return res.status(400).json({ message: "Koordinat di luar jangkauan valid." });
+    }
+
+    if (!isInsideBandarLampung(lng, lat)) {
+      return res.status(400).json({
+        message:
+          "Titik lokasi pelaporan berada di luar wilayah operasional (khusus Kota Bandar Lampung & Kawasan Kampus ITERA sekitarnya).",
+      });
     }
 
     if (typeof gps_accuracy !== "number" || gps_accuracy > 2000) {

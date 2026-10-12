@@ -1,4 +1,14 @@
+import { isInsideBandarLampung, isInsideIteraArea } from "./geofence";
+
 export const getDistrictFromCoords = (lat: number, lng: number): string => {
+  if (!isInsideBandarLampung(lng, lat)) {
+    return "Luar Wilayah";
+  }
+
+  if (isInsideIteraArea(lng, lat)) {
+    return "ITERA / Jati Agung";
+  }
+
   if (lat < -5.44 && lng > 105.28) return "Panjang";
   if (lat < -5.42 && lng > 105.25) return "Teluk Betung";
   if (lat > -5.38 && lng < 105.25) return "Rajabasa";
