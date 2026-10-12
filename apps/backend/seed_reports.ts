@@ -16,7 +16,10 @@ async function seed() {
     const filePath = path.resolve(__dirname, "../frontend/public/data_maret/Laporan Banjir Maret.xlsx");
     const workbook = xlsx.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
-    const data = xlsx.utils.sheet_to_json<any>(workbook.Sheets[sheetName]);
+    if (!sheetName) throw new Error("No sheet found in workbook");
+    const sheet = workbook.Sheets[sheetName];
+    if (!sheet) throw new Error("Sheet not found");
+    const data = xlsx.utils.sheet_to_json<any>(sheet);
 
     console.log(`Found ${data.length} records. Processing...`);
 
@@ -40,10 +43,17 @@ async function seed() {
       updatedAt: row.start ? new Date(row.start) : new Date(),
     }));
 
-    const validReports = reportsToInsert.filter(
-      (r) => r.location.coordinates[0] >= -180 && r.location.coordinates[0] <= 180 && 
-             r.location.coordinates[1] >= -90 && r.location.coordinates[1] <= 90
-    );
+    const validReports = reportsToInsert.filter((r) => {
+      const [lng, lat] = r.location.coordinates;
+      return (
+        lng !== undefined &&
+        lat !== undefined &&
+        lng >= -180 &&
+        lng <= 180 &&
+        lat >= -90 &&
+        lat <= 90
+      );
+    });
 
     console.log(`Inserting ${validReports.length} valid reports out of ${data.length}...`);
     
